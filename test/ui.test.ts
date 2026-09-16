@@ -56,6 +56,15 @@ test('dashboard runs, compares, changes tabs, browses history and creates an ext
   click(`[data-run="${outcome.run_id}"]`);await until(()=>!!doc.querySelector('.result-title .running'));
   store.mutate(outcome.run_id,(run)=>{run.execution!.status='completed';});
   await until(()=>!!doc.querySelector('.result-title .passed'));
+  const {newRun}=await import('../src/engine.js');
+  for(let i=0;i<65;i++)store.save(newRun('clean-control',i,'external'));
+  filter.value='all';filter.dispatchEvent(new dom.window.Event('change'));
+  click('.nav-item[data-view="history"]');await until(()=>doc.querySelectorAll('.history-row').length===50);
+  const newest=(doc.querySelector('.history-row') as HTMLElement).dataset.run;
+  click('#history-next');await until(()=>doc.querySelectorAll('.history-row').length<50);
+  assert.notEqual((doc.querySelector('.history-row') as HTMLElement).dataset.run,newest);
+  assert.equal((doc.querySelector('#history-next') as HTMLButtonElement).disabled,true);
+  click('#history-previous');await until(()=>(doc.querySelector('.history-row') as HTMLElement)?.dataset.run===newest);
   assert.deepEqual(errors.map(e=>e.message),[]);
 });
 

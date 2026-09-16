@@ -63,3 +63,24 @@ test('standalone HTTP adapter completes every scenario without importing the sim
     const report=await(await api(`/api/runs/${created.run.id}`)).json();assert.equal(report.evaluation.verdict,'passed',scenario.id);
   }
 });
+
+test('history traverses beyond 250 runs without duplicates when newer runs arrive',async t=>{
+  const {api,store}=await fixture(t);const ids=new Set<string>();
+  for(let i=0;i<267;i++){const r=newRun('clean-control',i,'external');r.created_at='2026-01-01T00:00:00.000Z';store.save(r);ids.add(r.id);}
+  const first=await(await api('/api/history?limit=40')).json();assert.equal(first.total,267);assert.equal(first.runs.length,40);
+  assert.equal(first.runs[0].world,undefined);assert.equal(first.runs[0].events,undefined);
+  const incoming=newRun('clean-control',999,'external');incoming.created_at='2026-01-01T00:00:00.000Z';store.save(incoming);
+  const seen=new Set<string>(first.runs.map((r:any)=>r.id));let cursor=first.next_cursor;
+  while(cursor){const page=await(await api(`/api/history?limit=40&before=${cursor}`)).json();for(const r of page.runs){assert.ok(!seen.has(r.id));seen.add(r.id);}cursor=page.next_cursor;}
+  assert.deepEqual(seen,ids);assert.ok(!seen.has(incoming.id));
+  assert.equal((await(await api('/api/history?limit=1')).json()).runs[0].id,incoming.id);
+  assert.equal((await(await api('/api/runs')).json()).length,250,'legacy endpoint remains compatible');
+});
+test('history rejects invalid pagination and remains operator-only',async t=>{
+  const {api}=await fixture(t);
+  for(const query of ['limit=0','limit=101','limit=1.5','limit=abc','before=not-a-cursor','unexpected=yes'])assert.equal((await api(`/api/history?${query}`)).status,400,query);
+  assert.equal((await api('/api/history?before=00000000-0000-4000-8000-000000000000')).status,404);
+  assert.equal((await api('/api/history',undefined,'wrong')).status,401);
+  const connection=await(await api('/api/runs',{scenario:'clean-control',agent:'external'})).json();
+  assert.equal((await api('/api/history',undefined,connection.connection.mcpServers['agent-crash-lab'].env.CRASHLAB_TOKEN)).status,401);
+});
