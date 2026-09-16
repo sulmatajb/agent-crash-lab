@@ -1,5 +1,5 @@
 import { randomUUID, createHash } from 'node:crypto';
-import { readFile, writeFile, rename } from 'node:fs/promises';
+import { readFile, writeFile, rename, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { evaluate, newRun, toolDefinitions, type Run } from './engine.js';
 import type { ScenarioId } from './scenarios.js';
@@ -25,17 +25,31 @@ export async function startCampaign(out:string,settings:Settings) {
   const configuration={adapter:settings.adapter,lab_version:labVersion,requested_model:settings.model??null,requested_provider:settings.provider??null,timeout_ms:settings.timeoutMs,max_turns:settings.maxTurns,task_sha256:hash(settings.task),system_prompt_sha256:hash(settings.systemPrompt??''),tool_names:[...Object.keys(toolDefinitions),'lab_finish'].sort()};
   if(!configurationSchema.safeParse(configuration).success)throw new Error('Invalid campaign configuration.');
   const reports:{id:string;file:string;sha256:string;scenario:ScenarioId;scenario_version:string;seed:number;verdict:string;execution:string;observed_model?:string;runtime_version?:string}[]=[];
-  const manifest={manifest_version:'1.0.0',campaign_id:id,created_at:new Date().toISOString(),finished_at:undefined as string|undefined,status:'running',configuration,configuration_sha256:hash(JSON.stringify(configuration)),planned,reports,limitation:'Configuration records requested settings and prompt hashes, not raw prompts, credentials or inherited client defaults. Runtime/model labels are client-reported. File hashes detect changes relative to this manifest; they do not authenticate its author. A running manifest left behind may indicate interruption.'};
-  const save=async()=>{await writeFile(join(out,`${file}.tmp`),JSON.stringify(manifest,null,2),{mode:0o600});await rename(join(out,`${file}.tmp`),join(out,file));};
+  let manifest={manifest_version:'1.0.0',campaign_id:id,created_at:new Date().toISOString(),finished_at:undefined as string|undefined,status:'running',configuration,configuration_sha256:hash(JSON.stringify(configuration)),planned,reports,limitation:'Configuration records requested settings and prompt hashes, not raw prompts, credentials or inherited client defaults. Runtime/model labels are client-reported. File hashes detect changes relative to this manifest; they do not authenticate its author. A running manifest left behind may indicate interruption.'};
+  const save=async(next=manifest)=>{
+    const temporary=join(out,`${file}.${randomUUID()}.tmp`);
+    try{await writeFile(temporary,JSON.stringify(next,null,2),{mode:0o600,flag:'wx'});await rename(temporary,join(out,file));}
+    catch(error){await rm(temporary,{force:true}).catch(()=>{});throw error;}
+  };
+  let pending=Promise.resolve();
+  const enqueue=(action:()=>Promise<void>)=>{const operation=pending.then(action);pending=operation.catch(()=>{});return operation;};
   await save();
   return {id,file,async record(report:Run){
+    report=structuredClone(report);
+    return enqueue(async()=>{
     if(manifest.status!=='running')throw new Error('Campaign is already finished.');
     if(report.campaign_id!==id||!planned.some(entry=>caseKey(entry)===caseKey(report)))throw new Error('Report does not belong to a planned campaign case.');
-    if(reports.some(entry=>caseKey(entry)===caseKey(report)))throw new Error('Campaign case already recorded.');
-    if(reports.some(r=>r.id===report.id))throw new Error('Report already recorded in campaign.');
-    reports.push({id:report.id,file:`${report.id}.json`,sha256:hash(JSON.stringify(report,null,2)),scenario:report.scenario,scenario_version:report.scenario_version,seed:report.seed,verdict:evaluate(report).verdict,execution:report.execution?.status??'unsupervised',observed_model:report.execution?.model,runtime_version:report.execution?.runtime_version});
-    await save();
-  },async finish(cancelled:boolean){manifest.status=cancelled?'cancelled':reports.some(r=>r.execution!=='completed')||reports.length!==planned.length?'stopped':'completed';manifest.finished_at=new Date().toISOString();await save();}};
+    if(manifest.reports.some(entry=>caseKey(entry)===caseKey(report)))throw new Error('Campaign case already recorded.');
+    if(manifest.reports.some(r=>r.id===report.id))throw new Error('Report already recorded in campaign.');
+    const entry={id:report.id,file:`${report.id}.json`,sha256:hash(JSON.stringify(report,null,2)),scenario:report.scenario,scenario_version:report.scenario_version,seed:report.seed,verdict:evaluate(report).verdict,execution:report.execution?.status??'unsupervised',observed_model:report.execution?.model,runtime_version:report.execution?.runtime_version};
+    const next={...manifest,reports:[...manifest.reports,entry]};
+    await save(next);manifest=next;
+    });
+  },async finish(cancelled:boolean){return enqueue(async()=>{
+    if(manifest.status!=='running')return;
+    const next={...manifest,status:cancelled?'cancelled':manifest.reports.some(r=>r.execution!=='completed')||manifest.reports.length!==planned.length?'stopped':'completed',finished_at:new Date().toISOString()};
+    await save(next);manifest=next;
+  });}};
 }
 
 export async function verifyCampaign(path:string) {

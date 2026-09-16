@@ -1,13 +1,53 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, writeFile, rm, readdir } from 'node:fs/promises';
+import { mkdtemp, readFile, writeFile, rm, readdir, rename, mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startCampaign, verifyCampaign } from '../src/campaign.js';
 import { evaluateClaude } from '../src/claude.js';
 import { createHash } from 'node:crypto';
-import { newRun } from '../src/engine.js';
+import { newRun, finishRun } from '../src/engine.js';
 const settings={adapter:'claude-code' as const,scenarios:['clean-control' as const],seed:42,repetitions:1,timeoutMs:5000,maxTurns:10,task:'Synthetic task',systemPrompt:'PRIVATE PROMPT'};
+
+test('failed manifest replacement leaves record and finish retryable without temporary files',async t=>{
+  const dir=await mkdtemp(join(tmpdir(),'crashlab-manifest-retry-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+  const campaign=await startCampaign(dir,settings),path=join(dir,campaign.file),backup=join(dir,'saved-manifest');
+  const report={...newRun('clean-control',42,'test'),campaign_id:campaign.id};
+  const block=async()=>{await rename(path,backup);await mkdir(path);};
+  const restore=async()=>{await rm(path,{recursive:true});await rename(backup,path);};
+  await block();await assert.rejects(()=>campaign.record(report));
+  assert.equal((await readdir(dir)).filter(f=>f.endsWith('.tmp')).length,0);
+  await restore();assert.equal(JSON.parse(await readFile(path,'utf8')).reports.length,0);
+  await campaign.record(report);assert.equal(JSON.parse(await readFile(path,'utf8')).reports.length,1);
+  await block();await assert.rejects(()=>campaign.finish(true));await restore();
+  assert.equal(JSON.parse(await readFile(path,'utf8')).status,'running');
+  await campaign.finish(true);await campaign.finish(false);
+  assert.equal(JSON.parse(await readFile(path,'utf8')).status,'cancelled');
+  assert.equal((await readdir(dir)).filter(f=>f.endsWith('.tmp')).length,0);
+});
+
+test('concurrent record requests are serialized before finalization and snapshot caller data',async t=>{
+  const dir=await mkdtemp(join(tmpdir(),'crashlab-manifest-queue-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+  const campaign=await startCampaign(dir,{...settings,repetitions:20});
+  const reports=Array.from({length:20},(_,i)=>{
+    const report=newRun('clean-control',42+i,'test');report.campaign_id=campaign.id;
+    report.execution={adapter:'claude-code',status:'completed'};finishRun(report);return report;
+  });
+  await Promise.all(reports.map(r=>writeFile(join(dir,`${r.id}.json`),JSON.stringify(r,null,2))));
+  const writes=reports.map(report=>campaign.record(report));
+  reports[0].seed=999;
+  await Promise.all([...writes,campaign.finish(false)]);
+  const verified=await verifyCampaign(join(dir,campaign.file));assert.equal(verified.recorded,20);assert.equal(verified.status,'completed');
+  assert.equal((await readdir(dir)).filter(f=>f.endsWith('.tmp')).length,0);
+});
+
+test('a rejected queued duplicate does not block campaign finalization',async t=>{
+  const dir=await mkdtemp(join(tmpdir(),'crashlab-manifest-duplicate-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+  const campaign=await startCampaign(dir,settings),report={...newRun('clean-control',42,'test'),campaign_id:campaign.id};
+  const results=await Promise.allSettled([campaign.record(report),campaign.record(report),campaign.finish(true)]);
+  assert.deepEqual(results.map(r=>r.status),['fulfilled','rejected','fulfilled']);
+  const manifest=JSON.parse(await readFile(join(dir,campaign.file),'utf8'));assert.equal(manifest.reports.length,1);assert.equal(manifest.status,'cancelled');
+});
 
 test('campaign writer rejects empty plans, duplicates and reports outside its plan',async t=>{
   const dir=await mkdtemp(join(tmpdir(),'crashlab-plan-'));t.after(()=>rm(dir,{recursive:true,force:true}));
