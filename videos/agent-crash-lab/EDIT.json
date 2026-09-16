@@ -5,14 +5,14 @@
   "run_id": "9048b80f-6c50-4b91-9b8f-f5d5dc2cfb90",
   "generator": "build-live-demo.mjs",
   "segments": [
-    {"start":0,"duration":4,"content":"Inbox/card stakes graphics"},
+    {"start":0,"duration":4,"content":"Would your agent pay twice? One payment. No response."},
     {"start":4,"duration":2,"content":"Lab reveal"},
     {"start":6,"duration":3,"content":"Exact executed CLI invocation, editorial typing"},
     {"start":9,"duration":5,"content":"Real tool calls 1–6, shortened display intervals"},
     {"start":14,"duration":2,"content":"Timeout emphasis"},
     {"start":16,"duration":3,"content":"Real ledger response, call 7"},
     {"start":19,"duration":2,"content":"Real receipt, call 8; final evaluation"},
-    {"start":21,"duration":3,"content":"AI safety through evidence close"}
+    {"start":21,"duration":3,"content":"Test your agent. See what happens."}
   ],
   "audio":{"source":"assets/crash-beat.wav","bpm":120,"duration":24,"origin":"Original deterministic synthesis; MIT"}
 }
