@@ -5,23 +5,37 @@ import { verifyReport } from './replay.js';
 
 const key = (r: Run) => `${r.scenario}@${r.scenario_version}:seed=${r.seed}`;
 const MAX_REPORT_BYTES = 10 * 1024 * 1024;
+const MAX_REPORTS = 1100; // Eleven scenarios, each with the CLI maximum of 100 seeds.
+const MAX_CAMPAIGN_BYTES = 64 * 1024 * 1024;
 
 /** Accept a single export, CLI test bundle, or supervised campaign directory. */
 export function loadReports(path: string): Run[] {
+  let bytes = 0;
+  const reports: Run[] = [];
+  const loadFile = (file: string) => {
+    const stat = statSync(file);
+    if (!stat.isFile()) throw new Error('Report input must be a regular file.');
+    if (stat.size > MAX_REPORT_BYTES) throw new Error('Report exceeds the 10 MiB input limit.');
+    if (bytes + stat.size > MAX_CAMPAIGN_BYTES) throw new Error('Campaign exceeds the 64 MiB aggregate input limit.');
+    const raw = readFileSync(file, 'utf8');
+    bytes += Buffer.byteLength(raw);
+    if (Buffer.byteLength(raw) > MAX_REPORT_BYTES || bytes > MAX_CAMPAIGN_BYTES) throw new Error('Evidence exceeds the input byte limit.');
+    let data;
+    try { data = JSON.parse(raw); } catch { throw new Error('Report is not valid JSON.'); }
+    const batch = Array.isArray(data?.runs) ? data.runs : [data];
+    if (!batch.length || reports.length + batch.length > MAX_REPORTS) throw new Error('Expected 1–1100 reports across all input files.');
+    reports.push(...batch);
+  };
   if (statSync(path).isDirectory()) {
     const files = readdirSync(path, { withFileTypes: true }).filter(f => f.isFile() && f.name.endsWith('.json') && f.name !== 'summary.json' && !f.name.endsWith('.trace.json') && !f.name.endsWith('.manifest.json')).sort((a,b) => a.name.localeCompare(b.name));
-    if (!files.length || files.length > 1000) throw new Error('Campaign must contain 1–1000 report files.');
-    return files.flatMap(f => loadReports(join(path, f.name)));
-  }
-  if (statSync(path).size > MAX_REPORT_BYTES) throw new Error('Report exceeds the 10 MiB input limit.');
-  const data = JSON.parse(readFileSync(path, 'utf8'));
-  const reports = Array.isArray(data?.runs) ? data.runs : [data];
-  if (!reports.length || reports.length > 1000) throw new Error('Expected 1–1000 reports.');
+    if (!files.length || files.length > MAX_REPORTS) throw new Error('Campaign must contain 1–1100 report files.');
+    for (const file of files) loadFile(join(path, file.name));
+  } else loadFile(path);
   return reports;
 }
 
 function index(reports: Run[], side: string) {
-  if (!reports.length || reports.length > 1000) throw new Error(`${side}: expected 1–1000 reports.`);
+  if (!reports.length || reports.length > MAX_REPORTS) throw new Error(`${side}: expected 1–1100 reports.`);
   const indexed = new Map<string, Run>();
   for (const r of reports) {
     if (!r || typeof r !== 'object' || !Array.isArray(r.events) || !Array.isArray(r.findings) || !Array.isArray(r.approvals) || !r.world || typeof r.agent !== 'string' || !['completed','running'].includes(r.status)) throw new Error(`${side}: invalid report structure.`);

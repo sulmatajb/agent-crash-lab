@@ -8,7 +8,35 @@ import { fileURLToPath } from 'node:url';
 import { compareReports, loadReports } from '../src/compare.js';
 import { newRun, finishRun, evaluate } from '../src/engine.js';
 import { runScripted } from '../src/agents.js';
+import { scenarios } from '../src/scenarios.js';
 const run = (agent:'careful'|'reckless',seed=42) => runScripted(newRun('payment-timeout',seed,agent),agent);
+
+test('comparison accepts the full eleven-scenario, hundred-seed campaign', t => {
+  const dir=mkdtempSync(join(tmpdir(),'crashlab-full-campaign-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));
+  const runs=scenarios.flatMap(s=>Array.from({length:100},(_,seed)=>{
+    const report=newRun(s.id,seed,'reference');finishRun(report);return report;
+  }));
+  assert.equal(runs.length,1100);
+  const path=join(dir,'bundle.json');writeFileSync(path,JSON.stringify({runs}));
+  const loaded=loadReports(path);assert.equal(loaded.length,1100);
+  const compared=compareReports(loaded,loaded);assert.equal(compared.total,1100);assert.equal(compared.exit_code,0);
+});
+
+test('directory bundles share a total report cap and reject malformed private JSON', t => {
+  const dir=mkdtempSync(join(tmpdir(),'crashlab-bundle-cap-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));
+  writeFileSync(join(dir,'a.json'),JSON.stringify({runs:Array(700).fill(null)}));
+  writeFileSync(join(dir,'b.json'),JSON.stringify({runs:Array(401).fill(null)}));
+  assert.throws(()=>loadReports(dir),/across all input files/);
+  writeFileSync(join(dir,'a.json'),'{"secret":"private-token",');
+  assert.throws(()=>loadReports(dir),{message:'Report is not valid JSON.'});
+});
+
+test('aggregate byte budget bounds a directory even when each file is within its limit', t => {
+  const dir=mkdtempSync(join(tmpdir(),'crashlab-byte-cap-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));
+  const padded='null'+' '.repeat(9*1024*1024-4);
+  for(let i=0;i<8;i++)writeFileSync(join(dir,`${i}.json`),padded);
+  assert.throws(()=>loadReports(dir),/64 MiB aggregate/);
+});
 
 test('paired comparison detects duplicate-payment regressions and preserves both verdicts',()=>{
   const result=compareReports([run('careful')],[run('reckless')]);
