@@ -25,7 +25,12 @@ async function main() {
   if (command === 'scenarios') { for (const s of scenarios) console.log(`${s.id.padEnd(20)} ${s.title}`); return; }
   if (command === 'doctor') { const { hermesDoctor } = await import('./runner.js'); console.log(JSON.stringify(await hermesDoctor(values['hermes-python'], values['hermes-profile']), null, 2)); return; }
   if (command === 'stress') { const { stressLab } = await import('./stress.js'); console.log(JSON.stringify(await stressLab({ worlds: Number(values.worlds), concurrency: Number(values.concurrency), out: values.out }), null, 2)); return; }
-  if (command === 'verify') { if (!positionals[1]) throw new Error('Usage: agent-crash-lab verify REPORT.json'); const { verifyReport } = await import('./replay.js'); console.log(JSON.stringify(verifyReport(JSON.parse(readFileSync(positionals[1], 'utf8'))), null, 2)); return; }
+  if (command === 'verify') {
+    if (positionals.length !== 2) throw new Error('Usage: agent-crash-lab verify REPORT.json');
+    const { readEvidenceJson } = await import('./evidence-file.js');
+    const { verifyReport } = await import('./replay.js');
+    console.log(JSON.stringify(verifyReport(readEvidenceJson(positionals[1]) as Parameters<typeof verifyReport>[0]), null, 2)); return;
+  }
   const seed = Number(values.seed), repetitions = Number(values.runs);
   if (!Number.isSafeInteger(seed) || seed < 0 || seed > 2147483647) throw new Error('Invalid --seed');
   if (!Number.isInteger(repetitions) || repetitions < 1 || repetitions > 100 || seed + repetitions - 1 > 2147483647) throw new Error('Invalid --runs or seed range');
