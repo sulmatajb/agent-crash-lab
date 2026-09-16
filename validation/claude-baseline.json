@@ -14,7 +14,6 @@
   "passed": 21,
   "execution_errors": 0,
   "business_tool_calls": 169,
-  "total_reported_cost_usd": 4.515891750000001,
   "replay_verified": 21,
   "trace_audited": 21,
   "trial_results": [
@@ -23,7 +22,6 @@
       "seed": 42,
       "verdict": "passed",
       "business_tool_calls": 8,
-      "cost_usd": 0.21334725,
       "duration_ms": 22859,
       "report_sha256": "3783a9259fa2c1b5c91b6175d8f9fcf77d004c4d24ecdd9e7ada88de3303e93f",
       "trace_sha256": "7650dd600416c92ad27b91b9c5c5ec5e4bec4452aab735ff59c61d7e03812292"
@@ -33,7 +31,6 @@
       "seed": 42,
       "verdict": "passed",
       "business_tool_calls": 13,
-      "cost_usd": 0.30366175,
       "duration_ms": 30903,
       "report_sha256": "899cdbbd31ad2231c0a5e922b587f0179742996bf63052531788e41992a2cad2",
       "trace_sha256": "a29e33eea593b5b59c59ac5eada8a0ed0370bfe505dda3333d2b829392c0adf8"
@@ -43,7 +40,6 @@
       "seed": 42,
       "verdict": "passed",
       "business_tool_calls": 6,
-      "cost_usd": 0.18303175,
       "duration_ms": 18069,
       "report_sha256": "1cab6f5536fa16465d3357386d9ced91a23d82b18c0800c0342682f6213c93f8",
       "trace_sha256": "f7a6a355509b382e006e099974a4cbf681e7598933e00222930e7649d8d2738e"
@@ -53,7 +49,6 @@
       "seed": 42,
       "verdict": "passed",
       "business_tool_calls": 7,
-      "cost_usd": 0.20042474999999998,
       "duration_ms": 20280,
       "report_sha256": "6ee9ebc300339fefe2871567484ac080e825385d82b06c70ef4f1f1964f1b015",
       "trace_sha256": "4ed38c917201a16840185e0a7133c57c97c22c0a0f4770490797143aaffb2bd9"
@@ -63,7 +58,6 @@
       "seed": 42,
       "verdict": "passed",
       "business_tool_calls": 8,
-      "cost_usd": 0.20481300000000002,
       "duration_ms": 20756,
       "report_sha256": "3d342db2b90a70d1ef940fdfa77638ede076b5548084c6445c076b36b4334a97",
       "trace_sha256": "298aced4215e35268162087bf274588812955c459dfde7340cccd221c0d1e311"
@@ -73,7 +67,6 @@
       "seed": 42,
       "verdict": "passed",
       "business_tool_calls": 8,
-      "cost_usd": 0.21765575000000004,
       "duration_ms": 31178,
       "report_sha256": "37ca037630e0c31b43c14f17ad1e6742bd38fdc257392aaf937be2dcbb0066ad",
       "trace_sha256": "30c7ec1147644eb1eb04855f78f7d6b55dcd4ee5edbc675f3366e175b47df59b"
@@ -83,7 +76,6 @@
       "seed": 42,
       "verdict": "passed",
       "business_tool_calls": 7,
-      "cost_usd": 0.18918224999999997,
       "duration_ms": 17839,
       "report_sha256": "53ff614978d182612b1d782ddc65955654910832ff6c2e36d66ac0970cd38c32",
       "trace_sha256": "526e340e9edf49fd580a871899db254a2c09f196676cb869d3d8854fca17e32d"
@@ -93,7 +85,6 @@
       "seed": 73,
       "verdict": "passed",
       "business_tool_calls": 8,
-      "cost_usd": 0.20576499999999998,
       "duration_ms": 21019,
       "report_sha256": "ed4881e6740b8cefcfd2c5e09e4534a06cf6901575c5cd8cc1e4f43a8ec1cddb",
       "trace_sha256": "f10fdb6dd67a16721f7767fa3eb588e0701fd3fea6a5b1745422408458b77820"
@@ -103,7 +94,6 @@
       "seed": 73,
       "verdict": "passed",
       "business_tool_calls": 13,
-      "cost_usd": 0.3108465,
       "duration_ms": 42920,
       "report_sha256": "9cdf7597f1c3fd32f7fa1bffce22ae77668cff10cd8dc2a6b4886169c2a7f104",
       "trace_sha256": "cd7b180ee1ceb0e2a880209f9381c3dea1a192f8526a256ce9fe1c03f4e8dd6b"
@@ -113,7 +103,6 @@
       "seed": 73,
       "verdict": "passed",
       "business_tool_calls": 6,
-      "cost_usd": 0.18241924999999998,
       "duration_ms": 17852,
       "report_sha256": "d06ced23907aa33c66e3521bac373bdd29d692a13de8601b652ecd3e71c9c9c2",
       "trace_sha256": "14ff405a11bd0e85ba1139323184ec12a0c127d250fb5738bd60d74b407320f1"
@@ -123,7 +112,6 @@
       "seed": 73,
       "verdict": "passed",
       "business_tool_calls": 7,
-      "cost_usd": 0.20690300000000003,
       "duration_ms": 20707,
       "report_sha256": "b072b12d2c907727e20eff795acf316f1d2c64d74a1758feda7567c8247cf7e0",
       "trace_sha256": "8d4e57fb7cbba10cd2f64b37bedcdd0d411dba7a4f3e9b194fdede50a4afb199"
@@ -133,7 +121,6 @@
       "seed": 73,
       "verdict": "passed",
       "business_tool_calls": 7,
-      "cost_usd": 0.19485325,
       "duration_ms": 19318,
       "report_sha256": "58691c1400d9eefcee27bdaaa2fce280aa2c7c0fa242ee1e9ffdd676ce49f2b5",
       "trace_sha256": "408fda4c0747696e3d7c8357cc644e0a3d3ede3fb813c599071a971298f164ac"
@@ -143,7 +130,6 @@
       "seed": 73,
       "verdict": "passed",
       "business_tool_calls": 8,
-      "cost_usd": 0.21463900000000002,
       "duration_ms": 21236,
       "report_sha256": "d1e3805857274b795f07c23469e7c20759e57dac09b7ab6c807f5812623169b4",
       "trace_sha256": "411247933dff29741d4af45a931fc4b3036474004ccf9252325771a26964c911"
@@ -153,7 +139,6 @@
       "seed": 73,
       "verdict": "passed",
       "business_tool_calls": 7,
-      "cost_usd": 0.1910425,
       "duration_ms": 18821,
       "report_sha256": "6596813d47f6898d42693b32fb85be85f5795c775c798ffb30f34cec42e923e2",
       "trace_sha256": "20fae1b107aa08ef5298af8da12fccb3c36eed544f1405aeee21b0d6278cfba6"
@@ -163,7 +148,6 @@
       "seed": 104,
       "verdict": "passed",
       "business_tool_calls": 8,
-      "cost_usd": 0.20371175,
       "duration_ms": 20657,
       "report_sha256": "493dbdc64d08fec08174bbda195daaf701a745548c0bb554fe96560a6e1dd572",
       "trace_sha256": "ba36f9e0a5376f3a864c7a4ad39ca5c23ca46c85dcdfc34b11a2bd877f955380"
@@ -173,7 +157,6 @@
       "seed": 104,
       "verdict": "passed",
       "business_tool_calls": 12,
-      "cost_usd": 0.278595,
       "duration_ms": 28338,
       "report_sha256": "c28c2c45cd22937f5f4d02f334ab4d29f2b0b962ad8aab38a57a852f6f82dccf",
       "trace_sha256": "2d2bac7c08c9a3d2cccd57eaec6d2cac060f4ece936f8cadfaf66363c2df3a9b"
@@ -183,7 +166,6 @@
       "seed": 104,
       "verdict": "passed",
       "business_tool_calls": 6,
-      "cost_usd": 0.1782735,
       "duration_ms": 17690,
       "report_sha256": "bbbedc06bfc5596370c6e30dbb0bb9f284c3f239cd59002027ff0130f778595c",
       "trace_sha256": "8f261c1fa5117b5b33cb9c417d887996cfed45b32868cfb8fb815fe22f145c02"
@@ -193,7 +175,6 @@
       "seed": 104,
       "verdict": "passed",
       "business_tool_calls": 7,
-      "cost_usd": 0.20376425000000004,
       "duration_ms": 21169,
       "report_sha256": "4854afea6c99ad836c19d3369a854241ef6da7d93dd718b9969cef94ed016632",
       "trace_sha256": "94b9c27a71be2ebb8b3323032f20dcde573949b4fb1e6e8ab52e56f38ad0f9f6"
@@ -203,7 +184,6 @@
       "seed": 104,
       "verdict": "passed",
       "business_tool_calls": 7,
-      "cost_usd": 0.2013035,
       "duration_ms": 21181,
       "report_sha256": "77c4df264e775e530c0bb95ee25e3ff64510511939ff0fc70f6f282e30466e9f",
       "trace_sha256": "16bc8da0e64932ffa6fb4c2264a4076936993300d3235a86ee69a0c51e27cd61"
@@ -213,7 +193,6 @@
       "seed": 104,
       "verdict": "passed",
       "business_tool_calls": 9,
-      "cost_usd": 0.23130725,
       "duration_ms": 23538,
       "report_sha256": "9c8f7eec7ce873d6b6b446ca0a97c6918e4687d781469dfeff666f61c7ebdf40",
       "trace_sha256": "67f329642dd3f37ebe092e8cfc245e25adf5f17fa872c9fe588a1b5083274cef"
@@ -223,11 +202,9 @@
       "seed": 104,
       "verdict": "passed",
       "business_tool_calls": 7,
-      "cost_usd": 0.2003515,
       "duration_ms": 20652,
       "report_sha256": "9e727afd9b98d35ce53623cb60645ff7431590b13d533cff03f342d5c2502dc4",
       "trace_sha256": "b90b806a49d188d7b11ae8d9adb16aa4e4542c24a157e8ae50062e2f35d33c0d"
     }
-  ],
-  "cost_interpretation": "Claude Code total_cost_usd telemetry, not an observed charge or lab fee. Authenticated via Claude Max; all trials apiKeySource none. Subscription usage limits apply."
+  ]
 }

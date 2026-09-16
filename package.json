@@ -24,7 +24,9 @@
     "validation/stress-large.json",
     "CLAUDE-VALIDATION.md",
     "ADVANCED-VALIDATION.md",
-    "validation/claude-advanced.json"
+    "validation/claude-advanced.json",
+    "validation/stress-v030.json",
+    "validation/claude-baseline.json"
   ],
   "scripts": {
     "dev": "tsx src/cli.ts start",
