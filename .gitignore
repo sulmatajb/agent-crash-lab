@@ -29,3 +29,5 @@ videos/**/.thumbnails/
 videos/**/recording/
 !videos/agent-crash-lab/assets/recorded-session.mp4
 !videos/agent-crash-lab/assets/recordings/*.mp4
+
+!videos/agent-crash-lab/assets/short-inputs/*.mp4

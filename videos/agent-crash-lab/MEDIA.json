@@ -40,5 +40,41 @@
     "sha256": "b11ff7c9cdb3592cde597ec6e0ac597b4a46edd17458a5c5e41f348c218aab83",
     "origin": "Actual local browser capture of Agent Crash Lab UI",
     "license": "MIT (project-authored UI and recording)"
+  },
+  {
+    "file": "assets/short-inputs/01-connect.mp4",
+    "sha256": "e7e05dc8f59012efe1a96429453c778ffc39b11ee5659b69d219baf8d6236aec",
+    "origin": "Seek-safe derivative of assets/recordings/01-connect.mp4; source timing unchanged",
+    "license": "MIT (project-authored UI and recording)"
+  },
+  {
+    "file": "assets/short-inputs/04-live-framed.mp4",
+    "sha256": "5e9f3f81b705b30a6c261e4fc1eb07852c7ae7d022154f003fc29acd4883f7ac",
+    "origin": "Seek-safe derivative of assets/recordings/04-live-framed.mp4; source timing unchanged",
+    "license": "MIT (project-authored UI and recording)"
+  },
+  {
+    "file": "assets/short-inputs/05-timeout.mp4",
+    "sha256": "e475912627a9603d19ab8498c4cbd1be2199e7c0dacaf00ebe551dfdba1f2eee",
+    "origin": "Seek-safe derivative of assets/recordings/05-timeout.mp4; source timing unchanged",
+    "license": "MIT (project-authored UI and recording)"
+  },
+  {
+    "file": "assets/short-inputs/06-reconcile-close.mp4",
+    "sha256": "c64f858f8ad6ca43517802f4e1e2ae5f2bf5a3744870d47856b9f83c14b8119f",
+    "origin": "Seek-safe derivative of assets/recordings/06-reconcile-close.mp4; source timing unchanged",
+    "license": "MIT (project-authored UI and recording)"
+  },
+  {
+    "file": "assets/short-inputs/08-receipt.mp4",
+    "sha256": "6db6932c52b4d4f6fd0d1c477d3c2df0906d1ab555c0866a838bd2fcdf04443d",
+    "origin": "Seek-safe derivative of assets/recordings/08-receipt.mp4; source timing unchanged",
+    "license": "MIT (project-authored UI and recording)"
+  },
+  {
+    "file": "assets/short-inputs/09-checks.mp4",
+    "sha256": "328eea62dc346e4962672d8bbb87627d3f7633a0d0f08f7a0a2472df90c898ad",
+    "origin": "Seek-safe derivative of assets/recordings/09-checks.mp4; source timing unchanged",
+    "license": "MIT (project-authored UI and recording)"
   }
 ]

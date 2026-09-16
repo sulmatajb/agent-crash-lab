@@ -1,70 +1,73 @@
 {
-  "duration": 34.0,
-  "capture": "Actual browser frames sampled at approximately 10 fps; timestamped source chunks. Encoded at 30 fps.",
+  "duration": 24,
+  "capture": "Existing actual browser recordings of Claude seed 43; no reconstructed product frames.",
+  "title_cards": [
+    {
+      "start": 0,
+      "duration": 3
+    },
+    {
+      "start": 21,
+      "duration": 3
+    }
+  ],
   "segments": [
     {
       "source": "01-connect.mp4",
-      "source_start": 0,
-      "source_duration": 3,
+      "source_start": 1.5,
+      "source_duration": 2.5,
       "playback_rate": 1,
-      "start": 0,
-      "duration": 3.0
+      "start": 3,
+      "duration": 2.5,
+      "label": "Connect via MCP"
     },
     {
       "source": "04-live-framed.mp4",
       "source_start": 0,
-      "source_duration": 10,
-      "playback_rate": 2,
-      "start": 3.0,
-      "duration": 5.0
-    },
-    {
-      "source": "04-live-framed.mp4",
-      "source_start": 10,
-      "source_duration": 7,
-      "playback_rate": 2,
-      "start": 8.0,
-      "duration": 3.5
+      "source_duration": 17.0,
+      "playback_rate": 3.4,
+      "start": 5.5,
+      "duration": 5,
+      "label": "Watch the agent \u00b7 3.4\u00d7"
     },
     {
       "source": "05-timeout.mp4",
       "source_start": 0.35,
-      "source_duration": 5,
+      "source_duration": 3,
       "playback_rate": 1,
-      "start": 11.5,
-      "duration": 5.0
+      "start": 10.5,
+      "duration": 3,
+      "label": "Payment committed. Response lost."
     },
     {
       "source": "06-reconcile-close.mp4",
       "source_start": 0.35,
-      "source_duration": 5,
+      "source_duration": 3,
       "playback_rate": 1,
-      "start": 16.5,
-      "duration": 5.0
-    },
-    {
-      "source": "07-effects.mp4",
-      "source_start": 0.3,
-      "source_duration": 4,
-      "playback_rate": 1,
-      "start": 21.5,
-      "duration": 4.0
+      "start": 13.5,
+      "duration": 3,
+      "label": "The agent checks the ledger."
     },
     {
       "source": "08-receipt.mp4",
       "source_start": 0.3,
-      "source_duration": 4,
+      "source_duration": 2.5,
       "playback_rate": 1,
-      "start": 25.5,
-      "duration": 4.0
+      "start": 16.5,
+      "duration": 2.5,
+      "label": "One payment. One receipt."
     },
     {
       "source": "09-checks.mp4",
       "source_start": 0.3,
-      "source_duration": 4.5,
+      "source_duration": 2,
       "playback_rate": 1,
-      "start": 29.5,
-      "duration": 4.5
+      "start": 19,
+      "duration": 2,
+      "label": "Policy held. Work completed."
     }
-  ]
+  ],
+  "derived_source_directory": "assets/short-inputs",
+  "source_directory": "assets/recordings",
+  "transcode": "H.264 CRF 16; keyframe interval 15 frames; same frames, no timing changes."
 }

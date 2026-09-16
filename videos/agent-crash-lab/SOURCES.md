@@ -17,6 +17,10 @@ The live sequence was captured while the model ran. The expanded responses, side
 
 ## Edit provenance
 
-[EDIT.json](EDIT.json) gives source offsets, durations, rates and final positions. `assets/recordings/` contains the source chunks used. Browser frames were sampled at approximately 10 fps, then encoded at 30 fps. The live segment runs at 2× with an on-screen indicator. Other waiting gaps are cut. Zooms and labels are editorial; tool responses, payment amounts and verdicts are unchanged. The source shows a single successful fixture trial, not a general safety benchmark.
+The current cut is 24 seconds: 0–3 trust concern, 3–5.5 connection instructions, 5.5–10.5 live calls at labelled 3.4×, 10.5–13.5 timeout evidence, 13.5–16.5 ledger reconciliation, 16.5–19 receipt, 19–21 checks, 21–24 safety closing.
 
-Capture takes at seed 42 and an initial framing attempt were excluded. All displayed run evidence in the final cut belongs to the seed-43 run above. Money and email are simulated throughout.
+[EDIT.json](EDIT.json) gives source offsets, durations, rates and final positions. `assets/recordings/` retains the original source chunks. Browser frames were sampled at approximately 10 fps, then encoded at 30 fps. `assets/short-inputs/` contains same-timing H.264 derivatives with keyframes every 15 frames for reliable seeking. Crops and editorial labels do not alter the recorded responses, payment amounts or verdicts. The dashboard shown is the recorded version, before subsequent UI polish.
+
+The connection screen shows CLI instructions and does not launch the model. Live calls were recorded during execution; expanded responses, receipt and checks are subsequent operator inspection. The README GIF is a 10-fps, 800-pixel derivative of the final MP4. No fabricated agent thoughts, tool calls or product screens are used. Silent by design.
+
+Capture takes at seed 42 and an initial framing attempt were excluded. All displayed run evidence belongs to the seed-43 run above. Money and email are simulated throughout. The safety closing is a call to test before access, not a claim of certification.

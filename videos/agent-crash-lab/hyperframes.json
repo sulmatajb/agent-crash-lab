@@ -10,5 +10,11 @@
     "autoProxy": true
   },
   "authoringSkill": "general-video",
-  "registryItems": []
+  "registryItems": [
+    {
+      "name": "headline-slam",
+      "type": "hyperframes:component",
+      "target": "compositions/components/headline-slam.html"
+    }
+  ]
 }

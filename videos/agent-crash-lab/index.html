@@ -1,35 +1,36 @@
-<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Agent Crash Lab — real agent, real evidence</title>
-<style>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Agent Crash Lab — test before access</title><style>
 @font-face{font-family:Inter;src:url('assets/inter-latin.woff2') format('woff2');font-weight:100 900;font-style:normal}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#142021}#main{position:relative;width:100%;height:100%;overflow:hidden;background:#eff3f3}
-#camera{position:absolute;inset:0;transform-origin:0 0;width:100%;height:100%}
-#recording{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
-div.clip{position:absolute;inset:0;pointer-events:none}.tag{position:absolute;left:28px;bottom:25px;font:500 22px Inter,sans-serif;color:#fff;background:#142021;padding:13px 18px;border:1px solid #3a4848;border-radius:7px}
-#speed{left:auto;right:28px;font-size:20px}
-#destination{position:absolute;left:28px;bottom:25px;font:600 27px Inter,sans-serif;color:#d4f75a;background:#142021;padding:17px 23px;border:1px solid #3a4848;border-radius:7px}
-</style><script src="assets/gsap.min.js" integrity="sha384-wRBqF5afF/Q64r0nYlFYwOMyqRL9EzdtUB1AP1T0iKOVNjh9gmQcYtqvzHQgqFRQ"></script></head>
-<body><div data-hf-id="hf-hh8o" id="main" data-composition-id="main" data-width="1920" data-height="1080" data-duration="34">
-<div data-hf-id="hf-5ys9" id="camera" data-layout-allow-overflow="true"><video data-hf-id="hf-qdg8" id="recording" class="clip" src="assets/recorded-session.mp4" data-start="0" data-duration="34" data-track-index="0" muted playsinline></video></div>
-<div data-hf-id="hf-5f2l" id="recorded-label-track" class="clip" data-start="0" data-duration="30.5" data-track-index="1"><div data-hf-id="hf-47nf" class="tag">Recorded · Claude Code + MCP</div></div>
-<div data-hf-id="hf-t9qy" id="speed-label-track" class="clip" data-start="3" data-duration="8.5" data-track-index="2"><div data-hf-id="hf-7p00" class="tag" id="speed">2×</div></div>
-<div data-hf-id="hf-ipjz" id="destination-track" class="clip" data-start="30.5" data-duration="3.5" data-track-index="3"><div data-hf-id="hf-zp3f" id="destination">github.com/sulmatajb/agent-crash-lab</div></div>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#142021;font-family:Inter,sans-serif;color:#f4f6ef}#main{position:relative;width:100%;height:100%;overflow:hidden;background:#142021}.clip{position:absolute;inset:0;pointer-events:none}.brand{position:absolute;left:80px;top:46px;font-size:29px;font-weight:750;letter-spacing:-1px;color:#d4f75a}.hero{position:absolute;left:110px;right:100px;top:265px}.line{font-size:108px;line-height:1.2;font-weight:650;letter-spacing:-5px}.accent{color:#d4f75a}.question{margin-top:36px;font-size:112px;line-height:1.1;font-weight:750;letter-spacing:-5px}.end .hero{top:305px}.end .line{font-size:112px}.url{position:absolute;left:110px;bottom:150px;font-size:32px;color:#e0e6de}.fine{position:absolute;left:110px;bottom:82px;font-size:24px;color:#c0cdc8}
+#viewport{position:absolute;left:320px;top:116px;width:1280px;height:864px;overflow:hidden;border-radius:16px;background:#eff3f3}.camera{position:absolute;width:1792px;height:1008px;transform-origin:0 0}.camera video{width:100%;height:100%;object-fit:fill}.phase{position:absolute;right:80px;top:43px;font-size:32px;font-weight:550;color:#f4f6ef}.footer{position:absolute;left:80px;bottom:36px;font-size:23px;color:#c0cdc8}.footer.right{left:auto;right:80px}.progress{position:absolute;left:64px;bottom:14px;width:1792px;height:3px;background:#d4f75a;transform-origin:left center}
+</style><script src="assets/gsap.min.js" integrity="sha384-wRBqF5afF/Q64r0nYlFYwOMyqRL9EzdtUB1AP1T0iKOVNjh9gmQcYtqvzHQgqFRQ"></script></head><body><div data-hf-id="hf-msl1" id="main" data-composition-id="main" data-width="1920" data-height="1080" data-duration="24">
+<div data-hf-id="hf-33zu" id="viewport" data-layout-allow-overflow="true">
+<div data-hf-id="hf-toee" id="camera-connect" class="camera" data-layout-allow-overflow="true"><video data-hf-id="hf-9anw" id="video-connect" class="clip" src="assets/short-inputs/01-connect.mp4" data-start="3" data-duration="2.5" data-media-start="1.5" data-playback-rate="1" data-track-index="0" muted playsinline></video></div>
+<div data-hf-id="hf-uaua" id="camera-live" class="camera" data-layout-allow-overflow="true"><video data-hf-id="hf-bqm8" id="video-live" class="clip" src="assets/short-inputs/04-live-framed.mp4" data-start="5.5" data-duration="5" data-media-start="0" data-playback-rate="3.4" data-track-index="0" muted playsinline></video></div>
+<div data-hf-id="hf-h2kl" id="camera-timeout" class="camera" data-layout-allow-overflow="true"><video data-hf-id="hf-cqwh" id="video-timeout" class="clip" src="assets/short-inputs/05-timeout.mp4" data-start="10.5" data-duration="3" data-media-start="0.35" data-playback-rate="1" data-track-index="0" muted playsinline></video></div>
+<div data-hf-id="hf-w9e8" id="camera-reconcile" class="camera" data-layout-allow-overflow="true"><video data-hf-id="hf-67xa" id="video-reconcile" class="clip" src="assets/short-inputs/06-reconcile-close.mp4" data-start="13.5" data-duration="3" data-media-start="0.35" data-playback-rate="1" data-track-index="0" muted playsinline></video></div>
+<div data-hf-id="hf-wtow" id="camera-receipt" class="camera" data-layout-allow-overflow="true"><video data-hf-id="hf-b6tt" id="video-receipt" class="clip" src="assets/short-inputs/08-receipt.mp4" data-start="16.5" data-duration="2.5" data-media-start="0.3" data-playback-rate="1" data-track-index="0" muted playsinline></video></div>
+<div data-hf-id="hf-ch27" id="camera-checks" class="camera" data-layout-allow-overflow="true"><video data-hf-id="hf-m0pf" id="video-checks" class="clip" src="assets/short-inputs/09-checks.mp4" data-start="19" data-duration="2" data-media-start="0.3" data-playback-rate="1" data-track-index="0" muted playsinline></video></div>
+</div>
+<div data-hf-id="hf-49t0" id="label-connect" class="clip" data-start="3" data-duration="2.5" data-track-index="1"><div data-hf-id="hf-j1cp" class="phase">Connect via MCP</div></div>
+<div data-hf-id="hf-d8dz" id="label-live" class="clip" data-start="5.5" data-duration="5" data-track-index="1"><div data-hf-id="hf-6vnt" class="phase">Watch the agent · 3.4×</div></div>
+<div data-hf-id="hf-hr6s" id="label-timeout" class="clip" data-start="10.5" data-duration="3" data-track-index="1"><div data-hf-id="hf-1tvm" class="phase">Payment committed. Response lost.</div></div>
+<div data-hf-id="hf-r7e7" id="label-reconcile" class="clip" data-start="13.5" data-duration="3" data-track-index="2"><div data-hf-id="hf-xt90" class="phase">The agent checks the ledger.</div></div>
+<div data-hf-id="hf-8cq0" id="label-receipt" class="clip" data-start="16.5" data-duration="2.5" data-track-index="2"><div data-hf-id="hf-jph9" class="phase">One payment. One receipt.</div></div>
+<div data-hf-id="hf-b37m" id="label-checks" class="clip" data-start="19" data-duration="2" data-track-index="2"><div data-hf-id="hf-qami" class="phase">Policy held. Work completed.</div></div>
+<div data-hf-id="hf-f02d" id="recording-chrome" class="clip" data-start="3" data-duration="18" data-track-index="3"><div data-hf-id="hf-qd8s" class="brand">agent crash lab</div><div data-hf-id="hf-1jka" class="footer">Recorded Claude Code trial</div><div data-hf-id="hf-ni9d" class="footer right">Simulated money &amp; email</div><div data-hf-id="hf-31j5" class="progress"></div></div>
+<div data-hf-id="hf-fkld" id="hook" class="clip" data-start="0" data-duration="3" data-track-index="4" style="background:#142021"><div data-hf-id="hf-o8mc" class="brand">agent crash lab</div><div data-hf-id="hf-eauf" class="hero" id="hook-copy"><div data-hf-id="hf-tt3p" class="line">Your inbox.</div><div data-hf-id="hf-bsbq" class="line">Your credit card.</div><div data-hf-id="hf-aki3" class="question accent">Trust your agent?</div></div></div>
+<div data-hf-id="hf-1ycd" id="closing" class="clip end" data-start="21" data-duration="3" data-track-index="4" style="background:#142021"><div data-hf-id="hf-n1p9" class="brand">agent crash lab</div><div data-hf-id="hf-acfd" class="hero" id="end-copy"><div data-hf-id="hf-hidz" class="line">AI safety starts</div><div data-hf-id="hf-i8fd" class="line accent">with evidence.</div></div><div data-hf-id="hf-60m7" class="url">github.com/sulmatajb/agent-crash-lab</div><div data-hf-id="hf-bxiq" class="fine">Test before you grant access.</div></div>
 </div><script>
 const tl=gsap.timeline({paused:true});
-tl.set('#camera',{scale:1,x:0,y:0},0);
-tl.to('#camera',{scale:1.22,x:-355,y:-30,duration:.65,ease:'power2.inOut'},1.35);
-tl.set('#camera',{scale:1.16,x:-307,y:-35},3);
-tl.to('#camera',{scale:1.3,x:-576,y:-260,duration:.8,ease:'power2.inOut'},4.6);
-tl.to('#camera',{scale:1.16,x:-307,y:-35,duration:.7,ease:'power2.inOut'},8.7);
-tl.set('#camera',{scale:1,x:0,y:0},11.5);
-tl.to('#camera',{scale:1.4,x:-768,y:0,duration:.7,ease:'power2.inOut'},12.6);
-tl.set('#camera',{scale:1.18,x:-345,y:0},16.5);
-tl.to('#camera',{scale:1.36,x:-691,y:0,duration:.65,ease:'power2.inOut'},17.6);
-tl.set('#camera',{scale:1.12,x:-230,y:0},21.5);
-tl.to('#camera',{scale:1.3,x:-576,y:-324,duration:.8,ease:'power2.inOut'},22.6);
-tl.set('#camera',{scale:1.2,x:-384,y:0},25.5);
-tl.to('#camera',{scale:1.3,x:-576,y:-324,duration:.75,ease:'power2.inOut'},26.7);
-tl.set('#camera',{scale:1.1,x:-192,y:0},29.5);
-tl.to('#camera',{scale:1.2,x:-384,y:-80,duration:.8,ease:'power2.inOut'},30.5);
+// Restrained adaptation of the installed headline-slam primitive: no shake or whip.
+tl.fromTo('#hook-copy',{scale:1.035},{scale:1,duration:.45,ease:'expo.out'},0);
+tl.fromTo('#end-copy',{scale:1.035},{scale:1,duration:.45,ease:'expo.out'},21);
+tl.fromTo('.progress',{scaleX:0},{scaleX:1,duration:18,ease:'none'},3);
+tl.set('#camera-connect',{x:-282,y:-20,scale:.9},0);
+tl.set('#camera-live',{x:-970,y:-370,scale:1.25},0);
+tl.set('#camera-timeout',{x:-970,y:0,scale:1.25},0);
+tl.set('#camera-reconcile',{x:-970,y:0,scale:1.25},0);
+tl.set('#camera-receipt',{x:-970,y:-330,scale:1.25},0);
+tl.set('#camera-checks',{x:-970,y:-230,scale:1.25},0);
 window.__timelines['main']=tl;
 </script></body></html>

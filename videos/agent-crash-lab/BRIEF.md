@@ -2,17 +2,14 @@
 workflow: general-video
 flow: automation
 storyboard: no
-message: Watch a real agent recover from a committed-payment timeout.
-destination: website
+message: Test your agent before granting inbox or payment access.
+destination: social and GitHub README
 aspect: 1920x1080
 language: en
-length: 34s
+length: 24s
 narration: no
-angle: actual UI recording
+angle: concern, actual agent evidence, safety
 ---
-## User revision
-Replace the rejected text-led video with an actual recording of UI interaction and a real agent using the lab. Use as few added words as possible. Autonomous completion, editing and rendering remain authorized.
-## Material
-Actual browser frame captures of a fresh Claude Code payment-timeout trial, seed 43, run f1a6c3a9-f01a-4b03-b13a-cff557ee7dbb. Recordings show live tool updates and subsequent human/operator inspection. Connection overview precedes the run; the runner itself was invoked from the CLI. Do not imply the web interface launches Claude.
-## Editing
-34 seconds. Cut dead time and shorten the live waiting segment to 2x. Keep tool results intact. Use camera reframing of the recorded UI, with no recreated UI, fabricated tool calls, or synthetic agent narration. Minimal added text: recorded-session label, speed indicator, final repository URL. Silent by design; no voiceover or music sourcing.
+User asks for a shorter, cleaner, faster shareable cut and a README embed. Start with inbox/credit-card trust, show connection to the lab and the real agent handling a timeout, end on AI safety. Preserve real recorded UI and minimal words. Render and deliver without another approval gate, as requested.
+
+Reuse the recorded Claude Code seed-43 trial. Connection instructions are shown; the actual invocation occurred offscreen in the CLI. The live segment is accelerated to 3.4× and labelled. Expanded evidence was inspected after completion. Synthetic effects throughout. Silent to work in autoplay feeds and README. Deliver H.264 MP4, compact animated GIF linked to the full video, and a poster. Do not publish the private repository.

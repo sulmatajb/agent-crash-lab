@@ -1,36 +1,23 @@
-# Agent Crash Lab — recorded UI demo
+# Short recorded-agent demo
 
-[Watch the 34-second MP4](launch.mp4) · [Contact sheet](contact-sheet.jpg) · [Recording provenance](SOURCES.md)
+A 24-second silent cut for sharing, with an 800-pixel animated README loop. Three seconds establish the inbox/payment trust concern, eighteen show real recorded UI, and three close on “AI safety starts with evidence.”
 
-![Video poster](poster.png)
+- [Shareable 1080p MP4](launch.mp4)
+- [README loop](../../docs/assets/crash-lab-demo.gif)
+- [Poster](poster.png)
+- [Source report](recorded-run.json) and [provenance](SOURCES.md)
 
-Actual UI recording of a fresh Claude Code run: tool calls arrive, a payment response times out, the agent checks the ledger, and the operator inspects one payment and one receipt. Minimal editorial text; no narration or music. 1920×1080 H.264 at 30 fps, from approximately 10 fps browser capture. The live waiting segment is visibly marked 2×.
+## Rebuild
 
-## Re-render
+Requires Node 22+, FFmpeg and Python 3. No model inference or hosted media generation is used.
 
-Requires Node.js 22+, Python 3 and FFmpeg. HyperFrames is pinned to 0.8.41.
-
-```sh
+```bash
 python3 build-recording.py
 npm run check
-npm run dev
-npm run render -- --quality delivery --output renders/agent-crash-lab-recorded.mp4
+npm run render -- --quality delivery --output launch.mp4
+python3 build-deliverables.py
 ```
 
-`EDIT.json` defines the cuts. `assets/recordings/` holds the actual source recordings, and `assets/recorded-session.mp4` is the assembled footage. The HyperFrames composition applies camera moves and the minimal labels. All assets are local. Raw frame working directories and render caches are ignored.
+HyperFrames is pinned to 0.8.43 (upgraded from 0.8.41 and revalidated). `index.html` owns source offsets, constant retiming, crops and text. `EDIT.json` documents the same ranges. Dense-keyframe derivatives in `assets/short-inputs/` preserve source timing and avoid stale-frame seeking. Original recordings remain in `assets/recordings/`.
 
-## Evidence
-
-From the repository root:
-
-```sh
-node dist/cli.js verify videos/agent-crash-lab/recorded-run.json
-```
-
-The displayed seed-43 report replayed successfully and its eight business calls matched the client trace. Passing this fixture is not a general safety certification. See [SOURCES.md](SOURCES.md).
-
-## Dependencies
-
-Original recording and composition use the repository MIT license. Bundled Inter uses [SIL OFL](assets/Inter-OFL.txt). GSAP 3.14.2 retains its license header and uses the [GSAP Standard License](https://gsap.com/standard-license). The repository license does not replace third-party terms.
-
-The 0.8.42 upgrade check exposed an integrity mismatch in the prior composition. This revision corrects the local GSAP digest and retains the previously pinned 0.8.41 renderer. No external stock media, music, voice or reconstructed UI is used.
+The recorded source UI predates later dashboard polish. It is not a recreated interface. The connection screen shows instructions; the runner was invoked offscreen from the CLI. Live footage runs at the labelled 3.4× speed; subsequent expanded evidence is operator inspection after completion. One fixture trial is not a safety certification.
