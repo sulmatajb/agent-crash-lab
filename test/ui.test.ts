@@ -40,7 +40,7 @@ test('dashboard runs, compares, changes tabs, browses history and creates an ext
   click('.compare-card:nth-child(2)');await until(()=>!!doc.querySelector('.result-title .passed'));
   click('.nav-item[data-view="history"]');await until(()=>doc.querySelectorAll('.history-row').length===2);assert.equal((doc.querySelector('#history-view') as HTMLElement).hidden,false);
   assert.doesNotMatch(doc.querySelector('#history-list')!.textContent!, /\$/);assert.match(doc.querySelector('#history-list')!.textContent!,/simulated payment/);
-  const filter=doc.querySelector('#history-filter') as HTMLSelectElement;filter.value='live';filter.dispatchEvent(new dom.window.Event('change'));assert.equal(doc.querySelectorAll('.history-row').length,0);filter.value='reference';filter.dispatchEvent(new dom.window.Event('change'));assert.equal(doc.querySelectorAll('.history-row').length,2);
+  const filter=doc.querySelector('#history-filter') as HTMLSelectElement;filter.value='live';filter.dispatchEvent(new dom.window.Event('change'));await until(()=>doc.querySelectorAll('.history-row').length===0);filter.value='reference';filter.dispatchEvent(new dom.window.Event('change'));await until(()=>doc.querySelectorAll('.history-row').length===2);
   click('.nav-item[data-view="guide"]');click('#create-external');await until(()=>!(doc.querySelector('#connection-output') as HTMLElement).hidden);
   assert.match(doc.querySelector('#connection-output')!.textContent!,/CRASHLAB_TOKEN/);
   click('#connection-output [data-run]');await until(()=>!!doc.querySelector('.result-title .running'));
@@ -72,8 +72,9 @@ test('live dashboard discovers runs, preserves evidence, restores links and reco
   const {newRun,callTool}=await import('../src/engine.js');
   const store=new RunStore(':memory:');const server=createLabServer(store);server.listen(0,'127.0.0.1');await once(server,'listening');
   const origin=`http://127.0.0.1:${(server.address() as any).port}`;
+  let holdHistory=false; let releaseHistory:(()=>void)|undefined;
   let offline=false; let hold=false; let release:(()=>void)|undefined;
-  const dom=await JSDOM.fromURL(origin,{resources:'usable',runScripts:'dangerously',beforeParse(window){window.fetch=((url:any,options:any)=>{if(offline)return Promise.reject(new Error('Server disconnected'));if(hold&&String(url).startsWith('/api/runs/')){hold=false;return fetchFromDom(new URL(url,origin),options).then(response=>new Promise<Response>(resolve=>{release=()=>resolve(response);}));}return fetchFromDom(new URL(url,origin),options);}) as any;}});
+  const dom=await JSDOM.fromURL(origin,{resources:'usable',runScripts:'dangerously',beforeParse(window){window.fetch=((url:any,options:any)=>{if(offline)return Promise.reject(new Error('Server disconnected'));if(holdHistory&&String(url).startsWith('/api/history?')){holdHistory=false;return fetchFromDom(new URL(url,origin),options).then(response=>new Promise<Response>(resolve=>{releaseHistory=()=>resolve(response);}));}if(hold&&String(url).startsWith('/api/runs/')){hold=false;return fetchFromDom(new URL(url,origin),options).then(response=>new Promise<Response>(resolve=>{release=()=>resolve(response);}));}return fetchFromDom(new URL(url,origin),options);}) as any;}});
   t.after(async()=>{dom.window.dispatchEvent(new dom.window.Event('pagehide'));dom.window.close();server.closeAllConnections();await new Promise<void>(r=>server.close(()=>r()));store.close();});
   const doc=dom.window.document;const click=(selector:string)=>(doc.querySelector(selector) as HTMLElement).click();
   await until(()=>doc.querySelectorAll('.scenario-button').length===11);
@@ -81,8 +82,12 @@ test('live dashboard discovers runs, preserves evidence, restores links and reco
   const run=newRun('payment-timeout',4321,'external');callTool(run,'policy_get',{});store.save(run);
   await until(()=>!!doc.querySelector(`[data-run="${run.id}"]`));
   const search=doc.querySelector('#history-search') as HTMLInputElement;
-  search.value='missing';search.dispatchEvent(new dom.window.Event('input'));assert.equal(doc.querySelectorAll('.history-row').length,0);
-  search.value='4321';search.dispatchEvent(new dom.window.Event('input'));assert.equal(doc.querySelectorAll('.history-row').length,1);
+  search.value='missing';search.dispatchEvent(new dom.window.Event('input'));await until(()=>doc.querySelectorAll('.history-row').length===0);
+  search.value='4321';search.dispatchEvent(new dom.window.Event('input'));await until(()=>doc.querySelectorAll('.history-row').length===1);
+  holdHistory=true;search.value='missing';search.dispatchEvent(new dom.window.Event('input'));await until(()=>!!releaseHistory);
+  search.value='4321';search.dispatchEvent(new dom.window.Event('input'));releaseHistory!();
+  await new Promise(resolve=>setTimeout(resolve,400));
+  assert.equal(doc.querySelectorAll('.history-row').length,1,'late search response cannot replace the current query');
   click(`[data-run="${run.id}"]`);await until(()=>!!doc.querySelector('details'));
   assert.equal(dom.window.location.hash,`#run=${run.id}`);
   const details=doc.querySelector('details') as HTMLDetailsElement;details.open=true;details.querySelector('summary')!.focus();

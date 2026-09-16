@@ -58,9 +58,9 @@ export function createLabServer(store: RunStore, adminToken = randomBytes(32).to
       if (!equal(bearer, adminToken)) return send(res, 401, { error: 'Admin authorization required' });
       if (url.pathname === '/api/scenarios' && req.method === 'GET') return send(res, 200, { scenarios, policy, task });
       if (url.pathname === '/api/history' && req.method === 'GET') {
-        const query = z.object({ limit:z.coerce.number().int().min(1).max(100).default(50), before:z.string().uuid().optional() }).strict().parse(Object.fromEntries(url.searchParams));
+        const query = z.object({ limit:z.coerce.number().int().min(1).max(100).default(50), before:z.string().uuid().optional(), q:z.string().max(200).default(''), filter:z.enum(['all','reference','live','attention','running']).default('all') }).strict().parse(Object.fromEntries(url.searchParams));
         if (query.before && !store.get(query.before)) return send(res, 404, { error:'History cursor not found. Return to newest runs.' });
-        const page = store.page(query.limit, query.before);
+        const page = store.page(query.limit, query.before, query.q, query.filter);
         return send(res, 200, { ...page, runs:page.runs.map(r => ({ ...r, world:undefined, events:undefined, evaluation:evaluate(r) })) });
       }
       if (url.pathname === '/api/runs' && req.method === 'GET') return send(res, 200, store.list().map(r => ({ ...r, world: undefined, events: undefined, evaluation: evaluate(r) })));
