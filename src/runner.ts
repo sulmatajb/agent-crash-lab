@@ -1,3 +1,4 @@
+import { startCampaign } from './campaign.js';
 import { spawn } from 'node:child_process';
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { randomBytes } from 'node:crypto';
@@ -57,6 +58,8 @@ export async function evaluateHermes(options: CampaignOptions) {
   const selected = options.scenario === 'all' ? scenarios : scenarios.filter(s => s.id === options.scenario);
   if (!selected.length) throw new Error('Unknown scenario');
   const out = resolve(options.out); await mkdir(out, { recursive: true, mode: 0o700 });
+  const prompt = `${task} Start with policy_get. When done, call lab_finish.`;
+  const campaignRecord = await startCampaign(out,{...options,adapter:options.probe?'hermes-probe':'hermes',scenarios:selected.map(s=>s.id),task:prompt});
   const store = new RunStore(resolve(options.db));
   const server = createLabServer(store);
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
@@ -66,6 +69,7 @@ export async function evaluateHermes(options: CampaignOptions) {
     campaign: for (let repeat = 0; repeat < options.repetitions; repeat++) for (const scenario of selected) {
       if (options.signal?.aborted) break campaign;
       const run = newRun(scenario.id as ScenarioId, options.seed + repeat, options.probe ? 'hermes-transport-probe' : 'hermes');
+      run.campaign_id = campaignRecord.id;
       run.execution = { adapter: 'hermes', status: 'starting', model: options.model, provider: options.provider };
       store.save(run);
       const token = randomBytes(32).toString('hex'); store.authorize(token, run);
@@ -75,7 +79,7 @@ export async function evaluateHermes(options: CampaignOptions) {
         const result = await runAdapter(options.python ?? defaultHermesPython, [adapter], {
           mode: options.probe ? 'probe' : 'evaluate', profile: options.profile ?? defaultHermesProfile,
           home, node: process.execPath, cli: fileURLToPath(new URL('../dist/cli.js', import.meta.url)),
-          url, token, tools: Object.keys(toolDefinitions), task: `${task} Start with policy_get. When done, call lab_finish.`,
+          url, token, tools: Object.keys(toolDefinitions), task: prompt,
           model: options.model, provider: options.provider, max_turns: options.maxTurns, system_prompt: options.systemPrompt
         }, options.timeoutMs, options.signal);
         const ready = result.records.find(r => r.kind === 'ready');
@@ -96,12 +100,13 @@ export async function evaluateHermes(options: CampaignOptions) {
       const report = { ...current, evaluation: evaluate(current) };
       runs.push(report);
       await writeFile(join(out, `${current.id}.json`), JSON.stringify(report, null, 2), { mode: 0o600 });
+      await campaignRecord.record(report);
       options.log?.(`${options.probe ? (current.execution?.status === 'completed' ? 'CONNECTED' : 'ERROR') : report.evaluation.verdict.toUpperCase()} ${scenario.id} · ${report.events.length} tool calls`);
       // Authentication/configuration failures must not burn through the entire suite.
       if (current.execution?.status === 'error') break campaign;
     }
-  } finally { server.closeAllConnections(); await new Promise<void>(r => server.close(() => r())); store.close(); }
-  const summary = { mode: options.probe ? 'transport-probe-no-model' : 'live-hermes', total: runs.length, passed: runs.filter(r => r.evaluation.verdict === 'passed').length, failed: runs.filter(r => r.evaluation.verdict === 'failed').length, incomplete: runs.filter(r => r.evaluation.verdict === 'incomplete').length, execution_errors: runs.filter(r => r.execution?.status !== 'completed').length, cancelled: Boolean(options.signal?.aborted), reports: runs.map(r => ({ id: r.id, scenario: r.scenario, verdict: r.evaluation.verdict, execution: r.execution })) };
+  } finally { server.closeAllConnections(); await new Promise<void>(r => server.close(() => r())); store.close(); await campaignRecord.finish(Boolean(options.signal?.aborted)); }
+  const summary = { campaign_id:campaignRecord.id, manifest:campaignRecord.file, mode: options.probe ? 'transport-probe-no-model' : 'live-hermes', total: runs.length, passed: runs.filter(r => r.evaluation.verdict === 'passed').length, failed: runs.filter(r => r.evaluation.verdict === 'failed').length, incomplete: runs.filter(r => r.evaluation.verdict === 'incomplete').length, execution_errors: runs.filter(r => r.execution?.status !== 'completed').length, cancelled: Boolean(options.signal?.aborted), reports: runs.map(r => ({ id: r.id, scenario: r.scenario, verdict: r.evaluation.verdict, execution: r.execution })) };
   await writeFile(join(out, 'summary.json'), JSON.stringify(summary, null, 2), { mode: 0o600 });
   return summary;
 }

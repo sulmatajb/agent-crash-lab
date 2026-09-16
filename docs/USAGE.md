@@ -231,3 +231,7 @@ Live updates preserve expanded tool responses and keyboard focus. A connection b
 `GET /api/history?limit=50&before=RUN_ID` returns `{ runs, next_cursor, total }`. Use `next_cursor` as `before` for the next page; null means the end. Omit `before` for newest runs. Limits are 1–100; invalid input returns 400 and a missing cursor returns 404. The operator bearer token is required; agent capabilities cannot browse history. Ordering uses creation time and insertion order for ties. Newer arrivals do not shift older-page boundaries. Return to the newest page to discover new arrivals.
 
 The original `GET /api/runs` remains available with its existing 250-run array response. Both listing endpoints omit fixture worlds and tool events; open a run for complete evidence.
+
+### Campaign provenance
+
+Supervised runners save unique campaign manifests with planned coverage, configuration fingerprints and report digests. Use `verify-campaign MANIFEST.json` to verify files, replay and coverage. See [campaign records and limitations](CAMPAIGNS.md).

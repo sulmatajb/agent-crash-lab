@@ -1,3 +1,4 @@
+import { startCampaign } from './campaign.js';
 import { spawn } from 'node:child_process';
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { randomBytes } from 'node:crypto';
@@ -48,16 +49,19 @@ export async function evaluateClaude(options: CampaignOptions & { command?: stri
   const selected = options.scenario === 'all' ? scenarios : options.scenario === 'advanced' ? scenarios.filter(s => (advancedScenarioIds as readonly string[]).includes(s.id)) : scenarios.filter(s => s.id === options.scenario);
   if (!selected.length) throw new Error('Unknown scenario');
   const out = resolve(options.out); await mkdir(out, { recursive: true, mode: 0o700 });
+  const prompt = `${task} Start by calling policy_get. When finished, call lab_finish.`;
+  const campaignRecord = await startCampaign(out,{...options,adapter:'claude-code',scenarios:selected.map(s=>s.id),task:prompt});
   const store = new RunStore(resolve(options.db)); const server = createLabServer(store);
   const reports: any[] = [];
   const expected = [...Object.keys(toolDefinitions), 'lab_finish'].map(n => `mcp__agent-crash-lab__${n}`).sort();
-  const summary = () => ({ mode: 'live-claude', total: reports.length, passed: reports.filter(r => r.verdict === 'passed').length, failed: reports.filter(r => r.verdict === 'failed').length, incomplete: reports.filter(r => r.verdict === 'incomplete').length, execution_errors: reports.filter(r => r.execution !== 'completed').length, cancelled: Boolean(options.signal?.aborted), reports });
+  const summary = () => ({ mode: 'live-claude', campaign_id:campaignRecord.id, manifest:campaignRecord.file, total: reports.length, passed: reports.filter(r => r.verdict === 'passed').length, failed: reports.filter(r => r.verdict === 'failed').length, incomplete: reports.filter(r => r.verdict === 'incomplete').length, execution_errors: reports.filter(r => r.execution !== 'completed').length, cancelled: Boolean(options.signal?.aborted), reports });
   try {
     server.listen(0, '127.0.0.1'); await once(server, 'listening');
     const url = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
     campaign: for (let repeat = 0; repeat < options.repetitions; repeat++) for (const scenario of selected) {
       if (options.signal?.aborted) break campaign;
       const run = newRun(scenario.id, options.seed + repeat, 'claude-code');
+      run.campaign_id = campaignRecord.id;
       run.execution = { adapter: 'claude-code', status: 'starting', model: options.model }; store.save(run);
       const token = randomBytes(32).toString('hex'); store.authorize(token, run);
       let dir: string | undefined;
@@ -68,7 +72,6 @@ export async function evaluateClaude(options: CampaignOptions & { command?: stri
         dir = await mkdtemp(join(tmpdir(), 'crashlab-claude-'));
         const config = { mcpServers: { 'agent-crash-lab': { command: process.execPath, args: [fileURLToPath(new URL('../dist/cli.js', import.meta.url)), 'mcp'], env: { CRASHLAB_URL: url, CRASHLAB_TOKEN: token } } } };
         await writeFile(join(dir, 'mcp.json'), JSON.stringify(config), { mode: 0o600 });
-        const prompt = `${task} Start by calling policy_get. When finished, call lab_finish.`;
         const args = ['-p', prompt, '--tools', '', '--mcp-config', join(dir, 'mcp.json'), '--strict-mcp-config', '--setting-sources', 'local', '--permission-mode', 'dontAsk', '--allowedTools', 'mcp__agent-crash-lab', '--max-turns', String(options.maxTurns), '--output-format', 'stream-json', '--verbose'];
         if (options.model) args.push('--model', options.model);
         if (options.systemPrompt) args.push('--append-system-prompt', options.systemPrompt);
@@ -101,12 +104,13 @@ export async function evaluateClaude(options: CampaignOptions & { command?: stri
       const current = store.get(run.id)!; const report = { ...current, evaluation: evaluate(current), report_version: '1.0.0' };
       verifyReport(report);
       await writeFile(join(out, `${run.id}.json`), JSON.stringify(report, null, 2), { mode: 0o600 });
+      await campaignRecord.record(report);
       reports.push({ id: run.id, scenario: scenario.id, seed: run.seed, verdict: report.evaluation.verdict, execution: current.execution?.status, error: current.execution?.error, tool_calls: current.events.length });
       await writeFile(join(out, 'summary.json'), JSON.stringify(summary(), null, 2), { mode: 0o600 });
       options.log?.(`${report.evaluation.verdict.toUpperCase()} ${scenario.id} · ${current.events.length} tool calls`);
       if (current.execution?.status !== 'completed') break campaign;
     }
-  } finally { server.closeAllConnections(); await new Promise<void>(r => server.close(() => r())); store.close(); }
+  } finally { server.closeAllConnections(); await new Promise<void>(r => server.close(() => r())); store.close(); await campaignRecord.finish(Boolean(options.signal?.aborted)); }
   await writeFile(join(out, 'summary.json'), JSON.stringify(summary(), null, 2), { mode: 0o600 });
   return summary();
 }
