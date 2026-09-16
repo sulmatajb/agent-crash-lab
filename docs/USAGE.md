@@ -62,6 +62,8 @@ The original profile is not modified. Its memory, skills, other MCP servers, ter
 
 `results/hermes/summary.json` summarizes the campaign. Each trial also gets a full evidence JSON file. Use `node dist/cli.js verify results/hermes/<run-id>.json` to replay and validate internal consistency. The verifier does not prove authorship or agent identity.
 
+Verification rejects malformed report envelopes, unknown run/execution statuses, and histories exceeding the engine's 200-call limit before replay. If an evaluation field is included, it must exactly match the replayed evaluation; omit it to verify raw run evidence. Structural errors name the field without echoing submitted values. These checks do not attest timestamps, model labels, or report authorship.
+
 ## Try the reference comparison locally
 
 Requires **Node.js 22.13+** and npm. Node 22 may print an experimental warning for its built-in SQLite module.
