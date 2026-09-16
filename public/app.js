@@ -2,9 +2,12 @@ const $ = s => document.querySelector(s);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 const money = cents => new Intl.NumberFormat('en-US', { style:'currency', currency:'USD' }).format(cents / 100);
 const token = $('meta[name="lab-token"]').content;
+const pageLifecycle=new AbortController();
+let disposed=false;
+window.addEventListener('pagehide',event=>{if(!event.persisted){disposed=true;pageLifecycle.abort();}});
 const state = { scenarios:[], selected:'payment-timeout', runs:[], run:null, tab:'timeline', comparison:[], connection:null, view:'lab', busy:false };
 async function api(path, body) {
-  const res = await fetch(`/api${path}`, { signal:AbortSignal.timeout(10000), method:body === undefined ? 'GET':'POST', headers:{ Authorization:`Bearer ${token}`, 'Content-Type':'application/json' }, body:body === undefined ? undefined:JSON.stringify(body) });
+  const res = await fetch(`/api${path}`, { signal:AbortSignal.any([pageLifecycle.signal,AbortSignal.timeout(10000)]), method:body === undefined ? 'GET':'POST', headers:{ Authorization:`Bearer ${token}`, 'Content-Type':'application/json' }, body:body === undefined ? undefined:JSON.stringify(body) });
   const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Request failed'); return data;
 }
 let toastTimer;
@@ -55,7 +58,7 @@ function renderTab(r) {
 let historyRequest;
 async function refreshHistory() {
   if(historyRequest)return historyRequest;
-  historyRequest=(async()=>{const runs=await api('/runs');const changed=JSON.stringify(runs)!==JSON.stringify(state.runs);state.runs=runs;$('#history-count').textContent=runs.length;if(changed||!$('#history-status').textContent)renderHistory();})();
+  historyRequest=(async()=>{const runs=await api('/runs');if(disposed)return;const changed=JSON.stringify(runs)!==JSON.stringify(state.runs);state.runs=runs;$('#history-count').textContent=runs.length;if(changed||!$('#history-status').textContent)renderHistory();})();
   try{await historyRequest;}finally{historyRequest=null;}
 }
 function renderHistory() { const focusedRun=document.activeElement?.closest('.history-row')?.dataset.run; const filter=$('#history-filter').value; const query=$('#history-search').value.trim().toLowerCase(); const runs=state.runs.filter(r=>[r.id,r.scenario,state.scenarios.find(s=>s.id===r.scenario)?.title,r.agent,r.execution?.model,String(r.seed)].some(value=>String(value??'').toLowerCase().includes(query))).filter(r=>filter==='running'&&r.evaluation.verdict==='running'||filter==='all'||filter==='reference'&&['careful','reckless'].includes(r.agent)||filter==='live'&&!['careful','reckless'].includes(r.agent)||filter==='attention'&&['failed','error','incomplete'].includes(r.evaluation.verdict)); $('#history-status').textContent=`${runs.length} of ${state.runs.length} recent runs · updates automatically`; $('#history-list').innerHTML = runs.length ? `<div class="card">${runs.map(r=>`<button class="history-row" data-run="${r.id}"><div><strong>${esc(state.scenarios.find(s=>s.id===r.scenario)?.title||r.scenario)}</strong><small>${esc(new Date(r.created_at).toLocaleString())} · seed ${r.seed}</small></div><span>${badge(r.evaluation.verdict)}</span><span>${esc(r.agent)}<small>${r.evaluation.tool_calls} tool calls</small></span><span>${r.payments.length} simulated payment${r.payments.length===1?'':'s'}<small>${r.evaluation.violations} violations</small></span><span>Inspect ↗</span></button>`).join('')}</div>`:'<div class="empty-result"><h3>No matching runs.</h3><p>Connect your agent, run a reference test, or choose another filter.</p></div>'; if(focusedRun)[...document.querySelectorAll('.history-row')].find(el=>el.dataset.run===focusedRun)?.focus({preventScroll:true}); }
@@ -89,22 +92,23 @@ document.addEventListener('click',async event=>{const button=event.target.closes
 }catch(e){toast(e.message);}});
 let polling=false;
 async function pollUpdates(){
-  if(polling||state.busy)return;
+  if(disposed||polling||state.busy)return;
   polling=true;
   try {
     if(state.view==='history')await refreshHistory();
     if((state.run?.status==='running'||state.run?.execution?.status==='starting')&&state.view==='lab'){
       const id=state.run.id; const r=await api(`/runs/${encodeURIComponent(id)}`);
       // A slow response must never replace another run the operator opened meanwhile.
-      if(state.run?.id===id&&JSON.stringify(r)!==JSON.stringify(state.run)){
+      if(!disposed&&state.run?.id===id&&JSON.stringify(r)!==JSON.stringify(state.run)){
         state.run=r;renderOutput(true);if(r.status==='completed')await refreshHistory();
       }
     }
-    $('#sync-status').hidden=true;
-  }catch(error){$('#sync-status').hidden=false;$('#sync-status').textContent=`Live updates paused: ${error.message}. Retrying automatically. Check that the lab server is running.`;}
+    if(!disposed)$('#sync-status').hidden=true;
+  }catch(error){if(disposed)return;$('#sync-status').hidden=false;$('#sync-status').textContent=`Live updates paused: ${error.message}. Retrying automatically. Check that the lab server is running.`;}
   finally{polling=false;}
 }
-setInterval(pollUpdates,2000);
+const pollTimer=setInterval(pollUpdates,2000);
+window.addEventListener('pagehide',event=>{if(!event.persisted)clearInterval(pollTimer);});
 window.addEventListener('hashchange',()=>{const id=new URLSearchParams(location.hash.slice(1)).get('run');if(id)openRun(id).catch(e=>toast(e.message));});
 async function init(){try{const data=await api('/scenarios');state.scenarios=data.scenarios; for(const el of document.querySelectorAll('[data-scenario-count]'))el.textContent=state.scenarios.length;$('#external-scenario').innerHTML=state.scenarios.map(s=>`<option value="${s.id}">${esc(s.title)}</option>`).join('');renderScenarios();renderOutput();await refreshHistory();const id=new URLSearchParams(location.hash.slice(1)).get('run');if(id)await openRun(id);}catch(e){$('#run-output').innerHTML=`<div class="error-message">Could not load the lab: ${esc(e.message)}. Restart the server and reload this page.</div>`;toast(e.message);}}
 async function registerOperatorTools(){

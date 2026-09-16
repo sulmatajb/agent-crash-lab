@@ -12,7 +12,7 @@ test('dashboard runs, compares, changes tabs, browses history and creates an ext
   const errors:Error[]=[];const console=new VirtualConsole();console.on('jsdomError',e=>errors.push(e));
   const registered=new Map<string,any>();
   const dom=await JSDOM.fromURL(origin,{resources:'usable',runScripts:'dangerously',virtualConsole:console,beforeParse(window){window.fetch=((url:any,options:any)=>fetch(new URL(url,origin),options)) as any;Object.defineProperty(window.document,'modelContext',{value:{registerTool(tool:any){registered.set(tool.name,tool);}}});}});
-  t.after(async()=>{dom.window.close();server.closeAllConnections();await new Promise<void>(r=>server.close(()=>r()));store.close();});
+  t.after(async()=>{dom.window.dispatchEvent(new dom.window.Event('pagehide'));dom.window.close();server.closeAllConnections();await new Promise<void>(r=>server.close(()=>r()));store.close();});
   const doc=dom.window.document;
   const click=(selector:string)=>{const el=doc.querySelector(selector) as HTMLElement;assert.ok(el,selector);el.click();};
   await until(()=>doc.querySelectorAll('.scenario-button').length===11);
@@ -54,7 +54,7 @@ test('live dashboard discovers runs, preserves evidence, restores links and reco
   const origin=`http://127.0.0.1:${(server.address() as any).port}`;
   let offline=false; let hold=false; let release:(()=>void)|undefined;
   const dom=await JSDOM.fromURL(origin,{resources:'usable',runScripts:'dangerously',beforeParse(window){window.fetch=((url:any,options:any)=>{if(offline)return Promise.reject(new Error('Server disconnected'));if(hold&&String(url).startsWith('/api/runs/')){hold=false;return fetch(new URL(url,origin),options).then(response=>new Promise<Response>(resolve=>{release=()=>resolve(response);}));}return fetch(new URL(url,origin),options);}) as any;}});
-  t.after(async()=>{dom.window.close();server.closeAllConnections();await new Promise<void>(r=>server.close(()=>r()));store.close();});
+  t.after(async()=>{dom.window.dispatchEvent(new dom.window.Event('pagehide'));dom.window.close();server.closeAllConnections();await new Promise<void>(r=>server.close(()=>r()));store.close();});
   const doc=dom.window.document;const click=(selector:string)=>(doc.querySelector(selector) as HTMLElement).click();
   await until(()=>doc.querySelectorAll('.scenario-button').length===11);
   click('.nav-item[data-view="history"]');
@@ -66,6 +66,8 @@ test('live dashboard discovers runs, preserves evidence, restores links and reco
   click(`[data-run="${run.id}"]`);await until(()=>!!doc.querySelector('details'));
   assert.equal(dom.window.location.hash,`#run=${run.id}`);
   const details=doc.querySelector('details') as HTMLDetailsElement;details.open=true;details.querySelector('summary')!.focus();
+  dom.window.dispatchEvent(new dom.window.PageTransitionEvent('pagehide',{persisted:true}));
+  dom.window.dispatchEvent(new dom.window.PageTransitionEvent('pageshow',{persisted:true}));
   store.mutate(run.id,r=>callTool(r,'inbox_list',{}));
   await until(()=>doc.querySelectorAll('.event').length===2);
   assert.equal((doc.querySelector('details') as HTMLDetailsElement).open,true);
@@ -80,7 +82,7 @@ test('live dashboard discovers runs, preserves evidence, restores links and reco
   assert.equal(doc.querySelector('.result-title'),null,'late polling response must not reopen the old run');
   assert.equal(dom.window.location.hash,'');
   const linked=await JSDOM.fromURL(`${origin}/#run=${run.id}`,{resources:'usable',runScripts:'dangerously',beforeParse(window){window.fetch=((url:any,options:any)=>fetch(new URL(url,origin),options)) as any;}});
-  t.after(()=>linked.window.close());
+  t.after(()=>{linked.window.dispatchEvent(new linked.window.Event('pagehide'));linked.window.close();});
   await until(()=>linked.window.document.querySelectorAll('.event').length===2);
   assert.match(linked.window.document.querySelector('.result-title')!.textContent!,new RegExp(run.id.slice(0,8)));
 });
