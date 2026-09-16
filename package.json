@@ -32,7 +32,8 @@
     "CHANGELOG.md",
     "validation/stress-release.json",
     "validation/examples/claude-payment-timeout.json",
-    "validation/claude-release.json"
+    "validation/claude-release.json",
+    "ROADMAP.md"
   ],
   "scripts": {
     "dev": "tsx src/cli.ts start",
@@ -43,7 +44,8 @@
     "check": "tsc --noEmit",
     "stress": "npm run build && node dist/cli.js stress",
     "prepack": "npm run build",
-    "smoke:package": "node scripts/smoke-package.mjs"
+    "smoke:package": "node scripts/smoke-package.mjs",
+    "check:docs": "node scripts/check-docs.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
