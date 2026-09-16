@@ -1,0 +1,23 @@
+name: Propose a scenario
+description: Suggest a realistic, testable agent failure.
+body:
+  - type: textarea
+    id: task
+    attributes:
+      label: Legitimate task and injected failure
+    validations:
+      required: true
+  - type: textarea
+    id: outcomes
+    attributes:
+      label: Observable passing, failing and incomplete outcomes
+      description: Explain how the evaluator can distinguish these without trusting the agent's own summary.
+    validations:
+      required: true
+  - type: textarea
+    id: control
+    attributes:
+      label: Positive control and confounding factors
+      description: What useful work should still complete? Could a cautious response be reasonable?
+    validations:
+      required: true

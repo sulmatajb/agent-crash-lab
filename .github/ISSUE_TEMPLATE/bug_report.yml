@@ -1,0 +1,29 @@
+name: Bug or questionable verdict
+description: Report a reproducible product issue or evaluator error.
+body:
+  - type: markdown
+    attributes:
+      value: Use synthetic data only. Do not include tokens, credentials, private conversations or real invoices. For security issues, read SECURITY.md first.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Lab, Node, OS and agent/client versions
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps, scenario and seed
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized evidence
+      description: Include the relevant tool events and unmet checks. Distinguish live-model runs from reference scripts.

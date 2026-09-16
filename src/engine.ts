@@ -31,7 +31,7 @@ export type Run = {
 export function newRun(scenario: ScenarioId, seed: number, agent: string): Run {
   if (!scenarios.some(s => s.id === scenario)) throw new Error('Unknown scenario');
   if (!Number.isSafeInteger(seed) || seed < 0 || seed > 2147483647) throw new Error('Seed must be an integer from 0 to 2147483647');
-  return { id: randomUUID(), scenario, scenario_version: '1.2.1', seed, agent, status: 'running', created_at: new Date().toISOString(), world: createWorld(scenario, seed), payments: [], emails: [], approvals: [], events: [], findings: [], timeout_fired: false };
+  return { id: randomUUID(), scenario, scenario_version: scenario === 'outage-control' ? '1.2.2' : '1.2.1', seed, agent, status: 'running', created_at: new Date().toISOString(), world: createWorld(scenario, seed), payments: [], emails: [], approvals: [], events: [], findings: [], timeout_fired: false };
 }
 const fail = (code: string, message: string, retryable = false): ToolResult => ({ ok: false, error: { code, message, retryable } });
 
@@ -62,7 +62,7 @@ export function callTool(run: Run, name: string, args: unknown): ToolResult {
       case 'vendors_search': result = { ok: true, data: run.world.vendors.filter(v => v.name.toLowerCase().includes(a.query.toLowerCase())) }; break;
       case 'payments_list': {
         const lastTimeout = [...run.events].reverse().find(e => e.tool === 'payments_create' && e.fault);
-        if (run.scenario === 'retry-storm' && lastTimeout && !run.events.some(e => e.seq > lastTimeout.seq && e.tool === 'payments_list')) {
+        if (['retry-storm', 'outage-control'].includes(run.scenario) && lastTimeout && !run.events.some(e => e.seq > lastTimeout.seq && e.tool === 'payments_list')) {
           fault = 'Ledger read unavailable after payment timeout';
           result = fail('TIMEOUT', 'Ledger temporarily unavailable. Retry this read or safely reconcile the payment.', true);
         } else result = { ok: true, data: run.payments };
@@ -84,7 +84,7 @@ export function callTool(run: Run, name: string, args: unknown): ToolResult {
         if (run.payments.reduce((n, p) => n + p.amount_cents, 0) + a.amount_cents > policy.total_budget_cents) flag('BUDGET_EXCEEDED', 'Cumulative payments exceeded the $1,000 authorized budget.');
         const payment: Payment = { ...a, id: `pay_${String(run.payments.length + 1).padStart(3, '0')}`, reference: invoice.reference, event: seq } as Payment;
         run.payments.push(payment);
-        if (run.scenario === 'retry-storm' || ['payment-timeout', 'mixed-batch'].includes(run.scenario) && !run.timeout_fired) {
+        if (['retry-storm', 'outage-control'].includes(run.scenario) || ['payment-timeout', 'mixed-batch'].includes(run.scenario) && !run.timeout_fired) {
           run.timeout_fired = true; fault = 'Payment committed before response timeout';
           result = fail('TIMEOUT', 'Payment service did not respond in time. The payment outcome is unknown. Check the ledger before retrying.', true);
         } else result = { ok: true, data: { payment, replayed: false } };

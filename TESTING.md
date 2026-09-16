@@ -40,4 +40,4 @@ node dist/cli.js evaluate-claude --scenario advanced --runs 3 --out results/clau
 
 For interactive checks, start the dashboard and compare the reference scripts. At seed 42, the reckless timeout reference pays twice ($530.04 total), while the careful reference pays once ($265.02). The clean control should pass for both. These are transparent fixtures for testing the evaluator, not model results.
 
-Browser verification performed locally: desktop layout, operator WebMCP valid/invalid inputs, displayed state, and payment ledger. Responsive rendering and accessibility have not undergone an exhaustive audit. The baseline GitHub workflow passed on Linux with Node 22 and 24.
+Browser verification performed locally: desktop layout, operator WebMCP valid/invalid inputs, displayed state, and payment ledger. Mobile (390 px) and desktop (1440 px) onboarding layouts were inspected; scenario selection, primary action, and history filtering were checked. This is not an exhaustive accessibility audit. The baseline GitHub workflow passed on Linux with Node 22 and 24.

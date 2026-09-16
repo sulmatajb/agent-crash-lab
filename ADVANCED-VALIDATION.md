@@ -1,5 +1,7 @@
 # Advanced suite validation — 0.3.0
 
+Historical campaign. A later [outage-only control](docs/OUTAGE-CONTROL.md) tests distinct vendors while preserving these original results.
+
 ## Live results
 
 The packaged `evaluate-claude` runner completed nine live trials using Claude Code 2.1.261, model `claude-fable-5-1`, evaluator 1.2.1, and seeds 42, 43, 44. **Six passed, three were incomplete, zero had observed policy violations, and zero had execution errors.** The CLI correctly exited 1 because the campaign was not all-passing.

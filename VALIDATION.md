@@ -1,14 +1,16 @@
-# Release validation — 0.3.0
+# Release validation — 0.3.1
 
 **Decision: infrastructure and the initial live Claude baseline validated; still pre-release.**
 
 See [CLAUDE-VALIDATION.md](CLAUDE-VALIDATION.md) for the historical 21-trial baseline, and [ADVANCED-VALIDATION.md](ADVANCED-VALIDATION.md) for the new nine-trial campaign: six passed, three incomplete, no execution errors.
 
+The pre-publication pass also verified the [outage-only control](docs/OUTAGE-CONTROL.md): three live Claude trials passed. The dependency audit on 2026-09-16 reported zero known advisories for the locked tree; this is a point-in-time check, not a guarantee. [Dependency license inventory](docs/dependency-inventory.json) records installed package declarations.
+
 ## What was actually exercised
 
 | Check | Observed outcome |
 | --- | --- |
-| Automated suite | 58 tests, including the installed Hermes runtime integration |
+| Automated suite | 61 tests, including the installed Hermes runtime integration |
 | Seeded engine invariants | 200,000 calls checked against an independent ledger oracle |
 | HTTP load | 65,000 requests, 1,000 worlds, 64 concurrent same-invoice retries |
 | MCP transport load | 96 calls through real stdio processes and official SDK clients |
@@ -17,7 +19,7 @@ See [CLAUDE-VALIDATION.md](CLAUDE-VALIDATION.md) for the historical 21-trial bas
 | HTTP p95 / p99 | 20.21 / 26.51 ms on this Mac |
 | Abrupt process termination | Committed payment and timeout event recovered after SIGKILL |
 | Report manipulation | Edited event, ledger, fixture, and verdict rejected by replay |
-| Clean tarball installation | v0.3.0 installed in a fresh temporary directory; packaged Claude runner completed a real clean-control trial |
+| Clean tarball installation | v0.3.1 installed in a fresh temporary directory; packaged Claude runner completed a real clean-control trial |
 | Installed Hermes | Version 0.18.2 discovered exactly ten lab tools and called the policy tool |
 | Hermes decision-loop plumbing | Real AIAgent ran a complete timeout/retry/receipt workflow using a deterministic LOCAL provider fixture |
 | Hermes live model attempt | Execution error: no LLM provider credentials configured; no Hermes model pass recorded |

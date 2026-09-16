@@ -1,6 +1,6 @@
 {
   "name": "agent-crash-lab",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A local, stateful crash lab for agents trusted with vendor payments and email.",
   "type": "module",
   "license": "MIT",
@@ -26,7 +26,10 @@
     "ADVANCED-VALIDATION.md",
     "validation/claude-advanced.json",
     "validation/stress-v030.json",
-    "validation/claude-baseline.json"
+    "validation/claude-baseline.json",
+    "docs",
+    "validation/outage-control.json",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "dev": "tsx src/cli.ts start",
@@ -48,5 +51,21 @@
     "jsdom": "^29.1.1",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sulmatajb/agent-crash-lab.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sulmatajb/agent-crash-lab/issues"
+  },
+  "homepage": "https://github.com/sulmatajb/agent-crash-lab#readme",
+  "keywords": [
+    "mcp",
+    "agents",
+    "evaluation",
+    "claude-code",
+    "hermes",
+    "testing"
+  ]
 }

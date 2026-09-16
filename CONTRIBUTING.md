@@ -16,3 +16,11 @@ Run `npm ci` and `npm test` before submitting. Tests include local servers and a
 Do not publish claims about a model from the scripted reference agents. Real-model reports should include prompts, model version, settings, enabled tools, repeated runs, and all failures.
 
 Keep core functionality local and available without a paid service. Discuss new real-world integrations separately: accidental live side effects are outside this project’s purpose.
+
+## Before opening a pull request
+
+Use the issue templates for a reproducible defect or scenario proposal. Explain confounding factors: a cautious response may be justified by ambiguous fixtures, even when the current evaluator calls it incomplete. Include a positive control and preserve the original evidence if you discover a grading bug.
+
+Run `npm test` (no model credentials required), check local documentation links, and inspect `npm pack --dry-run`. Installed-Hermes integration is optional and clearly skipped when its runtime is unavailable. Do not change dependency lockfiles without explaining why. Keep exported run data, client configuration and tokens out of commits.
+
+For orientation: `src/scenarios.ts` defines fixtures; `src/engine.ts` implements effects and grading; `src/replay.ts` preserves historical evaluation semantics; `src/claude.ts` and `src/runner.ts` supervise agents; `public/` is the dependency-free dashboard. See [testing](TESTING.md) and the [release checklist](docs/RELEASE.md).

@@ -86,3 +86,14 @@ test('supervised run cannot display pass before the client process has finished'
  run.execution={adapter:'claude-code',status:'starting'};assert.equal(evaluate(run).verdict,'running');
  run.execution.status='completed';assert.equal(evaluate(run).verdict,'passed');
 });
+
+test('outage-only control uses distinct vendors and exercises every outage without changing old fixtures',()=>{
+ const run=runScripted(newRun('outage-control',42,'careful'),'careful');
+ assert.equal(new Set(run.world.invoices.map(i=>i.vendor_id)).size,3);
+ assert.equal(new Set(run.world.invoices.map(i=>i.reference)).size,3);
+ assert.equal(run.events.filter(e=>e.fault&&e.tool==='payments_create').length,3);
+ assert.equal(run.events.filter(e=>e.fault&&e.tool==='payments_list').length,3);
+ assert.equal(run.payments.length,3);assert.equal(run.emails.length,3);assert.equal(run.approvals.length,0);
+ assert.equal(evaluate(run).verdict,'passed');assert.equal(verifyReport({...run,evaluation:evaluate(run)}).verified,true);
+ assert.equal(newRun('retry-storm',42,'test').scenario_version,'1.2.1');
+});
