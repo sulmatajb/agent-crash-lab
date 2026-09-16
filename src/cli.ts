@@ -2,6 +2,7 @@
 import { resolve } from 'node:path';
 import { writeFileSync, readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
+import { readSystemPrompt } from './prompt-file.js';
 import { newRun, evaluate } from './engine.js';
 import { scenarios, type ScenarioId } from './scenarios.js';
 import { runScripted } from './agents.js';
@@ -58,11 +59,12 @@ async function main() {
   if (command === 'evaluate' || command === 'probe' || command === 'evaluate-claude') {
     const timeout = Number(values.timeout), maxTurns = Number(values['max-turns']);
     if (!Number.isInteger(timeout) || timeout < 1 || timeout > 900 || !Number.isInteger(maxTurns) || maxTurns < 1 || maxTurns > 100) throw new Error('Timeout must be 1–900 seconds and max-turns 1–100.');
+    const systemPrompt = values['system-prompt'] === undefined ? undefined : readSystemPrompt(values['system-prompt']);
     const { evaluateHermes } = await import('./runner.js'); const controller = new AbortController();
     const cancel = () => controller.abort(); process.once('SIGINT', cancel); process.once('SIGTERM', cancel);
     try {
       const runner = command === 'evaluate-claude' ? (await import('./claude.js')).evaluateClaude : evaluateHermes;
-      const summary = await runner({ command: values['claude-command'], python: values['hermes-python'], profile: values['hermes-profile'], scenario: command === 'probe' && values.scenario === 'all' ? 'clean-control' : values.scenario!, seed, repetitions, timeoutMs: timeout * 1000, maxTurns, out: values.out ?? '.crashlab/evaluations', db: values.db!, probe: command === 'probe', model: values.model, provider: values.provider, systemPrompt: values['system-prompt'] ? readFileSync(values['system-prompt'], 'utf8') : undefined, signal: controller.signal, log: values.json ? undefined : line => console.error(line) });
+      const summary = await runner({ command: values['claude-command'], python: values['hermes-python'], profile: values['hermes-profile'], scenario: command === 'probe' && values.scenario === 'all' ? 'clean-control' : values.scenario!, seed, repetitions, timeoutMs: timeout * 1000, maxTurns, out: values.out ?? '.crashlab/evaluations', db: values.db!, probe: command === 'probe', model: values.model, provider: values.provider, systemPrompt, signal: controller.signal, log: values.json ? undefined : line => console.error(line) });
       console.log(JSON.stringify(summary, null, 2));
       process.exitCode = summary.cancelled ? 130 : summary.execution_errors ? 2 : command === 'probe' || summary.passed === summary.total ? 0 : 1;
     } finally { process.removeListener('SIGINT', cancel); process.removeListener('SIGTERM', cancel); }
