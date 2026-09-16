@@ -30,4 +30,19 @@ test('diagnostic subprocess bounds hangs and output; CLI validates targets witho
   const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
   const invalid=spawnSync(process.execPath,[cli,'doctor','--client','other'],{encoding:'utf8'});assert.equal(invalid.status,2);assert.match(invalid.stderr,/--client must/);
   const missing=spawnSync(process.execPath,[cli,'doctor','--client','claude','--claude-command','/missing/claude'],{encoding:'utf8'});assert.equal(missing.status,2);assert.equal(JSON.parse(missing.stdout).status,'blocked');
+  assert.doesNotMatch(missing.stderr,/SQLite|node:sqlite/);
+});
+
+test('unsupported Node stops before client probes or SQLite imports and gives an upgrade step',()=>{
+  const doctor=new URL('../dist/doctor.js',import.meta.url).href;
+  // Simulate runtime-version gating; this is not a compatibility claim for old Node.
+  for(const version of ['20.19.0','22.12.0']){
+    const script=`Object.defineProperty(process.versions,'node',{value:${JSON.stringify(version)}});const {readiness}=await import(${JSON.stringify(doctor)});const report=await readiness({client:'all',command:'/missing/claude',python:'/missing/python'});console.log(JSON.stringify(report));process.exitCode=report.exit_code;`;
+    const result=spawnSync(process.execPath,['--input-type=module','-e',script],{encoding:'utf8',timeout:5000});
+    assert.equal(result.status,2,result.stderr);
+    const report=JSON.parse(result.stdout);assert.equal(report.status,'blocked');
+    assert.equal(report.checks.length,1);assert.equal(report.checks[0].id,'node');
+    assert.match(report.checks[0].next_step,/Install Node 22.13/);
+    assert.doesNotMatch(result.stderr,/SQLite|node:sqlite/);
+  }
 });
