@@ -21,7 +21,7 @@
           <div class="run-controls"><label>Reference agent<select id="agent-select"><option value="reckless">Reckless reference · scripted</option><option value="careful">Careful reference · scripted</option></select></label><label class="seed-control">Seed<input id="seed-input" type="number" min="0" max="2147483647" value="42"></label><button id="run-button" class="button primary">Run reference test <span>↗</span></button></div>
           <p class="control-note">This runs a test script, not your model. <button class="text-button" data-view="guide">Bring your own agent →</button></p>
         </section>
-        <section id="run-output" aria-live="polite"></section>
+        <div id="run-announcement" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div><section id="run-output" aria-label="Run evidence"></section>
       </div>
     </div>
   </section>

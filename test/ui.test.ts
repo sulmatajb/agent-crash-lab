@@ -32,7 +32,9 @@ test('dashboard runs, compares, changes tabs, browses history and creates an ext
   click('.nav-item[data-view="lab"]');
   click('#compare-button');await until(()=>doc.querySelectorAll('.compare-card').length===2);
   assert.match(doc.querySelector('#run-output')!.textContent!,/DUPLICATE|paid more than once/);
-  click('[data-tab="ledger"]');assert.equal(doc.querySelectorAll('.ledger-table tbody tr').length,2);
+  assert.doesNotMatch(doc.querySelector('.metrics')!.textContent!,/\$/);assert.match(doc.querySelector('.metrics')!.textContent!,/TASK CHECKS MET/);
+  assert.equal(doc.querySelector('#run-output')!.hasAttribute('aria-live'),false);assert.match(doc.querySelector('#run-announcement')!.textContent!,/tool calls recorded/);
+  click('[data-tab="ledger"]');assert.equal(doc.querySelectorAll('.ledger-table tbody tr').length,2);assert.match(doc.querySelector('.result-content')!.textContent!,/Simulated payment total/);
   click('[data-tab="checks"]');assert.match(doc.querySelector('.result-content')!.textContent!,/Policy violations observed/);
   const checks=doc.querySelector('[data-tab="checks"]') as HTMLElement;checks.focus();checks.dispatchEvent(new dom.window.KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));
   assert.equal((doc.activeElement as HTMLElement).dataset.tab,'timeline');assert.equal(doc.querySelector('#evidence-panel')!.getAttribute('aria-labelledby'),'evidence-tab-timeline');
@@ -44,6 +46,8 @@ test('dashboard runs, compares, changes tabs, browses history and creates an ext
   click('.nav-item[data-view="guide"]');click('#create-external');await until(()=>!(doc.querySelector('#connection-output') as HTMLElement).hidden);
   assert.match(doc.querySelector('#connection-output')!.textContent!,/CRASHLAB_TOKEN/);
   click('#connection-output [data-run]');await until(()=>!!doc.querySelector('.result-title .running'));
+  assert.match(doc.querySelector('.result-title')!.textContent!,/Waiting for the first action/);
+  assert.doesNotMatch(doc.querySelector('.result-title')!.textContent!,/Agent connected/);
   assert.equal((doc.querySelector('.run-controls') as HTMLElement).hidden,true);assert.equal((doc.querySelector('#external-run-context') as HTMLElement).hidden,false);
   click('#finish-run');await until(()=>!!doc.querySelector('.result-title .incomplete'));
   assert.equal(registered.size,2);assert.equal(registered.get('crashlab_list_scenarios').execute({}).length,11);
@@ -82,6 +86,7 @@ test('live dashboard discovers runs, preserves evidence, restores links and reco
   store.mutate(run.id,r=>callTool(r,'inbox_list',{}));
   await until(()=>doc.querySelectorAll('.event').length===2);
   assert.equal((doc.querySelector('details') as HTMLDetailsElement).open,true);
+  assert.match(doc.querySelector('#run-announcement')!.textContent!,/2 tool calls recorded/);
   assert.equal(doc.activeElement,doc.querySelector('details summary'));
   offline=true;await until(()=>!(doc.querySelector('#sync-status') as HTMLElement).hidden);
   assert.match(doc.querySelector('#sync-status')!.textContent!,/Server disconnected/);

@@ -225,3 +225,7 @@ Thousands of GitHub users would each run their own local lab. The load results m
 Open **Run history** while your agent runs. It updates every two seconds; use **Running now** to find active trials, or search the latest 250 runs by agent, scenario, seed or run ID. Opening a run adds its ID to the browser URL, so reloading keeps the same evidence open. **Copy run link** creates a local bookmark, usable on the same computer while this server and database are available; it contains no agent capability token. Export JSON for portable evidence.
 
 Live updates preserve expanded tool responses and keyboard focus. A connection banner appears if the server is unavailable and clears when polling recovers.
+
+### Reading live evidence
+
+The main summary shows policy violations, task checks met, and tool-call count. Simulated payment totals and authorization limits appear under **Side effects**, alongside the actual committed ledger. A newly created empty run says **Waiting for the first action**; creating a connection alone does not prove an agent has connected. Screen-reader live announcements summarize the scenario, seed, call count and verdict without repeatedly reading the complete tool payloads.
