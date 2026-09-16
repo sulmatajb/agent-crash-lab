@@ -33,3 +33,5 @@ The JSON result reports the recorded and missing case counts. A valid interrupte
 | cancelled | Operator cancellation was observed; partial evidence is retained. |
 
 Prompt/configuration hashes are unsalted and are not encryption. They identify exact values for comparison; keep sensitive material out of prompts intended for distribution. A report and its manifest can both be forged, so file hashes do not establish authenticity.
+
+Verification accepts regular files only, with a 10 MiB limit per manifest/report and a 64 MiB total across the manifest and its referenced reports. Reads stay bounded even if a file grows during verification, and report symlinks are rejected. Malformed JSON produces a generic error without printing an excerpt of the file. A rejected campaign is an input error, not an agent failure.

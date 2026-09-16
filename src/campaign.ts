@@ -1,5 +1,6 @@
 import { randomUUID, createHash } from 'node:crypto';
-import { readFile, writeFile, rename, rm } from 'node:fs/promises';
+import { readFile, writeFile, rename, rm, open } from 'node:fs/promises';
+import { constants } from 'node:fs';
 import { join } from 'node:path';
 import { evaluate, newRun, toolDefinitions, type Run } from './engine.js';
 import type { ScenarioId } from './scenarios.js';
@@ -54,10 +55,39 @@ export async function startCampaign(out:string,settings:Settings) {
 
 export async function verifyCampaign(path:string) {
   const {dirname}=await import('node:path');
-  const {lstat}=await import('node:fs/promises');
   const {verifyReport}=await import('./replay.js');
-  const boundedRead=async(file:string)=>{const stat=await lstat(file);if(!stat.isFile()||stat.size>10*1024*1024)throw new Error('Expected a regular file of at most 10 MiB.');return readFile(file,'utf8');};
-  const manifest=JSON.parse(await boundedRead(path));
+  const fileLimit = 10 * 1024 * 1024;
+  const campaignLimit = 64 * 1024 * 1024;
+  let totalBytes = 0;
+  const boundedRead = async (file: string) => {
+    // Check and read the same descriptor. NONBLOCK prevents FIFO opens from
+    // waiting for a writer; NOFOLLOW preserves the manifest's no-symlink rule.
+    const handle = await open(file, constants.O_RDONLY | constants.O_NONBLOCK | constants.O_NOFOLLOW);
+    try {
+      const stat = await handle.stat();
+      if (!stat.isFile()) throw new Error('Expected a regular evidence file.');
+      if (stat.size > fileLimit) throw new Error('Evidence exceeds the 10 MiB input limit.');
+      if (totalBytes + stat.size > campaignLimit) throw new Error('Campaign exceeds the 64 MiB aggregate input limit.');
+      const chunks: Buffer[] = [];
+      let bytes = 0;
+      for (;;) {
+        const chunk = Buffer.allocUnsafe(Math.min(65536, fileLimit + 1 - bytes, campaignLimit + 1 - totalBytes));
+        const { bytesRead } = await handle.read(chunk, 0, chunk.length, null);
+        if (!bytesRead) break;
+        bytes += bytesRead;
+        totalBytes += bytesRead;
+        if (bytes > fileLimit) throw new Error('Evidence exceeds the 10 MiB input limit.');
+        if (totalBytes > campaignLimit) throw new Error('Campaign exceeds the 64 MiB aggregate input limit.');
+        chunks.push(chunk.subarray(0, bytesRead));
+      }
+      return Buffer.concat(chunks, bytes).toString('utf8');
+    } finally { await handle.close(); }
+  };
+  const parseJson = (raw: string) => {
+    try { return JSON.parse(raw); }
+    catch { throw new Error('Campaign evidence is not valid JSON.'); }
+  };
+  const manifest = parseJson(await boundedRead(path));
   if(manifest?.manifest_version!=='1.0.0'||typeof manifest.campaign_id!=='string'||!['running','completed','stopped','cancelled'].includes(manifest.status)||!Array.isArray(manifest.planned)||!Array.isArray(manifest.reports)||manifest.reports.length>1100||!manifest.planned.length||manifest.planned.length>1100)throw new Error('Invalid campaign manifest.');
   if(!configurationSchema.safeParse(manifest.configuration).success)throw new Error('Invalid campaign configuration.');
   if(hash(JSON.stringify(manifest.configuration))!==manifest.configuration_sha256)throw new Error('Configuration fingerprint differs from manifest.');
@@ -69,7 +99,7 @@ export async function verifyCampaign(path:string) {
     if(!entry||typeof entry.file!=='string'||!/^[a-f0-9-]{36}\.json$/.test(entry.file)||entry.file!==`${entry.id}.json`)throw new Error('Invalid campaign report filename.');
     const raw=await boundedRead(join(dirname(path),entry.file));
     if(hash(raw)!==entry.sha256)throw new Error(`Report digest differs: ${entry.id}`);
-    const report=JSON.parse(raw);
+    const report=parseJson(raw);
     if(report.id!==entry.id||report.campaign_id!==manifest.campaign_id||caseKey(report)!==caseKey(entry)||!planned.has(caseKey(report))||seen.has(caseKey(report)))throw new Error('Campaign report identity or coverage mismatch.');
     if(!Array.isArray(report.events)||report.events.length>10000)throw new Error('Invalid report event count.');
     const verified=verifyReport(report);
