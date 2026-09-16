@@ -4,7 +4,7 @@
   "height": 1080,
   "fps": 30,
   "frames": 720,
-  "audio": false,
+  "audio": true,
   "strict_hyperframes_check": true,
   "lint_errors": 0,
   "lint_warnings": 0,
@@ -14,8 +14,15 @@
   "report_replay_verified": true,
   "client_trace_matched": true,
   "recorded_report_sha256": "6ed0a431b1c79b7a0d2aa0447b11ddd06d8f618661bada2acf1bc780cfbdbe3a",
-  "video_sha256": "6c33571c25696d9d633dd5ff9f438d5eac2140bf8a5e3c7b86341a9a647d7768",
-  "review": "Final encoded MP4 frames inspected at 1, 4, 8, 12, 15, 18, 20 and 23 seconds. Connection screen and evidence are visible. Report replay verified: eight events, passed. Existing client trace provenance retained; no new model trial was run.",
+  "video_sha256": "36580da46d91eb902e13e553e27bd8ab48ce8f03b623f9c2e1d82463ed1e62a3",
+  "review": "Final encoded frames visually inspected at 0.3, 1.5, 2.8, 4.8, 6.4, 7.5, 9.4, 12.5, 14.8, 17, 20 and 23.8 seconds. Music stream confirmed; source score peak -1.1 dBFS. No new model trial.",
   "hyperframes_version": "0.8.43",
-  "readme_gif_sha256": "00f83d2775ad3743b8c49bf5d47c986df7c2b7426ac9d6dc910655d06b7129c5"
+  "readme_gif_sha256": "5cffd28354b41a329ff2b965b7fdbcb84905bb95f5a46ae063a640552abe42f6",
+  "audio_codec": "aac",
+  "audio_channels": 2,
+  "audio_sample_rate": 48000,
+  "music_bpm": 120,
+  "layout_infos": 5,
+  "contrast_checks_passed": 36,
+  "animation_map_review": "Inspected trajectories and rendered motion proof. Map flags include repeated decorative beat bars and intentional offscreen entrances; layout check has no persistent errors or warnings."
 }

@@ -15,6 +15,11 @@
       "name": "headline-slam",
       "type": "hyperframes:component",
       "target": "compositions/components/headline-slam.html"
+    },
+    {
+      "name": "whip-pan-cut",
+      "type": "hyperframes:component",
+      "target": "compositions/components/whip-pan-cut.html"
     }
   ]
 }

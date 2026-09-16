@@ -76,5 +76,11 @@
     "sha256": "328eea62dc346e4962672d8bbb87627d3f7633a0d0f08f7a0a2472df90c898ad",
     "origin": "Seek-safe derivative of assets/recordings/09-checks.mp4; source timing unchanged",
     "license": "MIT (project-authored UI and recording)"
+  },
+  {
+    "file": "assets/crash-beat.wav",
+    "sha256": "236f5edd21ab4c3f66bceb324960f652b494fb46687565d7b93968d95520c811",
+    "origin": "Original deterministic synthesis from build-beat.py; 120 BPM; no third-party samples",
+    "license": "MIT (project-authored composition and master)"
   }
 ]

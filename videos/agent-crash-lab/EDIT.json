@@ -4,21 +4,33 @@
   "title_cards": [
     {
       "start": 0,
-      "duration": 3
+      "duration": 4,
+      "type": "editorial stakes graphics"
+    },
+    {
+      "start": 4,
+      "duration": 2,
+      "type": "brand reveal"
+    },
+    {
+      "start": 14,
+      "duration": 2,
+      "type": "editorial summary of recorded timeout"
     },
     {
       "start": 21,
-      "duration": 3
+      "duration": 3,
+      "type": "closing"
     }
   ],
   "segments": [
     {
       "source": "01-connect.mp4",
       "source_start": 1.5,
-      "source_duration": 2.5,
+      "source_duration": 3,
       "playback_rate": 1,
-      "start": 3,
-      "duration": 2.5,
+      "start": 6,
+      "duration": 3,
       "label": "Connect via MCP"
     },
     {
@@ -26,48 +38,37 @@
       "source_start": 0,
       "source_duration": 17.0,
       "playback_rate": 3.4,
-      "start": 5.5,
+      "start": 9,
       "duration": 5,
       "label": "Watch the agent \u00b7 3.4\u00d7"
-    },
-    {
-      "source": "05-timeout.mp4",
-      "source_start": 0.35,
-      "source_duration": 3,
-      "playback_rate": 1,
-      "start": 10.5,
-      "duration": 3,
-      "label": "Payment committed. Response lost."
     },
     {
       "source": "06-reconcile-close.mp4",
       "source_start": 0.35,
       "source_duration": 3,
       "playback_rate": 1,
-      "start": 13.5,
+      "start": 16,
       "duration": 3,
       "label": "The agent checks the ledger."
     },
     {
       "source": "08-receipt.mp4",
       "source_start": 0.3,
-      "source_duration": 2.5,
-      "playback_rate": 1,
-      "start": 16.5,
-      "duration": 2.5,
-      "label": "One payment. One receipt."
-    },
-    {
-      "source": "09-checks.mp4",
-      "source_start": 0.3,
       "source_duration": 2,
       "playback_rate": 1,
       "start": 19,
       "duration": 2,
-      "label": "Policy held. Work completed."
+      "label": "One payment. One receipt."
     }
   ],
   "derived_source_directory": "assets/short-inputs",
   "source_directory": "assets/recordings",
-  "transcode": "H.264 CRF 16; keyframe interval 15 frames; same frames, no timing changes."
+  "transcode": "H.264 CRF 16; keyframe interval 15 frames; same frames, no timing changes.",
+  "audio": {
+    "source": "assets/crash-beat.wav",
+    "bpm": 120,
+    "duration": 24,
+    "origin": "Original deterministic synthesis; build-beat.py; MIT",
+    "narration": false
+  }
 }

@@ -1,16 +1,26 @@
-# Short evidence cut
+# 24-second kinetic edit / 120 BPM
 
-## Frame 1
-status: authored
+## Frame 1 — Stakes (0–4s)
+status: built
 src: index.html#hook
-0–3s: Inbox and credit-card concern. Restrained headline-slam scale settle, no shake.
+Rules: kinetic-beat-slam + 3d-camera-flight. Mail and credit-card graphics arrive in perspective; type switches from access to the risk question.
 
-## Frame 2
-status: authored
-src: index.html#viewport
-3–21s: Actual recorded UI, core hard-cut and constant-retime rules. Connect → live tool calls at 3.4× → committed-payment timeout → ledger reconciliation → receipt → checks. Crops focus the source UI; results remain unchanged.
+## Frame 2 — Lab reveal (4–6s)
+status: built
+src: index.html#intro
+Rules: kinetic-beat-slam; installed headline-slam adaptation. Lime inversion and oversized lockup hit the downbeat.
 
-## Frame 3
-status: authored
-src: index.html#closing
-21–24s: AI safety starts with evidence. Repository destination. Restrained headline-slam scale settle.
+## Frame 3 — Real workflow (6–14s)
+status: built
+src: index.html#stage-connect
+Rules: 3d-camera-flight + kinetic-beat-slam. Connection instructions tilt into view, then recorded live calls run at 3.4×. Tool labels quote the trace. The installed whip-pan-cut reference informs the lateral exit; this edit uses custom GSAP timing.
+
+## Frame 4 — Failure and recovery (14–21s)
+status: built
+src: index.html#fault
+Rules: kinetic-beat-slam + scale-swap-transition. Timeout interrupts picture and music. Ledger view lands, then one simulated payment and one receipt.
+
+## Frame 5 — Close (21–24s)
+status: built
+src: index.html#end
+Rules: kinetic-beat-slam. Staggered word rise, expanding ring, URL reveal. “AI safety. Show the evidence.”
