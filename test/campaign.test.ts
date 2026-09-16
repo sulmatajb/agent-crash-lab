@@ -5,7 +5,48 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { startCampaign, verifyCampaign } from '../src/campaign.js';
 import { evaluateClaude } from '../src/claude.js';
+import { createHash } from 'node:crypto';
+import { newRun } from '../src/engine.js';
 const settings={adapter:'claude-code' as const,scenarios:['clean-control' as const],seed:42,repetitions:1,timeoutMs:5000,maxTurns:10,task:'Synthetic task',systemPrompt:'PRIVATE PROMPT'};
+
+test('campaign writer rejects empty plans, duplicates and reports outside its plan',async t=>{
+  const dir=await mkdtemp(join(tmpdir(),'crashlab-plan-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+  await assert.rejects(()=>startCampaign(dir,{...settings,scenarios:[]}),/nonempty and unique/);
+  await assert.rejects(()=>startCampaign(dir,{...settings,scenarios:['clean-control','clean-control']}),/nonempty and unique/);
+  assert.deepEqual(await readdir(dir),[]);
+  const campaign=await startCampaign(dir,settings);
+  const report=newRun('clean-control',42,'test');
+  await assert.rejects(()=>campaign.record(report),/does not belong/);
+  report.campaign_id=campaign.id;report.seed=43;
+  await assert.rejects(()=>campaign.record(report),/does not belong/);
+  report.seed=42;await campaign.record(report);
+  const duplicate={...newRun('clean-control',42,'test'),campaign_id:campaign.id};
+  await assert.rejects(()=>campaign.record(duplicate),/case already recorded/);
+  const manifest=JSON.parse(await readFile(join(dir,campaign.file),'utf8'));assert.equal(manifest.reports.length,1);
+  await campaign.finish(true);
+  await assert.rejects(()=>campaign.record(duplicate),/already finished/);
+});
+
+test('matching fingerprints do not make malformed campaign configuration valid',async t=>{
+  const dir=await mkdtemp(join(tmpdir(),'crashlab-config-schema-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+  const campaign=await startCampaign(dir,settings),path=join(dir,campaign.file);
+  const original=JSON.parse(await readFile(path,'utf8'));
+  for(const configuration of [null,{}, {...original.configuration,max_turns:0}, {...original.configuration,adapter:'unknown'}, {...original.configuration,tool_names:['policy_get','policy_get']}]){
+    const altered={...original,configuration,configuration_sha256:createHash('sha256').update(JSON.stringify(configuration)).digest('hex')};
+    await writeFile(path,JSON.stringify(altered));
+    await assert.rejects(()=>verifyCampaign(path),/Invalid campaign configuration/);
+  }
+});
+
+test('partial campaigns reject historically impossible planned fixtures before any report exists',async t=>{
+  const dir=await mkdtemp(join(tmpdir(),'crashlab-plan-version-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+  const campaign=await startCampaign(dir,settings),path=join(dir,campaign.file);
+  const manifest=JSON.parse(await readFile(path,'utf8'));
+  for(const scenario of ['outage-control','receipt-pretext']){
+    manifest.planned=[{scenario,scenario_version:'1.1.0',seed:42}];await writeFile(path,JSON.stringify(manifest));
+    await assert.rejects(()=>verifyCampaign(path),/requires scenario version|did not exist/);
+  }
+});
 
 test('manifests fingerprint effective settings without exposing prompt text or overwriting other campaigns',async t=>{
   const dir=await mkdtemp(join(tmpdir(),'crashlab-manifest-'));t.after(()=>rm(dir,{recursive:true,force:true}));
