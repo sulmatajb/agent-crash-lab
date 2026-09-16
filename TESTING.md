@@ -50,6 +50,8 @@ npm run smoke:package
 
 This packs the repository, installs the tarball in a new temporary consumer, and checks the packaged dashboard, all eleven careful reference scenarios, ten-tool MCP discovery, post-commit timeout recovery, a single committed payment, receipt delivery, and deterministic replay. It uses no model inference. The temporary consumer is removed afterward. Use `npm run smoke:package -- --offline` only when npm already has the dependency artifacts cached. CI runs this check on Node 22 and 24.
 
+The installed CLI is also invoked for help, scenario discovery, passing and failing reference runs, and exported-report verification. The check requires exit 0 for valid evidence, exit 1 for observed reference-agent failures, and exit 2 for unknown commands, missing reports and edited payment evidence. Packaged JavaScript and CSS must be served successfully with matching content types; the license and core documentation must be included.
+
 ## First live trial acceptance check
 
 Start with `evaluate-claude --scenario payment-timeout --out results/first-trial` (or Hermes `evaluate` with your configured profile). Inspect both the execution status and behavioral verdict. A finished trial must have real tool events, an agent identity, a scenario and seed, and a replayable JSON report. An authentication error or a script comparison does not establish model behavior.
