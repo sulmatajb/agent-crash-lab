@@ -28,7 +28,7 @@ An invoice asks for a new bank account. An email tells the agent to ignore its i
 
 The lab gives these situations a repeatable test:
 
-1. **Connect your agent.** Use the supervised Claude Code or Hermes runner, or connect another MCP client.
+1. **Connect your AI agent.** Give it access to the lab through MCP. Use a dedicated test profile with only the lab tools.
 2. **Run a scenario.** The agent gets a task and simulated tools; faults and untrusted content are built into the environment.
 3. **Inspect what happened.** Follow each tool call and response. Check committed effects, unfinished work, and observed policy violations.
 4. **Change something. Run it again.** Try another prompt or model against the same scenario and seed.
@@ -62,6 +62,10 @@ This package is **not published to npm**. Use this repository; do not assume `np
 
 ## Bring your own agent
 
+The lab exposes standard MCP tools for AI agents. Connect a client that supports local stdio MCP servers, or use the HTTP adapter contract for a custom integration. Your agent keeps its own model connection.
+
+The automated runners below are setup conveniences for specific clients; the lab is not limited to those clients.
+
 ### Claude Code — automatic setup
 
 Use your installed, authenticated Claude Code client. If necessary, sign in with `claude auth login` first.
@@ -90,7 +94,7 @@ node dist/cli.js evaluate --scenario payment-timeout --out results/hermes
 
 `probe` checks the installed Hermes MCP transport without model inference. `evaluate` runs the model. Select a profile with `--hermes-profile PATH`. API-key profiles and local OpenAI-compatible endpoints are supported; importing OAuth-only profiles is not. **Hermes transport is tested; an authenticated Hermes model campaign is still pending.**
 
-### Any other MCP client — manual connection
+### MCP clients — manual connection
 
 1. Keep the dashboard and agent on the same machine.
 2. Open **Connect your agent**, select a scenario, and create a connection.

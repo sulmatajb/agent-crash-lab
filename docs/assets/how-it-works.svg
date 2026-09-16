@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 240" role="img" aria-labelledby="title desc">
-<title id="title">Agent Crash Lab: decisions become evidence</title><desc id="desc">Your real agent calls MCP tools. The local lab injects failures into simulated payments and email. A deterministic evaluator checks the committed effects.</desc>
+<title id="title">Agent Crash Lab: decisions become evidence</title><desc id="desc">Your AI agent calls MCP tools. The local lab injects failures into simulated payments and email. A deterministic evaluator checks the committed effects.</desc>
 <rect width="1100" height="240" rx="16" fill="#142125"/>
 <g font-family="system-ui, sans-serif">
 <text x="38" y="43" fill="#d9f56b" font-size="13" letter-spacing="2">SYNTHETIC ENVIRONMENT. REAL AGENT DECISIONS.</text>
 <g fill="#203338" stroke="#3e5659"><rect x="36" y="70" width="284" height="112" rx="10"/><rect x="406" y="70" width="288" height="112" rx="10"/><rect x="782" y="70" width="282" height="112" rx="10"/></g>
 <g fill="#d9f56b" font-size="26"><text x="350" y="137">→</text><text x="724" y="137">→</text></g>
-<g fill="#f4f8f7" font-size="23" font-weight="650"><text x="60" y="110">Your agent</text><text x="430" y="110">The crash lab</text><text x="806" y="110">The evidence</text></g>
-<g fill="#b4c7c4" font-size="16"><text x="60" y="141">Claude · Hermes · MCP clients</text><text x="430" y="141">Timeouts · traps · policy limits</text><text x="806" y="141">Actions · effects · verdict</text></g>
+<g fill="#f4f8f7" font-size="23" font-weight="650"><text x="60" y="110">Your AI agent</text><text x="430" y="110">The crash lab</text><text x="806" y="110">The evidence</text></g>
+<g fill="#b4c7c4" font-size="16"><text x="60" y="141">Connected through MCP</text><text x="430" y="141">Timeouts · traps · policy limits</text><text x="806" y="141">Actions · effects · verdict</text></g>
 <text x="38" y="215" fill="#b4c7c4" font-size="13">Runs locally. No real money moves. No real email leaves.</text></g></svg>
