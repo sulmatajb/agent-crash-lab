@@ -5,7 +5,7 @@ const token = $('meta[name="lab-token"]').content;
 const pageLifecycle=new AbortController();
 let disposed=false;
 window.addEventListener('pagehide',event=>{if(!event.persisted){disposed=true;pageLifecycle.abort();}});
-const state = { scenarios:[], selected:'payment-timeout', runs:[], run:null, tab:'timeline', comparison:[], connection:null, view:'lab', busy:false };
+const state = { scenarios:[], selected:'payment-timeout', runs:[], run:null, tab:'timeline', comparison:[], connection:null, view:'lab', busy:false, historyBefore:null, historyStack:[], historyNext:null };
 async function api(path, body) {
   const res = await fetch(`/api${path}`, { signal:AbortSignal.any([pageLifecycle.signal,AbortSignal.timeout(10000)]), method:body === undefined ? 'GET':'POST', headers:{ Authorization:`Bearer ${token}`, 'Content-Type':'application/json' }, body:body === undefined ? undefined:JSON.stringify(body) });
   const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Request failed'); return data;
@@ -56,18 +56,44 @@ function renderTab(r) {
   return `<div class="check"><span class="check-icon ${r.findings.length?'bad':''}">${r.findings.length?'!':'✓'}</span><p>${r.findings.length ? 'Policy violations observed' : 'No policy violations'} <span class="muted">(${r.findings.length} observed)</span></p></div>${r.evaluation.obligations.map(o=>`<div class="check"><span class="check-icon ${o.met?'':'bad'}">${o.met?'✓':'○'}</span><p>${esc(o.label)}</p></div>`).join('')}<div class="check"><span class="check-icon ${r.evaluation.unnecessary_escalations?'bad':''}">${r.evaluation.unnecessary_escalations?'!':'✓'}</span><p>${r.evaluation.unnecessary_escalations ? 'Unnecessary escalation observed' : 'No unnecessary escalation'} <span class="muted">(${r.evaluation.unnecessary_escalations} observed)</span></p></div><div class="notice">${esc(r.evaluation.limitation)}</div>`;
 }
 let historyRequest;
-async function refreshHistory() {
-  if(historyRequest)return historyRequest;
-  historyRequest=(async()=>{const runs=await api('/runs');if(disposed)return;const changed=JSON.stringify(runs)!==JSON.stringify(state.runs);state.runs=runs;$('#history-count').textContent=runs.length;if(changed||!$('#history-status').textContent)renderHistory();})();
-  try{await historyRequest;}finally{historyRequest=null;}
+let historyRequestCursor;
+function renderHistoryNavigation() {
+  $('#history-newest').disabled=!state.historyBefore;
+  $('#history-previous').disabled=!state.historyStack.length;
+  $('#history-next').disabled=!state.historyNext;
 }
-function renderHistory() { const focusedRun=document.activeElement?.closest('.history-row')?.dataset.run; const filter=$('#history-filter').value; const query=$('#history-search').value.trim().toLowerCase(); const runs=state.runs.filter(r=>[r.id,r.scenario,state.scenarios.find(s=>s.id===r.scenario)?.title,r.agent,r.execution?.model,String(r.seed)].some(value=>String(value??'').toLowerCase().includes(query))).filter(r=>filter==='running'&&r.evaluation.verdict==='running'||filter==='all'||filter==='reference'&&['careful','reckless'].includes(r.agent)||filter==='live'&&!['careful','reckless'].includes(r.agent)||filter==='attention'&&['failed','error','incomplete'].includes(r.evaluation.verdict)); $('#history-status').textContent=`${runs.length} of ${state.runs.length} recent runs · updates automatically`; $('#history-list').innerHTML = runs.length ? `<div class="card">${runs.map(r=>`<button class="history-row" data-run="${r.id}"><div><strong>${esc(state.scenarios.find(s=>s.id===r.scenario)?.title||r.scenario)}</strong><small>${esc(new Date(r.created_at).toLocaleString())} · seed ${r.seed}</small></div><span>${badge(r.evaluation.verdict)}</span><span>${esc(r.agent)}<small>${r.evaluation.tool_calls} tool calls</small></span><span>${r.payments.length} simulated payment${r.payments.length===1?'':'s'}<small>${r.evaluation.violations} violations</small></span><span>Inspect ↗</span></button>`).join('')}</div>`:'<div class="empty-result"><h3>No matching runs.</h3><p>Connect your agent, run a reference test, or choose another filter.</p></div>'; if(focusedRun)[...document.querySelectorAll('.history-row')].find(el=>el.dataset.run===focusedRun)?.focus({preventScroll:true}); }
+async function refreshHistory() {
+  const cursor=state.historyBefore;
+  if(historyRequest&&historyRequestCursor===cursor)return historyRequest;
+  const request=(async()=>{
+    const page=await api(`/history?limit=50${cursor?`&before=${encodeURIComponent(cursor)}`:''}`);
+    if(disposed||state.historyBefore!==cursor)return;
+    const changed=JSON.stringify(page.runs)!==JSON.stringify(state.runs);
+    state.runs=page.runs;state.historyNext=page.next_cursor;
+    $('#history-count').textContent=page.total;
+    if(changed||!$('#history-status').textContent)renderHistory();
+    renderHistoryNavigation();
+  })();
+  historyRequest=request;historyRequestCursor=cursor;
+  try{await request;}finally{if(historyRequest===request)historyRequest=null;}
+}
+async function historyPage(direction) {
+  if(direction==='next'&&state.historyNext){state.historyStack.push(state.historyBefore);state.historyBefore=state.historyNext;}
+  else if(direction==='previous'&&state.historyStack.length)state.historyBefore=state.historyStack.pop();
+  else if(direction==='newest'){state.historyStack=[];state.historyBefore=null;}
+  else return;
+  for(const id of ['history-next','history-previous','history-newest'])$(`#${id}`).disabled=true;
+  try{await refreshHistory();}catch(error){toast(error.message);renderHistoryNavigation();}
+}
+
+function renderHistory() { const focusedRun=document.activeElement?.closest('.history-row')?.dataset.run; const filter=$('#history-filter').value; const query=$('#history-search').value.trim().toLowerCase(); const runs=state.runs.filter(r=>[r.id,r.scenario,state.scenarios.find(s=>s.id===r.scenario)?.title,r.agent,r.execution?.model,String(r.seed)].some(value=>String(value??'').toLowerCase().includes(query))).filter(r=>filter==='running'&&r.evaluation.verdict==='running'||filter==='all'||filter==='reference'&&['careful','reckless'].includes(r.agent)||filter==='live'&&!['careful','reckless'].includes(r.agent)||filter==='attention'&&['failed','error','incomplete'].includes(r.evaluation.verdict)); $('#history-status').textContent=`${runs.length} of ${state.runs.length} runs on this page · updates automatically`; $('#history-list').innerHTML = runs.length ? `<div class="card">${runs.map(r=>`<button class="history-row" data-run="${r.id}"><div><strong>${esc(state.scenarios.find(s=>s.id===r.scenario)?.title||r.scenario)}</strong><small>${esc(new Date(r.created_at).toLocaleString())} · seed ${r.seed}</small></div><span>${badge(r.evaluation.verdict)}</span><span>${esc(r.agent)}<small>${r.evaluation.tool_calls} tool calls</small></span><span>${r.payments.length} simulated payment${r.payments.length===1?'':'s'}<small>${r.evaluation.violations} violations</small></span><span>Inspect ↗</span></button>`).join('')}</div>`:'<div class="empty-result"><h3>No matching runs.</h3><p>Connect your agent, run a reference test, or choose another filter.</p></div>'; if(focusedRun)[...document.querySelectorAll('.history-row')].find(el=>el.dataset.run===focusedRun)?.focus({preventScroll:true}); }
 let openRequest=0;
 async function openRun(id) { const request=++openRequest; const r=await api(`/runs/${encodeURIComponent(id)}`); if(request!==openRequest)return; history.replaceState(null,'',`#run=${encodeURIComponent(r.id)}`); state.selected=r.scenario; state.run=r; state.tab='timeline'; $('#seed-input').value=String(r.seed); if(['careful','reckless'].includes(r.agent))$('#agent-select').value=r.agent; if(state.comparison.some(c=>c.scenario!==r.scenario||c.seed!==r.seed))state.comparison=[]; renderScenarios(); renderOutput(); changeView('lab'); }
 async function execute(compare=false) {
   try { const n=seed('#seed-input'),scenario=state.selected,request=++openRequest; busy(true); state.comparison=[]; const agents=compare?['reckless','careful']:[$('#agent-select').value]; const results=[]; for(const agent of agents) { const {run}=await api('/runs',{scenario,agent,seed:n}); results.push(run); } if(request!==openRequest){await refreshHistory();return;} state.run=results[0]; history.replaceState(null,'',`#run=${encodeURIComponent(state.run.id)}`); state.tab='timeline'; if(compare)state.comparison=results; renderOutput(); await refreshHistory(); }
   catch(e){toast(e.message);} finally{busy(false);}
 }
+for(const direction of ['next','previous','newest'])$(`#history-${direction}`).addEventListener('click',()=>historyPage(direction));
 $('#history-search').addEventListener('input',renderHistory);
 $('#history-filter').addEventListener('change',renderHistory);
 $('#run-button').addEventListener('click',()=>execute()); $('#compare-button').addEventListener('click',()=>execute(true)); $('#refresh-history').addEventListener('click',()=>refreshHistory().catch(e=>toast(e.message)));

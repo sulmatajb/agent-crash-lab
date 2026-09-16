@@ -222,6 +222,12 @@ Thousands of GitHub users would each run their own local lab. The load results m
 
 ### Watching and finding runs
 
-Open **Run history** while your agent runs. It updates every two seconds; use **Running now** to find active trials, or search the latest 250 runs by agent, scenario, seed or run ID. Opening a run adds its ID to the browser URL, so reloading keeps the same evidence open. **Copy run link** creates a local bookmark, usable on the same computer while this server and database are available; it contains no agent capability token. Export JSON for portable evidence.
+Open **Run history** while your agent runs. It updates every two seconds; use **Running now** to find active trials, or search the current page by agent, scenario, seed or run ID. Use **Older runs**, **Previous**, and **Newest runs** to navigate the complete database, 50 runs at a time. Filters and search apply to the current page. Newer inserts do not shift the cursor used to fetch older pages. Opening a run adds its ID to the browser URL, so reloading keeps the same evidence open. **Copy run link** creates a local bookmark, usable on the same computer while this server and database are available; it contains no agent capability token. Export JSON for portable evidence.
 
 Live updates preserve expanded tool responses and keyboard focus. A connection banner appears if the server is unavailable and clears when polling recovers.
+
+### Paginated operator history API
+
+`GET /api/history?limit=50&before=RUN_ID` returns `{ runs, next_cursor, total }`. Use `next_cursor` as `before` for the next page; null means the end. Omit `before` for newest runs. Limits are 1–100; invalid input returns 400 and a missing cursor returns 404. The operator bearer token is required; agent capabilities cannot browse history. Ordering uses creation time and insertion order for ties. Newer arrivals do not shift older-page boundaries. Return to the newest page to discover new arrivals.
+
+The original `GET /api/runs` remains available with its existing 250-run array response. Both listing endpoints omit fixture worlds and tool events; open a run for complete evidence.
