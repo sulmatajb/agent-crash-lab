@@ -79,3 +79,23 @@ test('campaign reader excludes runner summaries and traces; CLI has regression a
   assert.equal(invoke(join(dir,'before.json')).status,0);
   writeFileSync(afterPath,'null');assert.equal(invoke(afterPath).status,2);
 });
+
+test('comparison refuses symlinked evidence instead of silently dropping campaign cases', {skip:process.platform==='win32'}, async t => {
+  const {symlinkSync} = await import('node:fs');
+  const dir=mkdtempSync(join(tmpdir(),'crashlab-compare-links-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));
+  const original=join(dir,'original.json'),link=join(dir,'second-case.json');
+  writeFileSync(original,JSON.stringify(run('careful')));symlinkSync(original,link);
+  assert.throws(()=>loadReports(dir),/must be a regular file/);
+  assert.throws(()=>loadReports(link),/ELOOP|symbolic link/);
+});
+
+test('comparison rejects named pipes promptly, including a pipe alongside valid reports', {skip:process.platform==='win32'}, t => {
+  const dir=mkdtempSync(join(tmpdir(),'crashlab-compare-pipes-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));
+  const report=join(dir,'valid.json'),pipe=join(dir,'unread-case.json');writeFileSync(report,JSON.stringify(run('careful')));
+  assert.equal(spawnSync('mkfifo',[pipe]).status,0);
+  const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
+  for(const input of [pipe,dir]) {
+    const result=spawnSync(process.execPath,[cli,'compare',input,report],{encoding:'utf8',timeout:3000});
+    assert.equal(result.error,undefined);assert.equal(result.status,2);assert.match(result.stderr,/regular file/);
+  }
+});
