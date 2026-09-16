@@ -3,7 +3,7 @@
 ## Frame 1 — Stakes (0–4s)
 status: built
 src: index.html#hook
-Rules: kinetic-beat-slam + 3d-camera-flight. Mail and credit-card graphics arrive in perspective; type switches from access to the risk question.
+Rules: kinetic-beat-slam + 3d-camera-flight. Mail and credit-card graphics arrive in perspective; type asks “Would your agent pay twice?” then reveals “One payment. No response.”.
 
 ## Frame 2 — Lab reveal (4–6s)
 status: built
@@ -23,4 +23,4 @@ Rules: kinetic-beat-slam + scale-swap-transition. Timeout interrupts picture and
 ## Frame 5 — Close (21–24s)
 status: built
 src: index.html#end
-Rules: kinetic-beat-slam. Staggered word rise, expanding ring, URL reveal. “AI safety. Show the evidence.”
+Rules: kinetic-beat-slam. Staggered word rise, expanding ring, URL reveal. “Test your agent. See what happens.”

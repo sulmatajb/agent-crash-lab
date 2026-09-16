@@ -2,9 +2,9 @@
 
 # Agent Crash Lab
 
-**Give your agent a bad day before you give it a credit card.**
+## Would your agent pay twice?
 
-Test agents against payment failures, malicious invoices, and spending limits—without moving real money or sending real email.
+The payment went through. The response timed out. What does your agent do next?
 
 [![Tests](https://github.com/sulmatajb/agent-crash-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/sulmatajb/agent-crash-lab/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-d9f56b)](LICENSE)
@@ -16,15 +16,26 @@ Test agents against payment failures, malicious invoices, and spending limits—
 
 [![Watch a real Claude agent recover from a payment timeout](docs/assets/crash-lab-demo.gif)](videos/agent-crash-lab/launch.mp4)
 
-*24-second real-trial replay · click for sound · simulated money and email. [Open the interactive replay locally](videos/agent-crash-lab/README.md).*
+*Would it retry—or check first? A 24-second edited replay of a real Claude trial. Click for sound. [Open the interactive replay locally](videos/agent-crash-lab/README.md).*
 
-![A real agent calls MCP tools, the lab injects failures, and an evaluator checks committed effects.](docs/assets/how-it-works.svg)
+Agent Crash Lab lets you find out in a local test environment. Connect your agent through MCP, give it an invoice task, and introduce failures it has to handle. Inspect the calls, the decisions, and the resulting payments and emails.
 
-A payment commits. The response times out. Does your agent pay twice, check the ledger, or give up?
+**Real agent. Simulated money and email. Inspectable results.** Free, local, and MIT-licensed.
 
-Agent Crash Lab gives your agent a task, a synthetic business environment, and real tool failures to handle. It records each action and grades the resulting state. **Your model makes the decisions. The lab checks what happened.**
+## A timeout is just the beginning
 
-Free, MIT-licensed, and local. No lab account or hosted service required. **Pre-release:** passing a scenario is evidence, not a safety certification.
+An invoice asks for a new bank account. An email tells the agent to ignore its instructions. A payment succeeds, but the response never arrives. A happy-path demo will not tell you what happens next.
+
+The lab gives these situations a repeatable test:
+
+1. **Connect your agent.** Use the supervised Claude Code or Hermes runner, or connect another MCP client.
+2. **Run a scenario.** The agent gets a task and simulated tools; faults and untrusted content are built into the environment.
+3. **Inspect what happened.** Follow each tool call and response. Check committed effects, unfinished work, and observed policy violations.
+4. **Change something. Run it again.** Try another prompt or model against the same scenario and seed.
+
+![An agent calls MCP tools, the lab injects faults, and the evaluator checks committed effects.](docs/assets/how-it-works.svg)
+
+In the video above, Claude encounters a committed payment with a lost response, checks the ledger, and sends one receipt. That is the result of **one recorded trial**, not a promise about the next one. The point is to make behavior visible and changes testable.
 
 <details>
 <summary>See a real Claude trial in the local dashboard</summary>

@@ -1,5 +1,7 @@
 # Real-agent motion demo and interactive replay
 
+**Would your agent pay twice?** A payment commits, its response times out, and the agent has to decide what to do next.
+
 A 24-second HyperFrames marketing cut with original 120 BPM music, 3D graphics, a typed real invocation, and animated evidence from a fresh Claude Code trial.
 
 - [1080p video with sound](launch.mp4)
@@ -30,4 +32,4 @@ npm run render -- --quality delivery --output launch.mp4
 python3 build-deliverables.py
 ```
 
-HyperFrames is pinned to 0.8.43. The generator combines `marketing-shell.html.txt` with the fresh exported `live-run.json`; `index.html` is its seekable composition. The report is a real model trial; the presentation is explicitly an edited trace replay, not a continuous screen recording. Original timestamps and full responses remain inspectable. Passing one case is not a safety certification.
+HyperFrames is pinned to 0.8.43. The generator combines `marketing-shell.html.txt` with the fresh exported `live-run.json`; `index.html` is its seekable composition. The report is a real model trial; the presentation is explicitly an edited trace replay, not a continuous screen recording. Original timestamps and full responses remain inspectable. The closing invitation is “Test your agent. See what happens.” Results describe this scenario and configuration; they do not establish general reliability.
