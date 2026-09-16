@@ -12,7 +12,7 @@ test('real MCP SDK client discovers tools, recovers a timeout and completes an e
   const store=new RunStore(':memory:');const run=newRun('payment-timeout',42,'external');store.save(run);store.authorize('mcp-test-token',run);
   const server=createLabServer(store);server.listen(0,'127.0.0.1');await once(server,'listening');
   const client=new Client({name:'integration-test',version:'1.0.0'});
-  const transport=new StdioClientTransport({command:process.execPath,args:[fileURLToPath(new URL('../dist/cli.js',import.meta.url)),'mcp'],env:{...Object.fromEntries(Object.entries(process.env).filter((entry):entry is [string,string]=>entry[1]!==undefined)),CRASHLAB_URL:`http://127.0.0.1:${(server.address() as any).port}`,CRASHLAB_TOKEN:'mcp-test-token'},stderr:'pipe'});
+  const transport=new StdioClientTransport({command:process.execPath,args:[fileURLToPath(new URL('../dist/cli.js',import.meta.url)),'mcp'],env:{...Object.fromEntries(Object.entries(process.env).filter((entry):entry is [string,string]=>entry[1]!==undefined)),CRASHLAB_URL:`http://127.0.0.1:${(server.address() as any).port}`,CRASHLAB_RESOURCES:'1',CRASHLAB_TOKEN:'mcp-test-token'},stderr:'pipe'});
   t.after(async()=>{await client.close();server.closeAllConnections();await new Promise<void>(r=>server.close(()=>r()));store.close();});
   await client.connect(transport);
   const list=await client.listTools();assert.equal(list.tools.length,10);assert.ok(list.tools.some(t=>t.name==='payments_create'));assert.ok(!list.tools.some(t=>t.name.includes('evaluate')));
@@ -37,7 +37,7 @@ test('real MCP SDK client discovers tools, recovers a timeout and completes an e
   const finishedTask = await readTask(); assert.equal(finishedTask.status, 'completed');
   const unauthorized=new Client({name:'invalid-capability-test',version:'1.0.0'});
   t.after(()=>unauthorized.close());
-  await unauthorized.connect(new StdioClientTransport({command:process.execPath,args:[fileURLToPath(new URL('../dist/cli.js',import.meta.url)),'mcp'],env:{CRASHLAB_URL:`http://127.0.0.1:${(server.address() as any).port}`,CRASHLAB_TOKEN:'invalid-capability'},stderr:'pipe'}));
+  await unauthorized.connect(new StdioClientTransport({command:process.execPath,args:[fileURLToPath(new URL('../dist/cli.js',import.meta.url)),'mcp'],env:{CRASHLAB_URL:`http://127.0.0.1:${(server.address() as any).port}`,CRASHLAB_RESOURCES:'1',CRASHLAB_TOKEN:'invalid-capability'},stderr:'pipe'}));
   await assert.rejects(unauthorized.readResource({ uri: 'crashlab://task' }), /LAB_AUTHORIZATION/);
   for(const name of ['policy_get','lab_finish']){
     const result=await unauthorized.callTool({name,arguments:{}});
