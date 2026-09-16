@@ -5,7 +5,7 @@ const token = $('meta[name="lab-token"]').content;
 const pageLifecycle=new AbortController();
 let disposed=false;
 window.addEventListener('pagehide',event=>{if(!event.persisted){disposed=true;pageLifecycle.abort();}});
-const state = { scenarios:[], selected:'payment-timeout', runs:[], run:null, tab:'timeline', comparison:[], connection:null, view:'lab', busy:false, historyBefore:null, historyStack:[], historyNext:null };
+const state = { scenarios:[], selected:'payment-timeout', runs:[], run:null, tab:'timeline', comparison:[], connection:null, view:'lab', busy:false, historyBefore:null, historyStack:[], historyNext:null, historyMatched:0 };
 async function api(path, body) {
   const res = await fetch(`/api${path}`, { signal:AbortSignal.any([pageLifecycle.signal,AbortSignal.timeout(10000)]), method:body === undefined ? 'GET':'POST', headers:{ Authorization:`Bearer ${token}`, 'Content-Type':'application/json' }, body:body === undefined ? undefined:JSON.stringify(body) });
   const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Request failed'); return data;
@@ -56,25 +56,26 @@ function renderTab(r) {
   return `<div class="check"><span class="check-icon ${r.findings.length?'bad':''}">${r.findings.length?'!':'✓'}</span><p>${r.findings.length ? 'Policy violations observed' : 'No policy violations'} <span class="muted">(${r.findings.length} observed)</span></p></div>${r.evaluation.obligations.map(o=>`<div class="check"><span class="check-icon ${o.met?'':'bad'}">${o.met?'✓':'○'}</span><p>${esc(o.label)}</p></div>`).join('')}<div class="check"><span class="check-icon ${r.evaluation.unnecessary_escalations?'bad':''}">${r.evaluation.unnecessary_escalations?'!':'✓'}</span><p>${r.evaluation.unnecessary_escalations ? 'Unnecessary escalation observed' : 'No unnecessary escalation'} <span class="muted">(${r.evaluation.unnecessary_escalations} observed)</span></p></div><div class="notice">${esc(r.evaluation.limitation)}</div>`;
 }
 let historyRequest;
-let historyRequestCursor;
+let historyRequestKey;
+const historyKey=()=>JSON.stringify([state.historyBefore,$('#history-filter').value,$('#history-search').value.trim()]);
 function renderHistoryNavigation() {
   $('#history-newest').disabled=!state.historyBefore;
   $('#history-previous').disabled=!state.historyStack.length;
   $('#history-next').disabled=!state.historyNext;
 }
 async function refreshHistory() {
-  const cursor=state.historyBefore;
-  if(historyRequest&&historyRequestCursor===cursor)return historyRequest;
+  const cursor=state.historyBefore,key=historyKey();
+  if(historyRequest&&historyRequestKey===key)return historyRequest;
   const request=(async()=>{
-    const page=await api(`/history?limit=50${cursor?`&before=${encodeURIComponent(cursor)}`:''}`);
-    if(disposed||state.historyBefore!==cursor)return;
+    const page=await api(`/history?limit=50&q=${encodeURIComponent($('#history-search').value.trim())}&filter=${encodeURIComponent($('#history-filter').value)}${cursor?`&before=${encodeURIComponent(cursor)}`:''}`);
+    if(disposed||historyKey()!==key)return;
     const changed=JSON.stringify(page.runs)!==JSON.stringify(state.runs);
-    state.runs=page.runs;state.historyNext=page.next_cursor;
+    state.runs=page.runs;state.historyNext=page.next_cursor;state.historyMatched=page.matched_total;
     $('#history-count').textContent=page.total;
-    if(changed||!$('#history-status').textContent)renderHistory();
+    if(changed||!$('#history-status').textContent)renderHistory();else $('#history-status').textContent=`${state.historyMatched} matching runs · ${state.runs.length} on this page · updates automatically`;
     renderHistoryNavigation();
   })();
-  historyRequest=request;historyRequestCursor=cursor;
+  historyRequest=request;historyRequestKey=key;
   try{await request;}finally{if(historyRequest===request)historyRequest=null;}
 }
 async function historyPage(direction) {
@@ -86,7 +87,7 @@ async function historyPage(direction) {
   try{await refreshHistory();}catch(error){toast(error.message);renderHistoryNavigation();}
 }
 
-function renderHistory() { const focusedRun=document.activeElement?.closest('.history-row')?.dataset.run; const filter=$('#history-filter').value; const query=$('#history-search').value.trim().toLowerCase(); const runs=state.runs.filter(r=>[r.id,r.scenario,state.scenarios.find(s=>s.id===r.scenario)?.title,r.agent,r.execution?.model,String(r.seed)].some(value=>String(value??'').toLowerCase().includes(query))).filter(r=>filter==='running'&&r.evaluation.verdict==='running'||filter==='all'||filter==='reference'&&['careful','reckless'].includes(r.agent)||filter==='live'&&!['careful','reckless'].includes(r.agent)||filter==='attention'&&['failed','error','incomplete'].includes(r.evaluation.verdict)); $('#history-status').textContent=`${runs.length} of ${state.runs.length} runs on this page · updates automatically`; $('#history-list').innerHTML = runs.length ? `<div class="card">${runs.map(r=>`<button class="history-row" data-run="${r.id}"><div><strong>${esc(state.scenarios.find(s=>s.id===r.scenario)?.title||r.scenario)}</strong><small>${esc(new Date(r.created_at).toLocaleString())} · seed ${r.seed}</small></div><span>${badge(r.evaluation.verdict)}</span><span>${esc(r.agent)}<small>${r.evaluation.tool_calls} tool calls</small></span><span>${r.payments.length} simulated payment${r.payments.length===1?'':'s'}<small>${r.evaluation.violations} violations</small></span><span>Inspect ↗</span></button>`).join('')}</div>`:'<div class="empty-result"><h3>No matching runs.</h3><p>Connect your agent, run a reference test, or choose another filter.</p></div>'; if(focusedRun)[...document.querySelectorAll('.history-row')].find(el=>el.dataset.run===focusedRun)?.focus({preventScroll:true}); }
+function renderHistory() { const focusedRun=document.activeElement?.closest('.history-row')?.dataset.run; const runs=state.runs; $('#history-status').textContent=`${state.historyMatched} matching runs · ${runs.length} on this page · updates automatically`; $('#history-list').innerHTML = runs.length ? `<div class="card">${runs.map(r=>`<button class="history-row" data-run="${r.id}"><div><strong>${esc(state.scenarios.find(s=>s.id===r.scenario)?.title||r.scenario)}</strong><small>${esc(new Date(r.created_at).toLocaleString())} · seed ${r.seed}</small></div><span>${badge(r.evaluation.verdict)}</span><span>${esc(r.agent)}<small>${r.evaluation.tool_calls} tool calls</small></span><span>${r.payments.length} simulated payment${r.payments.length===1?'':'s'}<small>${r.evaluation.violations} violations</small></span><span>Inspect ↗</span></button>`).join('')}</div>`:'<div class="empty-result"><h3>No matching runs.</h3><p>Connect your agent, run a reference test, or choose another filter.</p></div>'; if(focusedRun)[...document.querySelectorAll('.history-row')].find(el=>el.dataset.run===focusedRun)?.focus({preventScroll:true}); }
 let openRequest=0;
 async function openRun(id) { const request=++openRequest; const r=await api(`/runs/${encodeURIComponent(id)}`); if(request!==openRequest)return; history.replaceState(null,'',`#run=${encodeURIComponent(r.id)}`); state.selected=r.scenario; state.run=r; state.tab='timeline'; $('#seed-input').value=String(r.seed); if(['careful','reckless'].includes(r.agent))$('#agent-select').value=r.agent; if(state.comparison.some(c=>c.scenario!==r.scenario||c.seed!==r.seed))state.comparison=[]; renderScenarios(); renderOutput(); changeView('lab'); }
 async function execute(compare=false) {
@@ -94,8 +95,11 @@ async function execute(compare=false) {
   catch(e){toast(e.message);} finally{busy(false);}
 }
 for(const direction of ['next','previous','newest'])$(`#history-${direction}`).addEventListener('click',()=>historyPage(direction));
-$('#history-search').addEventListener('input',renderHistory);
-$('#history-filter').addEventListener('change',renderHistory);
+let searchTimer;
+function resetHistorySearch(){state.historyBefore=null;state.historyStack=[];state.historyNext=null;renderHistoryNavigation();refreshHistory().catch(e=>toast(e.message));}
+$('#history-search').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(resetHistorySearch,250);});
+$('#history-filter').addEventListener('change',()=>{clearTimeout(searchTimer);resetHistorySearch();});
+window.addEventListener('pagehide',event=>{if(!event.persisted)clearTimeout(searchTimer);});
 $('#run-button').addEventListener('click',()=>execute()); $('#compare-button').addEventListener('click',()=>execute(true)); $('#refresh-history').addEventListener('click',()=>refreshHistory().catch(e=>toast(e.message)));
 $('#create-external').addEventListener('click',async()=>{try{const n=seed('#external-seed');busy(true);const data=await api('/runs',{scenario:$('#external-scenario').value,seed:n,agent:'external'});state.connection=data;$('#connection-output').hidden=false;$('#connection-output').innerHTML=`<div class="connection-top"><h2>Your test environment is ready.</h2>${badge('running')}</div><p>Copy this configuration into your MCP client and reconnect it. This token grants access only to this run; keep it private.</p><pre>${esc(JSON.stringify(data.connection,null,2))}</pre><div class="connection-actions"><button class="button secondary" id="copy-config">Copy MCP configuration</button><button class="button primary" data-run="${data.run.id}">Watch this run ↗</button></div><h3 class="subheading">Give your agent this task</h3><pre>${esc(data.task)} Start by calling policy_get. When finished, call lab_finish.</pre><button class="text-button" id="copy-task">Copy task</button>`;await refreshHistory();}catch(e){toast(e.message);}finally{busy(false);}});
 document.addEventListener('keydown',event=>{
