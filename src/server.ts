@@ -14,10 +14,13 @@ const cliPath = fileURLToPath(new URL('../dist/cli.js', import.meta.url));
 const scenarioSchema = z.enum(scenarios.map(s => s.id) as [ScenarioId, ...ScenarioId[]]);
 const runSchema = z.object({ scenario: scenarioSchema, agent: z.enum(['careful', 'reckless', 'external']), seed: z.number().int().min(0).max(2147483647).default(42) }).strict();
 const equal = (a: string, b: string) => Buffer.byteLength(a) === Buffer.byteLength(b) && timingSafeEqual(Buffer.from(a), Buffer.from(b));
+class RequestInputError extends Error {}
+
 async function body(req: IncomingMessage) {
   const chunks: Buffer[] = []; let bytes = 0;
-  for await (const chunk of req) { bytes += chunk.length; if (bytes > 65536) throw new Error('Request body too large'); chunks.push(Buffer.from(chunk)); }
-  return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
+  for await (const chunk of req) { bytes += chunk.length; if (bytes > 65536) throw new RequestInputError('Request body exceeds the 64 KiB limit.'); chunks.push(Buffer.from(chunk)); }
+  try { return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'); }
+  catch { throw new RequestInputError('Request body must be valid JSON.'); }
 }
 function send(res: ServerResponse, status: number, value: unknown) {
   res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(value));
@@ -79,7 +82,14 @@ export function createLabServer(store: RunStore, adminToken = randomBytes(32).to
       }
       send(res, 404, { error: 'Endpoint not found' });
     } catch (err) {
-      if (!res.destroyed) send(res, err instanceof z.ZodError || err instanceof SyntaxError || (err as Error).message === 'Request body too large' ? 400 : 500, { error: err instanceof z.ZodError ? err.issues.map(i => i.message).join('; ') : (err as Error).message });
+      if (!res.destroyed) {
+        // Parser excerpts, rejected keys and storage errors can contain private input.
+        const invalid = err instanceof RequestInputError || err instanceof z.ZodError;
+        const message = err instanceof RequestInputError ? err.message : err instanceof z.ZodError
+          ? 'Invalid request fields. Check required fields, allowed values and types.'
+          : 'The lab could not complete this request. Check the local server and database; inspect the run before retrying a write.';
+        send(res, invalid ? 400 : 500, { error: message, code: invalid ? 'INVALID_REQUEST' : 'INTERNAL_ERROR' });
+      }
     }
   });
   server.requestTimeout = 30000;
