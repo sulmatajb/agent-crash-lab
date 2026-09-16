@@ -20,6 +20,11 @@
       "name": "whip-pan-cut",
       "type": "hyperframes:component",
       "target": "compositions/components/whip-pan-cut.html"
+    },
+    {
+      "name": "code-terminal-run",
+      "type": "hyperframes:component",
+      "target": "compositions/components/code-terminal-run.html"
     }
   ]
 }
