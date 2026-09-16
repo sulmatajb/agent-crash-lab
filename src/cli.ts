@@ -46,7 +46,12 @@ async function main() {
   }
 
   if (command === 'verify-campaign') { if (positionals.length !== 2) throw new Error('Usage: agent-crash-lab verify-campaign MANIFEST.json'); const { verifyCampaign } = await import('./campaign.js'); console.log(JSON.stringify(await verifyCampaign(resolve(positionals[1])),null,2)); return; }
-  if (command === 'verify') { if (!positionals[1]) throw new Error('Usage: agent-crash-lab verify REPORT.json'); const { verifyReport } = await import('./replay.js'); console.log(JSON.stringify(verifyReport(JSON.parse(readFileSync(positionals[1], 'utf8'))), null, 2)); return; }
+  if (command === 'verify') {
+    if (positionals.length !== 2) throw new Error('Usage: agent-crash-lab verify REPORT.json');
+    const { readEvidenceJson } = await import('./evidence-file.js');
+    const { verifyReport } = await import('./replay.js');
+    console.log(JSON.stringify(verifyReport(readEvidenceJson(positionals[1]) as Parameters<typeof verifyReport>[0]), null, 2)); return;
+  }
   const seed = Number(values.seed), repetitions = Number(values.runs);
   if (!Number.isSafeInteger(seed) || seed < 0 || seed > 2147483647) throw new Error('Invalid --seed');
   if (!Number.isInteger(repetitions) || repetitions < 1 || repetitions > 100 || seed + repetitions - 1 > 2147483647) throw new Error('Invalid --runs or seed range');
