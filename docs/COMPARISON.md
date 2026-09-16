@@ -11,7 +11,7 @@ node dist/cli.js evaluate-claude --scenario all --seed 42 --runs 3 --out results
 node dist/cli.js compare results/baseline results/candidate --out comparison.json
 ```
 
-You can also compare individual exported JSON reports or bundles from `test --out`. A campaign directory must contain only reports plus the runner's `summary.json` and `*.trace.json` files (those two kinds are ignored). Keep repeated campaigns with identical seeds in separate directories. Inputs are bounded to 1,000 reports, 10 MiB per file and 10,000 events per report.
+You can also compare individual exported JSON reports or bundles from `test --out`. A campaign directory must contain only reports plus the runner's `summary.json`, `*.trace.json` and `*.manifest.json` metadata files (these are ignored). Keep repeated campaigns with identical seeds in separate directories. Inputs are bounded to 1,000 reports, 10 MiB per file and 10,000 events per report.
 
 Every report is replay-verified before comparison. Cases are paired by scenario, scenario version and seed. Missing cases, changed seeds, mismatched versions and duplicates stop the comparison; it never silently drops unmatched evidence. Agent/model names may differ because these are commonly the thing being changed. Configuration equivalence is the operator's responsibility.
 
