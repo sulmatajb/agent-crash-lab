@@ -1,25 +1,36 @@
-# Agent Crash Lab launch video
+# Agent Crash Lab — recorded UI demo
 
-[Watch / download the 60-second MP4](launch.mp4) · [Scene contact sheet](contact-sheet.jpg) · [Evidence map](SOURCES.md)
+[Watch the 34-second MP4](launch.mp4) · [Contact sheet](contact-sheet.jpg) · [Recording provenance](SOURCES.md)
 
 ![Video poster](poster.png)
 
-1920×1080, H.264, 30 fps, 60 seconds. Intentionally silent and caption-led for sound-off viewing. This is an explanatory film using actual recorded results, not a screen recording. The six scenes include the incomplete trials and the small-sample control limitations.
+Actual UI recording of a fresh Claude Code run: tool calls arrive, a payment response times out, the agent checks the ledger, and the operator inspects one payment and one receipt. Minimal editorial text; no narration or music. 1920×1080 H.264 at 30 fps, from approximately 10 fps browser capture. The live waiting segment is visibly marked 2×.
 
 ## Re-render
 
-Requires Node.js 22+, FFmpeg, and HyperFrames (the npm scripts pin 0.8.41). From this directory:
+Requires Node.js 22+, Python 3 and FFmpeg. HyperFrames is pinned to 0.8.41.
 
-```bash
+```sh
+python3 build-recording.py
 npm run check
 npm run dev
-npm run render -- --quality high --output renders/agent-crash-lab-launch.mp4
+npm run render -- --quality delivery --output renders/agent-crash-lab-recorded.mp4
 ```
 
-The assembled index and all scene sources are committed; a HyperFrames skill installation is not needed to render. All runtime assets are local. Generated working renders and snapshots are ignored. `launch.mp4`, `poster.png` and `contact-sheet.jpg` are the reviewed delivery artifacts.
+`EDIT.json` defines the cuts. `assets/recordings/` holds the actual source recordings, and `assets/recorded-session.mp4` is the assembled footage. The HyperFrames composition applies camera moves and the minimal labels. All assets are local. Raw frame working directories and render caches are ignored.
 
-## Dependencies and provenance
+## Evidence
 
-Original composition and text follow the repository MIT license. Bundled Inter font uses the included [SIL Open Font License](assets/Inter-OFL.txt). GSAP 3.14.2 retains its copyright/license header and is subject to the [GSAP Standard License](https://gsap.com/standard-license); the repository MIT license does not replace third-party asset terms. No stock media, music, or generated voice is used.
+From the repository root:
 
-Validation: strict HyperFrames checks passed with no lint/runtime/layout/contrast findings. Scene midpoints and cuts were inspected before rendering; the actual MP4 was decoded and checked after rendering. The file contains exactly 1,800 frames and no audio stream.
+```sh
+node dist/cli.js verify videos/agent-crash-lab/recorded-run.json
+```
+
+The displayed seed-43 report replayed successfully and its eight business calls matched the client trace. Passing this fixture is not a general safety certification. See [SOURCES.md](SOURCES.md).
+
+## Dependencies
+
+Original recording and composition use the repository MIT license. Bundled Inter uses [SIL OFL](assets/Inter-OFL.txt). GSAP 3.14.2 retains its license header and uses the [GSAP Standard License](https://gsap.com/standard-license). The repository license does not replace third-party terms.
+
+The 0.8.42 upgrade check exposed an integrity mismatch in the prior composition. This revision corrects the local GSAP digest and retains the previously pinned 0.8.41 renderer. No external stock media, music, voice or reconstructed UI is used.

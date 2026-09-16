@@ -1,18 +1,18 @@
 ---
-workflow: product-launch-video
+workflow: general-video
 flow: automation
 storyboard: no
-message: Test agent decisions before granting real authority.
+message: Watch a real agent recover from a committed-payment timeout.
 destination: website
 aspect: 1920x1080
 language: en
-length: 60s
+length: 34s
 narration: no
-angle: evidence-led product demo
+angle: actual UI recording
 ---
-## Intent
-Build a publishable launch video for developers evaluating Claude and Hermes agents. User explicitly requests autonomous completion including rendering. Use caption-led motion graphics that work with sound off. Style is restrained dark engineering editorial with lime accents.
-## Assets
-Repository validation JSON and docs are the factual source. No website scrape required. Visualize recorded results, explicitly labeled; do not impersonate screen recordings.
-## Notes
-Do not claim universal agent safety, billing, broad adoption, or live Hermes model validation. Repository stays private until separately authorized. No narration or music for this first caption-led cut. No fake model results. Render now after quality checks; user has explicitly authorized completion.
+## User revision
+Replace the rejected text-led video with an actual recording of UI interaction and a real agent using the lab. Use as few added words as possible. Autonomous completion, editing and rendering remain authorized.
+## Material
+Actual browser frame captures of a fresh Claude Code payment-timeout trial, seed 43, run f1a6c3a9-f01a-4b03-b13a-cff557ee7dbb. Recordings show live tool updates and subsequent human/operator inspection. Connection overview precedes the run; the runner itself was invoked from the CLI. Do not imply the web interface launches Claude.
+## Editing
+34 seconds. Cut dead time and shorten the live waiting segment to 2x. Keep tool results intact. Use camera reframing of the recorded UI, with no recreated UI, fabricated tool calls, or synthetic agent narration. Minimal added text: recorded-session label, speed indicator, final repository URL. Silent by design; no voiceover or music sourcing.

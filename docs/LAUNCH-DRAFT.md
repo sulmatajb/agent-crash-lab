@@ -14,7 +14,7 @@ Local web app + CLI + MCP server. MIT-licensed. Replayable evidence. No real pay
 
 Start here: https://github.com/sulmatajb/agent-crash-lab
 
-Attach `videos/agent-crash-lab/launch.mp4` (60 seconds, 1080p, silent).
+Attach `videos/agent-crash-lab/launch.mp4` (34 seconds, 1080p, silent).
 
 ## Release scope
 

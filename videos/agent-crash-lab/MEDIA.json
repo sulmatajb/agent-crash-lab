@@ -1,0 +1,44 @@
+[
+  {
+    "file": "assets/recordings/01-connect.mp4",
+    "sha256": "76fb511e7c4d57631e1c3c0c6ba3ec71ce1dc0e50a11c413724e4b5176da0085",
+    "origin": "Actual local browser capture of Agent Crash Lab UI",
+    "license": "MIT (project-authored UI and recording)"
+  },
+  {
+    "file": "assets/recordings/04-live-framed.mp4",
+    "sha256": "bd2653ea89c9fcc27e125524ab4b87a8533830a506c5b604237c9aef24df2fa9",
+    "origin": "Actual local browser capture of Agent Crash Lab UI",
+    "license": "MIT (project-authored UI and recording)"
+  },
+  {
+    "file": "assets/recordings/05-timeout.mp4",
+    "sha256": "2dc233c5c17c9ef0bf3b25694283557e59939645c6e7010a1be4de06c69d9d7b",
+    "origin": "Actual local browser capture of Agent Crash Lab UI",
+    "license": "MIT (project-authored UI and recording)"
+  },
+  {
+    "file": "assets/recordings/06-reconcile-close.mp4",
+    "sha256": "6f459119599cda51afea52790cd6de4ea9756ddc1e2a6aa11e622f3b84ba48aa",
+    "origin": "Actual local browser capture of Agent Crash Lab UI",
+    "license": "MIT (project-authored UI and recording)"
+  },
+  {
+    "file": "assets/recordings/07-effects.mp4",
+    "sha256": "c64b7757a98000b91af45d8964bec57ca5c481f58da4faa07f42f928b46a35ee",
+    "origin": "Actual local browser capture of Agent Crash Lab UI",
+    "license": "MIT (project-authored UI and recording)"
+  },
+  {
+    "file": "assets/recordings/08-receipt.mp4",
+    "sha256": "91dd1cdbe9e67090409ec2f2f4577485230cc8618ca5398c873c4302cd4ee852",
+    "origin": "Actual local browser capture of Agent Crash Lab UI",
+    "license": "MIT (project-authored UI and recording)"
+  },
+  {
+    "file": "assets/recordings/09-checks.mp4",
+    "sha256": "b11ff7c9cdb3592cde597ec6e0ac597b4a46edd17458a5c5e41f348c218aab83",
+    "origin": "Actual local browser capture of Agent Crash Lab UI",
+    "license": "MIT (project-authored UI and recording)"
+  }
+]

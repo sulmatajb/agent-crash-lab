@@ -1,56 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=1920, height=1080">
-    <script src="assets/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      html,
-      body {
-        width: 1920px;
-        height: 1080px;
-        overflow: hidden;
-        background: #000;
-      }
-      #root {
-        position: relative;
-        width: 1920px;
-        height: 1080px;
-        overflow: hidden;
-        background: #e8ece8;
-      }
-      .scene {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-      }
-    </style>
-  </head>
-  <body>
-    <div data-hf-id="hf-qbnw" id="root" data-composition-id="main" data-start="0" data-duration="60" data-width="1920" data-height="1080">
-      <div data-hf-id="hf-kb9z" id="el-01-hook" class="scene" data-composition-id="01-hook" data-composition-src="compositions/frames/01-hook.html" data-start="0" data-duration="8" data-track-index="1"></div>
-
-      <div data-hf-id="hf-d3xv" id="el-02-mechanism" class="scene" data-composition-id="02-mechanism" data-composition-src="compositions/frames/02-mechanism.html" data-start="8" data-duration="10" data-track-index="1"></div>
-
-      <div data-hf-id="hf-l9zr" id="el-03-trace" class="scene" data-composition-id="03-trace" data-composition-src="compositions/frames/03-trace.html" data-start="18" data-duration="12" data-track-index="1"></div>
-
-      <div data-hf-id="hf-591l" id="el-04-findings" class="scene" data-composition-id="04-findings" data-composition-src="compositions/frames/04-findings.html" data-start="30" data-duration="10" data-track-index="1"></div>
-
-      <div data-hf-id="hf-i3ec" id="el-05-control" class="scene" data-composition-id="05-control" data-composition-src="compositions/frames/05-control.html" data-start="40" data-duration="10" data-track-index="1"></div>
-
-      <div data-hf-id="hf-m6yk" id="el-06-try" class="scene" data-composition-id="06-try" data-composition-src="compositions/frames/06-try.html" data-start="50" data-duration="10" data-track-index="1"></div>
-
-    </div>
-
-    <script>
-      window.__timelines = window.__timelines || {};
-      window.__timelines["main"] = gsap.timeline({ paused: true });
-    </script>
-  </body>
-</html>
+<html><head><meta charset="utf-8"><title>Agent Crash Lab — real agent, real evidence</title>
+<style>
+@font-face{font-family:Inter;src:url('assets/inter-latin.woff2') format('woff2');font-weight:100 900;font-style:normal}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#142021}#main{position:relative;width:100%;height:100%;overflow:hidden;background:#eff3f3}
+#camera{position:absolute;inset:0;transform-origin:0 0;width:100%;height:100%}
+#recording{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
+div.clip{position:absolute;inset:0;pointer-events:none}.tag{position:absolute;left:28px;bottom:25px;font:500 22px Inter,sans-serif;color:#fff;background:#142021;padding:13px 18px;border:1px solid #3a4848;border-radius:7px}
+#speed{left:auto;right:28px;font-size:20px}
+#destination{position:absolute;left:28px;bottom:25px;font:600 27px Inter,sans-serif;color:#d4f75a;background:#142021;padding:17px 23px;border:1px solid #3a4848;border-radius:7px}
+</style><script src="assets/gsap.min.js" integrity="sha384-wRBqF5afF/Q64r0nYlFYwOMyqRL9EzdtUB1AP1T0iKOVNjh9gmQcYtqvzHQgqFRQ"></script></head>
+<body><div data-hf-id="hf-hh8o" id="main" data-composition-id="main" data-width="1920" data-height="1080" data-duration="34">
+<div data-hf-id="hf-5ys9" id="camera" data-layout-allow-overflow="true"><video data-hf-id="hf-qdg8" id="recording" class="clip" src="assets/recorded-session.mp4" data-start="0" data-duration="34" data-track-index="0" muted playsinline></video></div>
+<div data-hf-id="hf-5f2l" id="recorded-label-track" class="clip" data-start="0" data-duration="30.5" data-track-index="1"><div data-hf-id="hf-47nf" class="tag">Recorded · Claude Code + MCP</div></div>
+<div data-hf-id="hf-t9qy" id="speed-label-track" class="clip" data-start="3" data-duration="8.5" data-track-index="2"><div data-hf-id="hf-7p00" class="tag" id="speed">2×</div></div>
+<div data-hf-id="hf-ipjz" id="destination-track" class="clip" data-start="30.5" data-duration="3.5" data-track-index="3"><div data-hf-id="hf-zp3f" id="destination">github.com/sulmatajb/agent-crash-lab</div></div>
+</div><script>
+const tl=gsap.timeline({paused:true});
+tl.set('#camera',{scale:1,x:0,y:0},0);
+tl.to('#camera',{scale:1.22,x:-355,y:-30,duration:.65,ease:'power2.inOut'},1.35);
+tl.set('#camera',{scale:1.16,x:-307,y:-35},3);
+tl.to('#camera',{scale:1.3,x:-576,y:-260,duration:.8,ease:'power2.inOut'},4.6);
+tl.to('#camera',{scale:1.16,x:-307,y:-35,duration:.7,ease:'power2.inOut'},8.7);
+tl.set('#camera',{scale:1,x:0,y:0},11.5);
+tl.to('#camera',{scale:1.4,x:-768,y:0,duration:.7,ease:'power2.inOut'},12.6);
+tl.set('#camera',{scale:1.18,x:-345,y:0},16.5);
+tl.to('#camera',{scale:1.36,x:-691,y:0,duration:.65,ease:'power2.inOut'},17.6);
+tl.set('#camera',{scale:1.12,x:-230,y:0},21.5);
+tl.to('#camera',{scale:1.3,x:-576,y:-324,duration:.8,ease:'power2.inOut'},22.6);
+tl.set('#camera',{scale:1.2,x:-384,y:0},25.5);
+tl.to('#camera',{scale:1.3,x:-576,y:-324,duration:.75,ease:'power2.inOut'},26.7);
+tl.set('#camera',{scale:1.1,x:-192,y:0},29.5);
+tl.to('#camera',{scale:1.2,x:-384,y:-80,duration:.8,ease:'power2.inOut'},30.5);
+window.__timelines['main']=tl;
+</script></body></html>

@@ -9,12 +9,6 @@
   "media": {
     "autoProxy": true
   },
-  "authoringSkill": "product-launch-video",
-  "registryItems": [
-    {
-      "name": "line-by-line-slide",
-      "type": "hyperframes:component",
-      "target": "compositions/components/line-by-line-slide.html"
-    }
-  ]
+  "authoringSkill": "general-video",
+  "registryItems": []
 }
