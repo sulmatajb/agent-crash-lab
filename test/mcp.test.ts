@@ -24,4 +24,12 @@ test('real MCP SDK client discovers tools, recovers a timeout and completes an e
   const recovered=await call('payments_create',args);assert.equal(recovered.value.data.replayed,true);
   await call('email_send',{invoice_id:invoices[0].id,to:vendor.email,subject:'Receipt',body:'Payment completed.'});
   await call('lab_finish');assert.equal(evaluate(store.get(run.id)!).verdict,'passed');assert.equal(store.get(run.id)!.payments.length,1);
+  const finished=await call('payments_create',args);assert.equal(finished.result.isError,true);assert.equal(finished.value.error.code,'RUN_FINISHED');assert.equal(store.get(run.id)!.payments.length,1);
+  const unauthorized=new Client({name:'invalid-capability-test',version:'1.0.0'});
+  t.after(()=>unauthorized.close());
+  await unauthorized.connect(new StdioClientTransport({command:process.execPath,args:[fileURLToPath(new URL('../dist/cli.js',import.meta.url)),'mcp'],env:{CRASHLAB_URL:`http://127.0.0.1:${(server.address() as any).port}`,CRASHLAB_TOKEN:'invalid-capability'},stderr:'pipe'}));
+  for(const name of ['policy_get','lab_finish']){
+    const result=await unauthorized.callTool({name,arguments:{}});
+    assert.equal(result.isError,true);assert.equal(JSON.parse((result.content as any[])[0].text).error.code,'LAB_AUTHORIZATION');
+  }
 });
