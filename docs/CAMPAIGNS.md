@@ -2,6 +2,8 @@
 
 Every supervised Claude or Hermes invocation writes a unique `<campaign-id>.manifest.json` next to its reports. The manifest is created before trials start, updated atomically after each saved report, and finalized when the runner exits normally or handles cancellation. Individual reports and the summary include the campaign ID. Reusing a directory does not overwrite older manifests, although `summary.json` still describes the most recent invocation. Prefer separate directories for baseline and candidate campaigns.
 
+The writer serializes record/finalize requests and snapshots report data when submitted. In-memory state advances only after the manifest replacement succeeds; a failed write can be retried without a false duplicate or premature finalization. Repeated finalization preserves the first terminal status. Temporary files from failed writes are removed when the filesystem permits. Atomic replacement is not a guarantee of survival after power loss; manifests are not explicitly fsynced.
+
 A manifest records:
 
 - The planned scenario versions and seeds, including cases not reached after an early failure.
