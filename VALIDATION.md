@@ -19,7 +19,7 @@ The pre-publication pass also verified the [outage-only control](docs/OUTAGE-CON
 | HTTP p95 / p99 | 20.21 / 26.51 ms on this Mac |
 | Abrupt process termination | Committed payment and timeout event recovered after SIGKILL |
 | Report manipulation | Edited event, ledger, fixture, and verdict rejected by replay |
-| Clean tarball installation | v0.3.1 installed in a fresh temporary directory; packaged Claude runner completed a real clean-control trial |
+| Installation | v0.3.1 clean-source archive: npm ci, build, and all 11 reference scenarios passed. The earlier v0.3.0 tarball completed a real Claude clean-control trial |
 | Installed Hermes | Version 0.18.2 discovered exactly ten lab tools and called the policy tool |
 | Hermes decision-loop plumbing | Real AIAgent ran a complete timeout/retry/receipt workflow using a deterministic LOCAL provider fixture |
 | Hermes live model attempt | Execution error: no LLM provider credentials configured; no Hermes model pass recorded |
