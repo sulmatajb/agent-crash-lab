@@ -245,3 +245,7 @@ Supervised runners save unique campaign manifests with planned coverage, configu
 ### Reading live evidence
 
 The main summary shows policy violations, task checks met, and tool-call count. Simulated payment totals and authorization limits appear under **Side effects**, alongside the actual committed ledger. A newly created empty run says **Waiting for the first action**; creating a connection alone does not prove an agent has connected. Screen-reader live announcements summarize the scenario, seed, call count and verdict without repeatedly reading the complete tool payloads.
+
+## Scenario arguments
+
+Pass scenario names with `--scenario`, for example `node dist/cli.js evaluate-claude --scenario payment-timeout`. A bare positional scenario such as `evaluate-claude payment-timeout` exits with code 2 before launching a client or creating a campaign. Other unexpected positional arguments are rejected as well; evidence commands accept their documented file or directory operands.
