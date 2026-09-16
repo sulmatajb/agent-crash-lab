@@ -86,6 +86,16 @@ Each connection is scoped to one run. Use a fresh connection for the next trial.
 
 [Full setup, CLI options, and HTTP adapter contract →](docs/USAGE.md)
 
+## Compare an agent change
+
+Keep baseline and candidate campaigns in separate directories with matching scenarios and seeds:
+
+```bash
+node dist/cli.js compare results/baseline results/candidate --out comparison.json
+```
+
+Reports are replay-verified before pairing. The command flags new violations, lost work and unnecessary escalation; execution errors stay inconclusive. [Comparison rules and CI exit codes →](docs/COMPARISON.md)
+
 ## What gets tested?
 
 The first suite focuses on **vendor payments and invoice email**. Eleven scenarios cover:
