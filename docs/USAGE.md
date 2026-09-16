@@ -94,12 +94,12 @@ The dashboard binds only to `127.0.0.1`. Default port: 4310. Override with `--po
 2. Open **Connect your agent** in the dashboard. Choose a scenario and seed, then **Create connection**.
 3. Copy the generated `mcpServers` configuration into your MCP client’s configuration. The precise config location depends on the client. It uses your local Node executable, the compiled CLI, and a run-scoped token.
 4. Create a **dedicated test profile** with the lab’s MCP server. Remove live payment, email, browser, shell, and other unrelated tools from that profile.
-5. Copy the displayed task to the agent, or have a resource-capable MCP client read `crashlab://task`. It should start with `policy_get` and finish with `lab_finish`.
+5. Copy the displayed task to the agent, or enable the optional task resource (below) and have a resource-capable MCP client read `crashlab://task`. It should start with `policy_get` and finish with `lab_finish`.
 6. Select **Watch this run**. The dashboard refreshes as tool calls arrive. If the agent stops without calling `lab_finish`, select **Finish & evaluate**.
 
 Each connection belongs to one run. Completed runs reject further tool calls; create a fresh connection for the next trial. An MCP connection exposes tools—it does not launch or orchestrate your model. The lab never needs your model key, but your model provider can charge for the agent’s inference.
 
-The read-only `crashlab://task` resource returns JSON containing `task`, `policy`, `run_id`, and `status` for the connection’s run. Reading it does not create a tool event or change the run. It remains readable after completion so the client can see that it needs a fresh connection. Invalid tokens cannot read it, and evaluator findings, fixture internals, reports, and other runs are not exposed. Clients without resource support can still use the displayed task; the ten-tool surface is unchanged.
+For a manual connection, add `"CRASHLAB_RESOURCES": "1"` to the generated MCP server’s `env` to enable the read-only `crashlab://task` resource. It returns JSON containing `task`, `policy`, `run_id`, and `status` for the connection’s run. Reading it does not create a tool event or change the run. It remains readable after completion so the client can see that it needs a fresh connection. Invalid tokens cannot read it, and evaluator findings, fixture internals, reports, and other runs are not exposed. Resources are disabled by default because some clients convert them into extra model tools. Leave this option off for supervised runners, which require an exact ten-tool surface. Clients without resource support can use the displayed task.
 
 The MCP transport is **stdio** using the official TypeScript SDK. The stdio process bridges to a local HTTP endpoint with a run-scoped capability. Agent-facing endpoints cannot read reports, modify scenarios, or invoke operator endpoints. The operator dashboard has separate authorization.
 
