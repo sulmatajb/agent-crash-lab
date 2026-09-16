@@ -12,18 +12,25 @@ async function main() {
     agent: { type: 'string', default: 'careful' }, scenario: { type: 'string', default: 'all' },
     seed: { type: 'string', default: '42' }, runs: { type: 'string', default: '1' },
     json: { type: 'boolean', default: false }, out: { type: 'string' }, help: { type: 'boolean', short: 'h' },
-    'claude-command': { type: 'string' }, 'hermes-python': { type: 'string' }, 'hermes-profile': { type: 'string' }, model: { type: 'string' }, provider: { type: 'string' },
+    client: { type: 'string' }, 'claude-command': { type: 'string' }, 'hermes-python': { type: 'string' }, 'hermes-profile': { type: 'string' }, model: { type: 'string' }, provider: { type: 'string' },
     timeout: { type: 'string', default: '180' }, 'max-turns': { type: 'string', default: '30' },
     'system-prompt': { type: 'string' }, worlds: { type: 'string', default: '100' }, concurrency: { type: 'string', default: '16' }
   } });
   const command = positionals[0] ?? 'help';
   if (command === 'help' || values.help) {
-    console.log('Live-agent commands:\n  doctor             Inspect Hermes installation/configuration without inference\n  probe              Verify actual Hermes MCP discovery/call; no model inference\n  evaluate-claude    Launch isolated Claude Code (all/advanced/scenario ID)\n  evaluate           Launch and supervise Hermes against the selected scenarios\n  stress             Load-test HTTP, MCP, persistence and ledger invariants\n  verify REPORT.json Replay exported evidence and check its consistency\n\nHermes options: --hermes-python PATH --hermes-profile DIR --model ID --provider NAME\n  --timeout 180 --max-turns 30 --system-prompt FILE --out DIRECTORY\nStress options: --worlds 100 --concurrency 16 --out REPORT.json\n');
+    console.log('Live-agent commands:\n  doctor             Inspect setup without inference; --client claude|hermes|all\n  probe              Verify actual Hermes MCP discovery/call; no model inference\n  evaluate-claude    Launch isolated Claude Code (all/advanced/scenario ID)\n  evaluate           Launch and supervise Hermes against the selected scenarios\n  stress             Load-test HTTP, MCP, persistence and ledger invariants\n  verify REPORT.json Replay exported evidence and check its consistency\n\nHermes options: --hermes-python PATH --hermes-profile DIR --model ID --provider NAME\n  --timeout 180 --max-turns 30 --system-prompt FILE --out DIRECTORY\nStress options: --worlds 100 --concurrency 16 --out REPORT.json\n');
     console.log(`Agent Crash Lab 0.3.2\n\nUsage: agent-crash-lab <command> [options]\n\n  start              Start the local dashboard (http://127.0.0.1:4310)\n  demo               Seed a careful/reckless comparison and start dashboard\n  test               Run scripted reference agents headlessly\n  mcp                Start the stdio MCP bridge for an external run\n  scenarios          List the vendor-payment scenarios\n\nOptions:\n  --port 4310        Local server port\n  --db PATH          SQLite store (default .crashlab/runs.sqlite)\n  --agent NAME       careful | reckless (test only)\n  --scenario ID      Scenario ID or all (test/evaluate)\n  --seed 42          Seed from 0 to 2147483647\n  --runs 1           Repetitions, incrementing seeds (max 100)\n  --json             Print machine-readable test results\n  --out PATH         Save full JSON evidence\n\nTest exits: 0 all passed; 1 failed/incomplete; 2 usage/runtime error.\nReference agents are deterministic scripts, not language models.\nConnect your own agent from the dashboard; no model keys are needed by the lab.`); return;
   }
   if (command === 'mcp') { const { startMcp } = await import('./mcp.js'); await startMcp(); return; }
   if (command === 'scenarios') { for (const s of scenarios) console.log(`${s.id.padEnd(20)} ${s.title}`); return; }
-  if (command === 'doctor') { const { hermesDoctor } = await import('./runner.js'); console.log(JSON.stringify(await hermesDoctor(values['hermes-python'], values['hermes-profile']), null, 2)); return; }
+  if (command === 'doctor') {
+    // Preserve the original Hermes-only JSON contract unless a client is selected.
+    if (!values.client) { const { hermesDoctor } = await import('./runner.js'); console.log(JSON.stringify(await hermesDoctor(values['hermes-python'], values['hermes-profile']), null, 2)); return; }
+    if (!['claude','hermes','all'].includes(values.client)) throw new Error('--client must be claude, hermes or all.');
+    const { readiness } = await import('./doctor.js');
+    const result = await readiness({client:values.client as 'claude'|'hermes'|'all',command:values['claude-command'],python:values['hermes-python'],profile:values['hermes-profile']});
+    console.log(JSON.stringify(result,null,2));process.exitCode=result.exit_code;return;
+  }
   if (command === 'stress') { const { stressLab } = await import('./stress.js'); console.log(JSON.stringify(await stressLab({ worlds: Number(values.worlds), concurrency: Number(values.concurrency), out: values.out }), null, 2)); return; }
   if (command === 'verify') { if (!positionals[1]) throw new Error('Usage: agent-crash-lab verify REPORT.json'); const { verifyReport } = await import('./replay.js'); console.log(JSON.stringify(verifyReport(JSON.parse(readFileSync(positionals[1], 'utf8'))), null, 2)); return; }
   const seed = Number(values.seed), repetitions = Number(values.runs);

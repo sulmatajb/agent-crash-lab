@@ -52,6 +52,9 @@ This package is **not published to npm**. Use this repository; do not assume `np
 Use your installed, authenticated Claude Code client. If necessary, sign in with `claude auth login` first.
 
 ```bash
+# Check setup without inference
+node dist/cli.js doctor --client claude
+
 # Start with one real trial
 node dist/cli.js evaluate-claude --scenario payment-timeout --out results/claude
 
@@ -84,7 +87,7 @@ node dist/cli.js evaluate --scenario payment-timeout --out results/hermes
 
 Each connection is scoped to one run. Use a fresh connection for the next trial. The agent should call `policy_get` first and `lab_finish` last. Manual connections do not supervise the client's process; use **Finish & evaluate** if it stops without finishing.
 
-[Full setup, CLI options, and HTTP adapter contract →](docs/USAGE.md)
+[Full setup, CLI options, and HTTP adapter contract →](docs/USAGE.md) · [Readiness checks →](docs/READINESS.md)
 
 ## What gets tested?
 
