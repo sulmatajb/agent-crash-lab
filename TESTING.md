@@ -63,3 +63,5 @@ node dist/cli.js verify validation/examples/claude-payment-timeout.json
 ```
 
 This is an actual completed Claude trial, not the careful reference script. Its execution metadata identifies the client-reported model configuration; replay establishes internal consistency only.
+
+MCP connection failures use structured `LAB_*` error codes, distinct from simulated business faults such as `TIMEOUT`. The bridge does not automatically retry writes: if a request loses its response, a payment may already have committed. Inspect the run, reconcile with `payments_list`, and preserve the original idempotency key when retrying. An authorization error requires a fresh dashboard connection. Transport errors have `retryable: false` to prevent blind retry loops; this does not mean the payment is known to have failed. Responses are bounded to 15 seconds and 1 MiB; redirects are refused and raw HTTP error bodies are omitted.
