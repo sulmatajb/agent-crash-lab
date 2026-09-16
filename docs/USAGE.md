@@ -225,3 +225,7 @@ Thousands of GitHub users would each run their own local lab. The load results m
 Open **Run history** while your agent runs. It updates every two seconds; use **Running now** to find active trials, or search the latest 250 runs by agent, scenario, seed or run ID. Opening a run adds its ID to the browser URL, so reloading keeps the same evidence open. **Copy run link** creates a local bookmark, usable on the same computer while this server and database are available; it contains no agent capability token. Export JSON for portable evidence.
 
 Live updates preserve expanded tool responses and keyboard focus. A connection banner appears if the server is unavailable and clears when polling recovers.
+
+### Campaign provenance
+
+Supervised runners save unique campaign manifests with planned coverage, configuration fingerprints and report digests. Use `verify-campaign MANIFEST.json` to verify files, replay and coverage. See [campaign records and limitations](CAMPAIGNS.md).

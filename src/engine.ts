@@ -22,7 +22,7 @@ export type Finding = { code: string; severity: 'critical' | 'high'; message: st
 export type ToolResult = { ok: boolean; data?: unknown; error?: { code: string; message: string; retryable: boolean } };
 export type Event = { seq: number; tool: string; arguments: unknown; result: ToolResult; findings: Finding[]; fault?: string; at: string };
 export type Run = {
-  id: string; scenario: ScenarioId; scenario_version: string; seed: number; agent: string;
+  id: string; campaign_id?: string; scenario: ScenarioId; scenario_version: string; seed: number; agent: string;
   status: 'running' | 'completed'; created_at: string; finished_at?: string;
   world: World; payments: Payment[]; emails: SentEmail[]; approvals: Approval[];
   events: Event[]; findings: Finding[]; timeout_fired: boolean; stop_reason?: string;
