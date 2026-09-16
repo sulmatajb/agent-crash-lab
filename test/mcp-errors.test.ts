@@ -40,3 +40,9 @@ test('valid business faults stay distinct from transport failures; finish needs 
   assert.deepEqual(await requestLab(origin,'token','/agent/call',{}),fault);
   assert.equal((await requestLab(origin,'token','/agent/finish',{})).error.code,'LAB_INVALID_RESPONSE');
 });
+test('task resource rejects malformed envelopes without echoing private contents', async t => {
+  const origin = await fixture(t, (_, res) => res.end(JSON.stringify({task:'private-marker',run_id:'run',status:'completed',policy:[]})));
+  const result = await requestLab(origin, 'token', '/agent/task');
+  assert.equal(result.error.code, 'LAB_INVALID_RESPONSE');
+  assert.doesNotMatch(JSON.stringify(result), /private-marker|outcome is unknown/);
+});
