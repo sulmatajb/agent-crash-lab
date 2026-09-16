@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { constants, openSync, fstatSync, readSync, closeSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { evaluate, type Run } from './engine.js';
 import { verifyReport } from './replay.js';
@@ -13,13 +13,27 @@ export function loadReports(path: string): Run[] {
   let bytes = 0;
   const reports: Run[] = [];
   const loadFile = (file: string) => {
-    const stat = statSync(file);
-    if (!stat.isFile()) throw new Error('Report input must be a regular file.');
-    if (stat.size > MAX_REPORT_BYTES) throw new Error('Report exceeds the 10 MiB input limit.');
-    if (bytes + stat.size > MAX_CAMPAIGN_BYTES) throw new Error('Campaign exceeds the 64 MiB aggregate input limit.');
-    const raw = readFileSync(file, 'utf8');
-    bytes += Buffer.byteLength(raw);
-    if (Buffer.byteLength(raw) > MAX_REPORT_BYTES || bytes > MAX_CAMPAIGN_BYTES) throw new Error('Evidence exceeds the input byte limit.');
+    const fd = openSync(file, constants.O_RDONLY | constants.O_NONBLOCK | constants.O_NOFOLLOW);
+    let raw: string;
+    try {
+      const stat = fstatSync(fd);
+      if (!stat.isFile()) throw new Error('Report input must be a regular file.');
+      if (stat.size > MAX_REPORT_BYTES) throw new Error('Report exceeds the 10 MiB input limit.');
+      if (bytes + stat.size > MAX_CAMPAIGN_BYTES) throw new Error('Campaign exceeds the 64 MiB aggregate input limit.');
+      const chunks: Buffer[] = [];
+      let fileBytes = 0;
+      for (;;) {
+        const chunk = Buffer.allocUnsafe(Math.min(65536, MAX_REPORT_BYTES + 1 - fileBytes, MAX_CAMPAIGN_BYTES + 1 - bytes));
+        const count = readSync(fd, chunk, 0, chunk.length, null);
+        if (!count) break;
+        fileBytes += count;
+        bytes += count;
+        if (fileBytes > MAX_REPORT_BYTES) throw new Error('Report exceeds the 10 MiB input limit.');
+        if (bytes > MAX_CAMPAIGN_BYTES) throw new Error('Campaign exceeds the 64 MiB aggregate input limit.');
+        chunks.push(chunk.subarray(0, count));
+      }
+      raw = Buffer.concat(chunks, fileBytes).toString('utf8');
+    } finally { closeSync(fd); }
     let data;
     try { data = JSON.parse(raw); } catch { throw new Error('Report is not valid JSON.'); }
     const batch = Array.isArray(data?.runs) ? data.runs : [data];
@@ -27,9 +41,12 @@ export function loadReports(path: string): Run[] {
     reports.push(...batch);
   };
   if (statSync(path).isDirectory()) {
-    const files = readdirSync(path, { withFileTypes: true }).filter(f => f.isFile() && f.name.endsWith('.json') && f.name !== 'summary.json' && !f.name.endsWith('.trace.json') && !f.name.endsWith('.manifest.json')).sort((a,b) => a.name.localeCompare(b.name));
+    const files = readdirSync(path, { withFileTypes: true }).filter(f => f.name.endsWith('.json') && f.name !== 'summary.json' && !f.name.endsWith('.trace.json') && !f.name.endsWith('.manifest.json')).sort((a,b) => a.name.localeCompare(b.name));
     if (!files.length || files.length > MAX_REPORTS) throw new Error('Campaign must contain 1–1100 report files.');
-    for (const file of files) loadFile(join(path, file.name));
+    for (const file of files) {
+      if (!file.isFile()) throw new Error(`Campaign report must be a regular file: ${file.name}`);
+      loadFile(join(path, file.name));
+    }
   } else loadFile(path);
   return reports;
 }
