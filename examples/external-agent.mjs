@@ -10,7 +10,7 @@ async function request(path, body) {
   const value = await response.json(); if (!response.ok) throw new Error(value.error); return value;
 }
 async function call(name, args = {}) { return request('/agent/call', { name, arguments:args }); }
-async function read(name, args = {}) { const result=await call(name,args);if(!result.ok)throw new Error(result.error.message);return result.data; }
+async function read(name, args = {}) { let result=await call(name,args);for(let retry=0;retry<2 && result.error?.retryable;retry++)result=await call(name,args);if(!result.ok)throw new Error(result.error.message);return result.data; }
 const { policy } = await read('policy_get');
 await read('inbox_list');
 for (const invoice of await read('invoices_list')) {

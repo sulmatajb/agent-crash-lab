@@ -28,3 +28,9 @@ The adapter creates a temporary profile and enables only the exact ten lab tool 
 The child process is supervised with wall-clock/output bounds and cancellation. POSIX process groups are terminated on timeout; Windows subtree termination has not been verified. Provider calls may incur costs; iteration and output limits are not an exact monetary budget. Arbitrary provider stderr is drained without persistence. Known inference credentials and run tokens are redacted from structured adapter output. Reports may still contain user-provided prompts or model-generated text: inspect before sharing.
 
 Replay verifies evidence consistency against the versioned engine. It does not cryptographically prove the origin of evidence and cannot defend against an attacker who controls the local process, source code, or database.
+
+## Supervised Claude Code runner
+
+The runner uses a fresh temporary working directory, disables built-in tools, requires strict MCP configuration, and skips user/project setting sources except the empty local directory. It validates the init event's exact tool/server list, refuses unexpected plugins, limits turns, output and wall time, and terminates the POSIX process group on timeout/cancellation. It checks final exit state, task completion protocol and trace/event consistency. The run-scoped connection file is removed after the trial.
+
+This does not revoke the CLI process's filesystem or network permissions, replace OS containment, or erase all provider-side account context. Tool-surface checks depend on the client's emitted metadata. Supported behavior is verified against Claude Code 2.1.261; future CLI changes may require updates. Only tool-call traces and simulation reports are persisted; raw provider logs, narration and cost telemetry are omitted. Known environment credentials and run tokens are redacted from diagnostic text. Never give a tested agent real secrets.

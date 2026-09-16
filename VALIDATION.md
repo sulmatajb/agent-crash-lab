@@ -1,14 +1,14 @@
-# Release validation — 0.2.0
+# Release validation — 0.3.0
 
 **Decision: infrastructure and the initial live Claude baseline validated; still pre-release.**
 
-See [CLAUDE-VALIDATION.md](CLAUDE-VALIDATION.md) for the 21-trial live campaign and its limits.
+See [CLAUDE-VALIDATION.md](CLAUDE-VALIDATION.md) for the historical 21-trial baseline, and [ADVANCED-VALIDATION.md](ADVANCED-VALIDATION.md) for the new nine-trial campaign: six passed, three incomplete, no execution errors.
 
 ## What was actually exercised
 
 | Check | Observed outcome |
 | --- | --- |
-| Automated suite | 43 tests, including the installed Hermes runtime integration |
+| Automated suite | 58 tests, including the installed Hermes runtime integration |
 | Seeded engine invariants | 200,000 calls checked against an independent ledger oracle |
 | HTTP load | 65,000 requests, 1,000 worlds, 64 concurrent same-invoice retries |
 | MCP transport load | 96 calls through real stdio processes and official SDK clients |
@@ -17,7 +17,7 @@ See [CLAUDE-VALIDATION.md](CLAUDE-VALIDATION.md) for the 21-trial live campaign 
 | HTTP p95 / p99 | 20.21 / 26.51 ms on this Mac |
 | Abrupt process termination | Committed payment and timeout event recovered after SIGKILL |
 | Report manipulation | Edited event, ledger, fixture, and verdict rejected by replay |
-| Clean tarball installation | v0.2.0 installed in a fresh temporary directory; packaged CLI, Python adapter, and MCP discovery/call passed |
+| Clean tarball installation | v0.3.0 installed in a fresh temporary directory; packaged Claude runner completed a real clean-control trial |
 | Installed Hermes | Version 0.18.2 discovered exactly ten lab tools and called the policy tool |
 | Hermes decision-loop plumbing | Real AIAgent ran a complete timeout/retry/receipt workflow using a deterministic LOCAL provider fixture |
 | Hermes live model attempt | Execution error: no LLM provider credentials configured; no Hermes model pass recorded |
@@ -41,11 +41,11 @@ The Hermes local-provider fixture exercises actual model API handling, tool sche
 
 ## Remaining release gates
 
-1. Run an authenticated Hermes campaign and package a tested Claude supervisor. The Claude baseline is complete; it does not establish Hermes model behavior.
+1. Run an authenticated Hermes campaign. The packaged Claude runner has automated protocol/failure tests and live trials; this does not establish Hermes model behavior.
 2. Evaluate representative prompts, model versions, repeated runs, and additional adversarial variations. A seed changes fixtures, not all attack strategies.
 3. Verify installation on another user machine. Linux/Node 22 and 24 CI now passes; local verification is macOS/Node 22.14.
 4. Review dependencies, threat model, and package ownership before public publication.
 
-The runner evaluates a fresh Hermes runtime with the chosen model and optional system prompt. It does not reproduce an existing agent's entire memory, skills, integrations, or deployment environment. Claude Code was exercised through MCP using a local campaign supervisor; a packaged Claude adapter is still pending.
+The runner evaluates a fresh Hermes runtime with the chosen model and optional system prompt. It does not reproduce an existing agent's entire memory, skills, integrations, or deployment environment. Claude Code is now supported by the packaged `evaluate-claude` runner. See ADVANCED-VALIDATION.md for current live results.
 
 Each open-source user runs their own local lab. A large download count does not require a shared server. A future hosted multi-tenant product would need separate authentication, process containment, scheduling, quotas, and storage design; those capabilities are not implied by these load measurements.

@@ -1,11 +1,12 @@
 # Claude Code live baseline — 2026-09-16
 
+Historical 0.2.0 baseline. The packaged runner and expanded suite are documented in [ADVANCED-VALIDATION.md](ADVANCED-VALIDATION.md).
+
 21 fresh live-model sessions passed: seven scenarios at seeds 42, 73, and 104. This campaign is separate from the earlier user-run timeout trial. No scripted reference agents were substituted.
 
 - Source: `97d789d`; Agent Crash Lab 0.2.0, scenario version 1.1.0.
 - Client: Claude Code 2.1.261; model reported by the client: `claude-fable-5-1`.
 - Total: 169 business-tool calls plus 21 `lab_finish` calls.
-- Claude Code `total_cost_usd` telemetry summed to $4.5159 across 21 trials. This is not an observed charge or Agent Crash Lab fee. The CLI authenticated through a Claude Max subscription; every trial reported `apiKeySource: none`. Included subscription usage is governed by the plan, not this dollar counter. See [Claude Code cost documentation](https://code.claude.com/docs/en/costs).
 
 | Scenario | Seed 42 | Seed 73 | Seed 104 |
 | --- | --- | --- | --- |

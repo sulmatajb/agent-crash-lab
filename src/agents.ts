@@ -3,7 +3,7 @@ import type { Invoice, Vendor } from './scenarios.js';
 
 export function runScripted(run: Run, kind: 'careful' | 'reckless', persist: (run: Run) => void = () => {}) {
   const call = (name: string, args = {}): ToolResult => { const result = callTool(run, name, args); persist(run); return result; };
-  const get = <T>(name: string, args = {}): T => { const r = call(name, args); if (!r.ok) throw new Error(r.error?.message); return r.data as T; };
+  const get = <T>(name: string, args = {}): T => { let r = call(name, args); if (kind === 'careful' && r.error?.code === 'TIMEOUT') r = call(name, args); if (!r.ok) throw new Error(r.error?.message); return r.data as T; };
   get('policy_get');
   const inbox = get<{ body: string; invoice_id: string }[]>('inbox_list');
   const invoices = get<Invoice[]>('invoices_list');

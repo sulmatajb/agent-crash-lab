@@ -30,6 +30,14 @@ node dist/cli.js verify results/hermes/<run-id>.json
 
 `doctor` reads configuration without revealing keys. `probe` calls an actual lab tool through Hermes but performs no inference. `evaluate` runs the real model. Check `execution_errors` separately from behavioral failures. A provider error is not an agent safety result.
 
+Claude runtime protocol tests use a deterministic subprocess fixture. They cover expired authentication, missing executable, invalid JSON, output limit, timeout, cancellation, unexpected tool surfaces, missing `lab_finish`, and a failed exit after completing the simulated task. These are runner tests, not model safety results.
+
+To run a live Claude campaign:
+
+```bash
+node dist/cli.js evaluate-claude --scenario advanced --runs 3 --out results/claude
+```
+
 For interactive checks, start the dashboard and compare the reference scripts. At seed 42, the reckless timeout reference pays twice ($530.04 total), while the careful reference pays once ($265.02). The clean control should pass for both. These are transparent fixtures for testing the evaluator, not model results.
 
-Browser verification performed locally: desktop layout, operator WebMCP valid/invalid inputs, displayed state, and payment ledger. Responsive rendering and accessibility have not undergone an exhaustive audit. The GitHub workflow has not yet run on GitHub.
+Browser verification performed locally: desktop layout, operator WebMCP valid/invalid inputs, displayed state, and payment ledger. Responsive rendering and accessibility have not undergone an exhaustive audit. The baseline GitHub workflow passed on Linux with Node 22 and 24.

@@ -1,6 +1,6 @@
 {
   "name": "agent-crash-lab",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A local, stateful crash lab for agents trusted with vendor payments and email.",
   "type": "module",
   "license": "MIT",
@@ -21,7 +21,10 @@
     "SECURITY.md",
     "VALIDATION.md",
     "TESTING.md",
-    "validation/stress-large.json"
+    "validation/stress-large.json",
+    "CLAUDE-VALIDATION.md",
+    "ADVANCED-VALIDATION.md",
+    "validation/claude-advanced.json"
   ],
   "scripts": {
     "dev": "tsx src/cli.ts start",

@@ -15,7 +15,7 @@ test('dashboard runs, compares, changes tabs, browses history and creates an ext
   t.after(async()=>{dom.window.close();server.closeAllConnections();await new Promise<void>(r=>server.close(()=>r()));store.close();});
   const doc=dom.window.document;
   const click=(selector:string)=>{const el=doc.querySelector(selector) as HTMLElement;assert.ok(el,selector);el.click();};
-  await until(()=>doc.querySelectorAll('.scenario-button').length===7);
+  await until(()=>doc.querySelectorAll('.scenario-button').length===10);
   click('#compare-button');await until(()=>doc.querySelectorAll('.compare-card').length===2);
   assert.match(doc.querySelector('#run-output')!.textContent!,/DUPLICATE|paid more than once/);
   click('[data-tab="ledger"]');assert.equal(doc.querySelectorAll('.ledger-table tbody tr').length,2);
@@ -26,7 +26,7 @@ test('dashboard runs, compares, changes tabs, browses history and creates an ext
   assert.match(doc.querySelector('#connection-output')!.textContent!,/CRASHLAB_TOKEN/);
   click('#connection-output [data-run]');await until(()=>!!doc.querySelector('.result-title .running'));
   click('#finish-run');await until(()=>!!doc.querySelector('.result-title .incomplete'));
-  assert.equal(registered.size,2);assert.equal(registered.get('crashlab_list_scenarios').execute({}).length,7);
+  assert.equal(registered.size,2);assert.equal(registered.get('crashlab_list_scenarios').execute({}).length,10);
   const operator=registered.get('crashlab_run_reference');assert.equal(operator.annotations.readOnlyHint,false);assert.equal(operator.inputSchema.required.length,3);
   const before=store.list().length;await assert.rejects(()=>operator.execute({scenario:'bad',agent:'careful',seed:1}));assert.equal(store.list().length,before);
   const outcome=await operator.execute({scenario:'clean-control',agent:'careful',seed:9});assert.equal(outcome.verdict,'passed');assert.match(doc.querySelector('#scenario-title')!.textContent!,/ordinary Tuesday/);assert.ok(doc.querySelector('.result-title .passed'));assert.equal((doc.querySelector('#seed-input') as HTMLInputElement).value,'9');assert.equal((doc.querySelector('#agent-select') as HTMLSelectElement).value,'careful');

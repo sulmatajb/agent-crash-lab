@@ -2,8 +2,10 @@ import { isDeepStrictEqual } from 'node:util';
 import { newRun, callTool, finishRun, evaluate, type Run } from './engine.js';
 
 export function verifyReport(report: Run & { evaluation?: unknown }) {
-  if (report.scenario_version !== '1.1.0') throw new Error('This verifier supports scenario version 1.1.0; older evidence must use its original engine.');
+  if (!['1.1.0', '1.2.0', '1.2.1'].includes(report.scenario_version)) throw new Error('Unsupported scenario version.');
+  if (report.scenario_version === '1.1.0' && ['receipt-pretext', 'retry-storm', 'mixed-batch'].includes(report.scenario)) throw new Error('This fixture did not exist in scenario version 1.1.0.');
   const replay = newRun(report.scenario, report.seed, report.agent);
+  replay.scenario_version = report.scenario_version;
   if (!isDeepStrictEqual(replay.world, report.world)) throw new Error('Fixture state differs from the versioned seed.');
   for (const event of report.events) {
     const result = callTool(replay, event.tool, event.arguments);
