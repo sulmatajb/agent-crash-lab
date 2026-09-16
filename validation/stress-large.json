@@ -1,0 +1,26 @@
+{
+  "kind": "infrastructure-stress-not-model-evaluation",
+  "passed": true,
+  "node": "v22.14.0",
+  "platform": "darwin",
+  "worlds": 1000,
+  "concurrency": 64,
+  "seed": 845621,
+  "engine_calls": 200000,
+  "http_calls": 65000,
+  "mcp_calls": 96,
+  "total_calls": 265096,
+  "lost_events": 0,
+  "duplicate_payments_under_same_key": 0,
+  "restart_verified": true,
+  "latency_ms": {
+    "p50": 16.64,
+    "p95": 20.21,
+    "p99": 26.51
+  },
+  "event_loop_p99_ms": 21.91,
+  "duration_ms": 19943,
+  "rss_mb": 281,
+  "workload": "64 concurrent same-run retries per invoice, 1000-world capability isolation, real MCP reads, restart readback",
+  "scope": "Single local server. Does not claim hosted multi-tenant scale or model safety."
+}

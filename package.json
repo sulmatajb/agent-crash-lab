@@ -1,0 +1,47 @@
+{
+  "name": "agent-crash-lab",
+  "version": "0.2.0",
+  "description": "A local, stateful crash lab for agents trusted with vendor payments and email.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "bin": {
+    "agent-crash-lab": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "public",
+    "examples",
+    "adapters",
+    "CONTRIBUTING.md",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md",
+    "VALIDATION.md",
+    "TESTING.md",
+    "validation/stress-large.json"
+  ],
+  "scripts": {
+    "dev": "tsx src/cli.ts start",
+    "build": "tsc",
+    "start": "node dist/cli.js start",
+    "pretest": "npm run build",
+    "test": "node --import tsx --test test/*.test.ts",
+    "check": "tsc --noEmit",
+    "stress": "npm run build && node dist/cli.js stress",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^22.15.0",
+    "jsdom": "^29.1.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3"
+  }
+}

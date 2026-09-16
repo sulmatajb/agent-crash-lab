@@ -1,0 +1,25 @@
+{
+  "kind": "infrastructure-stress-not-model-evaluation",
+  "passed": true,
+  "node": "v22.14.0",
+  "platform": "darwin",
+  "worlds": 100,
+  "concurrency": 32,
+  "seed": 845621,
+  "engine_calls": 20000,
+  "http_calls": 6500,
+  "mcp_calls": 96,
+  "total_calls": 26596,
+  "lost_events": 0,
+  "duplicate_payments_under_same_key": 0,
+  "restart_verified": true,
+  "latency_ms": {
+    "p50": 9.5,
+    "p95": 12.77,
+    "p99": 24.89
+  },
+  "event_loop_p99_ms": 15.79,
+  "duration_ms": 2781,
+  "rss_mb": 219,
+  "scope": "Single local server. Does not claim hosted multi-tenant scale or model safety."
+}
