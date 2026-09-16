@@ -10,6 +10,8 @@ Select only the client you plan to use. `all` checks both; an absent optional cl
 
 The command returns structured JSON with individual checks and a suggested next step. It checks the Node version and packaged assets. Claude checks invoke only `--version` and `auth status --json`. Hermes checks load the selected runtime and inspect configuration using the existing read-only adapter. Neither path performs inference or modifies the source profile.
 
+An unsupported Node version stops the check before client subprocesses or Hermes/SQLite imports, with an upgrade step and exit 2. Claude-only diagnostics do not load the Hermes runtime or SQLite. Other lab commands still require the supported Node version.
+
 | Exit | Meaning |
 | --- | --- |
 | 0 | Selected-client checks passed; ready to attempt one bounded trial. |

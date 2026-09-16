@@ -1,7 +1,6 @@
 import { execFile } from 'node:child_process';
 import { access } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { hermesDoctor } from './runner.js';
 
 type Check = { id:string; status:'pass'|'fail'|'warn'; message:string; next_step?:string };
 export type Probe = (command:string,args:string[]) => Promise<{ ok:boolean; stdout:string; error?:string }>;
@@ -37,16 +36,22 @@ export function summarizeHermes(record:any):Check[] {
 export async function readiness(options:{client:'claude'|'hermes'|'all';command?:string;python?:string;profile?:string}) {
   const checks:Check[]=[];
   const [major,minor]=process.versions.node.split('.').map(Number);
-  checks.push({id:'node',status:major>22||major===22&&minor>=13?'pass':'fail',message:`Node ${process.versions.node}; requires 22.13 or newer.`});
+  const supported=major>22||major===22&&minor>=13;
+  checks.push({id:'node',status:supported?'pass':'fail',message:`Node ${process.versions.node}; requires 22.13 or newer.`,next_step:supported?undefined:'Install Node 22.13 or newer, then repeat doctor with the selected client.'});
+  if(!supported)return readinessResult(options.client,checks);
   for(const asset of ['../dist/cli.js','../public/index.html','../adapters/hermes.py']){
     try{await access(fileURLToPath(new URL(asset,import.meta.url)));checks.push({id:`package.${asset.split('/').at(-1)}`,status:'pass',message:`Packaged ${asset.split('/').at(-1)} is available.`});}
     catch{checks.push({id:`package.${asset.split('/').at(-1)}`,status:'fail',message:`Required ${asset.split('/').at(-1)} is missing.`,next_step:'Build the source with npm run build or reinstall a complete release package.'});}
   }
   if(options.client!=='hermes')checks.push(...await claudeReadiness(options.command));
   if(options.client!=='claude'){
-    try{checks.push(...summarizeHermes(await hermesDoctor(options.python,options.profile)));}
+    try{const {hermesDoctor}=await import('./runner.js');checks.push(...summarizeHermes(await hermesDoctor(options.python,options.profile)));}
     catch{checks.push({id:'hermes.installation',status:'fail',message:'Hermes diagnostics could not load the selected environment.',next_step:'Check --hermes-python PATH and --hermes-profile DIR. Ensure Hermes and its dependencies are installed in that Python environment.'});}
   }
+  return readinessResult(options.client,checks);
+}
+
+function readinessResult(client:'claude'|'hermes'|'all',checks:Check[]) {
   const blocked=checks.some(c=>c.status==='fail'), uncertain=checks.some(c=>c.status==='warn');
-  return {doctor_version:'1.0.0',client:options.client,status:blocked?'blocked':uncertain?'needs-verification':'ready-for-trial',exit_code:blocked?2:uncertain?1:0,checks,limitation:'No inference, model availability, MCP transport call, or agent behavior was tested. Authentication reports are local client claims. Account details, credentials, provider logs and raw client output are omitted.'};
+  return {doctor_version:'1.0.0',client,status:blocked?'blocked':uncertain?'needs-verification':'ready-for-trial',exit_code:blocked?2:uncertain?1:0,checks,limitation:'No inference, model availability, MCP transport call, or agent behavior was tested. Authentication reports are local client claims. Account details, credentials, provider logs and raw client output are omitted.'};
 }
