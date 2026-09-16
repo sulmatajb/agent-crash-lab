@@ -82,7 +82,7 @@ This project is **in a private GitHub repository and not published to npm**. Do 
 
 ```bash
 npm pack
-npm install -g ./agent-crash-lab-0.3.1.tgz
+npm install -g ./agent-crash-lab-0.3.2.tgz
 agent-crash-lab start
 ```
 
@@ -219,3 +219,9 @@ HERMES_TEST_PYTHON=/path/to/hermes/venv/bin/python npm test
 ```
 
 Thousands of GitHub users would each run their own local lab. The load results measure one local process and database; they do not establish capacity for hundreds of thousands of simultaneous hosted users. The project is not a hosted multi-tenant service.
+
+### Watching and finding runs
+
+Open **Run history** while your agent runs. It updates every two seconds; use **Running now** to find active trials, or search the latest 250 runs by agent, scenario, seed or run ID. Opening a run adds its ID to the browser URL, so reloading keeps the same evidence open. **Copy run link** creates a local bookmark, usable on the same computer while this server and database are available; it contains no agent capability token. Export JSON for portable evidence.
+
+Live updates preserve expanded tool responses and keyboard focus. A connection banner appears if the server is unavailable and clears when polling recovers.

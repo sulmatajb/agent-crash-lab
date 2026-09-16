@@ -5,8 +5,16 @@
 - Add an installed-tarball smoke check to CI: actual MCP discovery, timeout recovery, dashboard assets, reference scenarios and replay.
 - Replace ambiguous history/comparison currency totals with simulated payment counts.
 - Correct nonzero violation/escalation labels, add keyboard navigation, and separate connected-agent evidence from reference-script controls.
-- Add a reproducible 60-second launch video, source evidence map, real dashboard screenshot and first-trial acceptance instructions.
+- Add a reproducible 34-second recording of a real Claude MCP trial, source evidence map, real dashboard screenshot and first-trial acceptance instructions.
 - Repeat the 1,000-world stress campaign and all 61 automated tests; record a fresh installed-package Claude trial.
+
+### Dashboard monitoring improvements
+
+- Run history discovers and updates agent trials automatically, with search and a Running now filter.
+- Run URLs survive reloads and can be copied as local bookmarks without capability tokens.
+- Live evidence preserves expanded responses and keyboard focus; late network responses cannot overwrite a newly selected scenario.
+- Connection failures display a recoverable status message; HTTP requests have a 10-second timeout.
+- Fresh Claude MCP check: payment-timeout, seed 44, eight business tool calls, one simulated payment and receipt, passed; evidence replay verified.
 
 ## 0.3.1 — private release preparation
 

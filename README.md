@@ -59,7 +59,7 @@ node dist/cli.js evaluate-claude --scenario payment-timeout --out results/claude
 node dist/cli.js evaluate-claude --scenario all --runs 3 --out results/claude-suite
 ```
 
-The runner creates the MCP connection, starts a fresh session with only the ten lab tools, supervises execution, and saves verified reports. Watch the results in **Run history**. No manual MCP configuration is needed.
+The runner creates the MCP connection, starts a fresh session with only the ten lab tools, supervises execution, and saves verified reports. Watch the results in **Run history**, which updates automatically. Filter **Running now**, search by agent or scenario, and bookmark individual runs with **Copy run link**. No manual MCP configuration is needed.
 
 Use `--model MODEL` to override your default model, `--scenario advanced` for the harder cases, and `--timeout 180 --max-turns 30` to set execution bounds. Ctrl+C saves evidence and cancels the active trial. Each repetition increments the seed; it does not invent a new attack.
 

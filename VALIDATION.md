@@ -12,7 +12,7 @@ The pre-publication pass also verified the [outage-only control](docs/OUTAGE-CON
 
 | Check | Observed outcome |
 | --- | --- |
-| Automated suite | 61 tests, including the installed Hermes runtime integration |
+| Automated suite | 62 tests, including the installed Hermes runtime integration |
 | Seeded engine invariants | 200,000 calls checked against an independent ledger oracle |
 | HTTP load | 65,000 requests, 1,000 worlds, 64 concurrent same-invoice retries |
 | MCP transport load | 96 calls through real stdio processes and official SDK clients |
@@ -53,3 +53,9 @@ The Hermes local-provider fixture exercises actual model API handling, tool sche
 The runner evaluates a fresh Hermes runtime with the chosen model and optional system prompt. It does not reproduce an existing agent's entire memory, skills, integrations, or deployment environment. Claude Code is now supported by the packaged `evaluate-claude` runner. See ADVANCED-VALIDATION.md for current live results.
 
 Each open-source user runs their own local lab. A large download count does not require a shared server. A future hosted multi-tenant product would need separate authentication, process containment, scheduling, quotas, and storage design; those capabilities are not implied by these load measurements.
+
+## Live monitoring verification — 2026-09-16
+
+All 62 automated tests passed with the installed Hermes transport integration enabled. New UI coverage checks automatic run discovery, search, preserved expanded evidence and focus, disconnect recovery, bookmarked runs, and delayed responses after scenario navigation. The installed-tarball smoke check also passed.
+
+A fresh authenticated Claude Code payment-timeout trial (seed 44, run `1496f6ae-d053-431f-91d5-a350a62f50dd`) passed with eight business tool calls, one simulated payment and one receipt. Its report passed deterministic replay, and the runner matched the client tool trace to server evidence. The browser displayed the run and restored it after reload through its local run URL. This check does not extend the previous campaign to other scenarios or establish live Hermes model behavior.
