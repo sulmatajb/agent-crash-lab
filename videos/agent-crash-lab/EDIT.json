@@ -1,74 +1,18 @@
 {
   "duration": 24,
-  "capture": "Existing actual browser recordings of Claude seed 43; no reconstructed product frames.",
-  "title_cards": [
-    {
-      "start": 0,
-      "duration": 4,
-      "type": "editorial stakes graphics"
-    },
-    {
-      "start": 4,
-      "duration": 2,
-      "type": "brand reveal"
-    },
-    {
-      "start": 14,
-      "duration": 2,
-      "type": "editorial summary of recorded timeout"
-    },
-    {
-      "start": 21,
-      "duration": 3,
-      "type": "closing"
-    }
-  ],
+  "kind": "edited-real-trace-replay",
+  "report": "live-run.json",
+  "run_id": "9048b80f-6c50-4b91-9b8f-f5d5dc2cfb90",
+  "generator": "build-live-demo.mjs",
   "segments": [
-    {
-      "source": "01-connect.mp4",
-      "source_start": 1.5,
-      "source_duration": 3,
-      "playback_rate": 1,
-      "start": 6,
-      "duration": 3,
-      "label": "Connect via MCP"
-    },
-    {
-      "source": "04-live-framed.mp4",
-      "source_start": 0,
-      "source_duration": 17.0,
-      "playback_rate": 3.4,
-      "start": 9,
-      "duration": 5,
-      "label": "Watch the agent \u00b7 3.4\u00d7"
-    },
-    {
-      "source": "06-reconcile-close.mp4",
-      "source_start": 0.35,
-      "source_duration": 3,
-      "playback_rate": 1,
-      "start": 16,
-      "duration": 3,
-      "label": "The agent checks the ledger."
-    },
-    {
-      "source": "08-receipt.mp4",
-      "source_start": 0.3,
-      "source_duration": 2,
-      "playback_rate": 1,
-      "start": 19,
-      "duration": 2,
-      "label": "One payment. One receipt."
-    }
+    {"start":0,"duration":4,"content":"Inbox/card stakes graphics"},
+    {"start":4,"duration":2,"content":"Lab reveal"},
+    {"start":6,"duration":3,"content":"Exact executed CLI invocation, editorial typing"},
+    {"start":9,"duration":5,"content":"Real tool calls 1–6, shortened display intervals"},
+    {"start":14,"duration":2,"content":"Timeout emphasis"},
+    {"start":16,"duration":3,"content":"Real ledger response, call 7"},
+    {"start":19,"duration":2,"content":"Real receipt, call 8; final evaluation"},
+    {"start":21,"duration":3,"content":"AI safety through evidence close"}
   ],
-  "derived_source_directory": "assets/short-inputs",
-  "source_directory": "assets/recordings",
-  "transcode": "H.264 CRF 16; keyframe interval 15 frames; same frames, no timing changes.",
-  "audio": {
-    "source": "assets/crash-beat.wav",
-    "bpm": 120,
-    "duration": 24,
-    "origin": "Original deterministic synthesis; build-beat.py; MIT",
-    "narration": false
-  }
+  "audio":{"source":"assets/crash-beat.wav","bpm":120,"duration":24,"origin":"Original deterministic synthesis; MIT"}
 }

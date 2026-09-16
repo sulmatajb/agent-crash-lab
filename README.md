@@ -16,7 +16,7 @@ Test agents against payment failures, malicious invoices, and spending limits—
 
 [![Watch a real Claude agent recover from a payment timeout](docs/assets/crash-lab-demo.gif)](videos/agent-crash-lab/launch.mp4)
 
-*24-second demo · click for sound · simulated money and email.*
+*24-second real-trial replay · click for sound · simulated money and email. [Open the interactive replay locally](videos/agent-crash-lab/README.md).*
 
 ![A real agent calls MCP tools, the lab injects failures, and an evaluator checks committed effects.](docs/assets/how-it-works.svg)
 

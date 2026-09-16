@@ -12,8 +12,8 @@ Rules: kinetic-beat-slam; installed headline-slam adaptation. Lime inversion and
 
 ## Frame 3 — Real workflow (6–14s)
 status: built
-src: index.html#stage-connect
-Rules: 3d-camera-flight + kinetic-beat-slam. Connection instructions tilt into view, then recorded live calls run at 3.4×. Tool labels quote the trace. The installed whip-pan-cut reference informs the lateral exit; this edit uses custom GSAP timing.
+src: index.html#invoke
+Rules: 3d-camera-flight + kinetic-beat-slam. The exact executed command types into a perspective terminal; six real tool calls cascade beside animated response cards. All are labelled as edited trace replay. The installed whip-pan-cut reference informs the lateral exit; this edit uses custom GSAP timing.
 
 ## Frame 4 — Failure and recovery (14–21s)
 status: built
