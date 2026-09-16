@@ -1,0 +1,1 @@
+No external assets captured. Factual source material is repository-owned validation/claude-advanced.json, validation/outage-control.json, CLAUDE-VALIDATION.md and README.md. Visuals are typographic diagrams and labeled recorded-result visualizations, not screen recordings.

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.2 — release verification and video
+
+- Add an installed-tarball smoke check to CI: actual MCP discovery, timeout recovery, dashboard assets, reference scenarios and replay.
+- Replace ambiguous history/comparison currency totals with simulated payment counts.
+- Correct nonzero violation/escalation labels and add keyboard navigation to evidence tabs.
+- Add a reproducible 60-second launch video, source evidence map, real dashboard screenshot and first-trial acceptance instructions.
+- Repeat the 1,000-world stress campaign and all 61 automated tests; record a fresh installed-package Claude trial.
+
 ## 0.3.1 — private release preparation
 
 - Put real-agent onboarding first; label scripted runs explicitly.

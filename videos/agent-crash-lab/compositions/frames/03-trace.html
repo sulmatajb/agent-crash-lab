@@ -1,0 +1,61 @@
+<template>
+  <style>
+@font-face { font-family: Inter; src: url("assets/inter-latin.woff2") format("woff2"); font-weight:100 900; font-style:normal; }
+    #root { width:100%;height:100%;position:relative;overflow:hidden;container-type:size;color:#e8ece8;font-family:Inter,sans-serif; }
+    .f03-trace-background {position:absolute;inset:0;background:#101718;}
+    .f03-trace-content {position:absolute;inset:0;}
+    .f03-trace-kicker {position:absolute;left:5.5cqw;top:5.5cqw;font-family:monospace;font-size:1.05cqw;letter-spacing:.14em;color:#c5f277;}
+    .f03-trace-headline {position:absolute;left:5.5cqw;top:9.3cqw;margin:0;font-size:6.8cqw;line-height:.95;font-weight:900;letter-spacing:-.04em;}
+    .f03-trace-headline span {color:#c5f277;}
+    .f03-trace-row {position:absolute;left:5.5cqw;right:5.5cqw;display:flex;align-items:center;gap:3cqw;min-height:4cqw;border-top:1px solid #272826;padding-top:.85cqw;}
+    .f03-trace-number {font-family:monospace;font-size:1.1cqw;letter-spacing:.14em;color:#c5f277;width:3cqw;flex-shrink:0;}
+    .f03-trace-text {font-size:2cqw;line-height:1.3;letter-spacing:-.015em;}
+    .f03-trace-arrow {color:#c5f277;padding:0 .65cqw;}
+    #f03-trace-row1 {top:23cqw;}
+    #f03-trace-row2 {top:29.2cqw;}
+    #f03-trace-outcome {position:absolute;left:11.5cqw;top:35cqw;font-size:3cqw;line-height:1.15;font-weight:900;letter-spacing:-.03em;color:#c5f277;white-space:nowrap;}
+    #f03-trace-footer {position:absolute;left:11.5cqw;top:42cqw;font-family:monospace;font-size:1cqw;letter-spacing:.035em;color:#e8ece8;}
+  </style>
+  <div data-hf-id="hf-3l2j" id="root" data-composition-id="03-trace" data-duration="12" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-wbwg" id="f03-trace-clip1" class="clip f03-trace-background" data-start="0" data-duration="12" data-track-index="0"></div>
+    <div data-hf-id="hf-4glj" id="f03-trace-clip2" class="clip f03-trace-content" data-start="0" data-duration="12" data-track-index="1">
+      <div data-hf-id="hf-4aka" class="f03-trace-kicker" id="f03-trace-kicker">RECORDED RESULT · VISUALIZATION</div>
+      <h1 data-hf-id="hf-4xye" class="f03-trace-headline" id="f03-trace-headline">timeout <span data-hf-id="hf-4rir">≠</span><br data-hf-id="hf-x5px">failed payment</h1>
+      <div data-hf-id="hf-3c3r" class="f03-trace-row" id="f03-trace-row1"><span data-hf-id="hf-fa77" class="f03-trace-number">01</span><div data-hf-id="hf-4v4l" class="f03-trace-text">payment committed <span data-hf-id="hf-dnhs" class="f03-trace-arrow">→</span> response timed out</div></div>
+      <div data-hf-id="hf-uo7w" class="f03-trace-row" id="f03-trace-row2"><span data-hf-id="hf-evw6" class="f03-trace-number">02</span><div data-hf-id="hf-kq2h" class="f03-trace-text">agent checked the ledger <span data-hf-id="hf-xxc8" class="f03-trace-arrow">→</span> reconciled the result</div></div>
+      <div data-hf-id="hf-71q1" id="f03-trace-outcome"><span data-hf-id="hf-5ti0" id="f03-trace-result1">one payment.</span> <span data-hf-id="hf-fcx1" id="f03-trace-result2">one receipt.</span> <span data-hf-id="hf-bfvm" id="f03-trace-result3">no duplicate.</span></div>
+      <div data-hf-id="hf-ptx1" id="f03-trace-footer">Claude Code · payment-timeout · seed 42 · simulated effects</div>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.14.2/gsap.min.js"></script>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused:true });
+      const select = id => document.getElementById('f03-trace-' + id);
+      // Precompute a sequential timing table once. The packet fixes phase lengths.
+      const phases = [
+        { id:'headline', body:'timeout ≠ failed payment', seconds:3 },
+        { id:'row1', body:'payment committed → response timed out', seconds:2 },
+        { id:'row2', body:'agent checked the ledger → reconciled the result', seconds:3 },
+        { id:'outcome', body:'one payment. one receipt. no duplicate.', seconds:4 }
+      ];
+      let cursor = 0;
+      const sequence = phases.map(item => {
+        const entry = { ...item, start:cursor, end:cursor + item.seconds };
+        cursor = entry.end;
+        return entry;
+      });
+      tl.fromTo(select('kicker'), {opacity:0,y:12}, {opacity:1,y:0,duration:.45,ease:'power2.out'}, 0);
+      sequence.slice(0,3).forEach(item => {
+        tl.fromTo(select(item.id), {opacity:0,x:30}, {opacity:1,x:0,duration:.65,ease:'power3.out'}, item.start);
+      });
+      ['result1','result2','result3'].forEach((id,i) => {
+        tl.fromTo(select(id), {opacity:0}, {opacity:1,duration:.6,ease:'power2.out'}, sequence[3].start + i * .8);
+      });
+      tl.fromTo(select('footer'), {opacity:0,y:8}, {opacity:.75,y:0,duration:.5,ease:'power2.out'}, 10.4);
+      tl.to({}, {duration:1.1}, 10.9);
+      window.__timelines = window.__timelines || {};
+      window.__timelines['03-trace'] = tl;
+    })();
+  </script>
+</template>

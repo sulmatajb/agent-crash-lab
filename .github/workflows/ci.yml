@@ -17,4 +17,4 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: node dist/cli.js test --agent careful --runs 20
-      - run: npm pack --dry-run
+      - run: npm run smoke:package

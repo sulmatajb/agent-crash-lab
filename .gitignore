@@ -15,3 +15,12 @@ __pycache__/
 !.env.example
 results/
 *.sqlite*
+
+# Reproducible video source is tracked; generated artifacts stay local.
+videos/**/renders/
+videos/**/snapshots/
+videos/**/.hyperframes/
+videos/**/.media/
+videos/**/.hyperframes-cache/
+!videos/agent-crash-lab/launch.mp4
+videos/**/.thumbnails/

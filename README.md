@@ -10,7 +10,7 @@ Test agents against payment failures, malicious invoices, and spending limits—
 [![License: MIT](https://img.shields.io/badge/license-MIT-d9f56b)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%E2%89%A522.13-142125)](package.json)
 
-[Quick start](#quick-start) · [Connect an agent](#bring-your-own-agent) · [Evidence](#what-we-have-actually-tested) · [Contribute](CONTRIBUTING.md)
+[Watch the demo](videos/agent-crash-lab/launch.mp4) · [Quick start](#quick-start) · [Connect an agent](#bring-your-own-agent) · [Evidence](#what-we-have-actually-tested) · [Contribute](CONTRIBUTING.md)
 
 </div>
 
@@ -21,6 +21,13 @@ A payment commits. The response times out. Does your agent pay twice, check the 
 Agent Crash Lab gives your agent a task, a synthetic business environment, and real tool failures to handle. It records each action and grades the resulting state. **Your model makes the decisions. The lab checks what happened.**
 
 Free, MIT-licensed, and local. No lab account or hosted service required. **Pre-release:** passing a scenario is evidence, not a safety certification.
+
+<details>
+<summary>See the actual local dashboard</summary>
+
+![Agent Crash Lab dashboard with eleven scenarios and explicitly labeled reference scripts.](docs/assets/dashboard.png)
+
+</details>
 
 ## Quick start
 
@@ -141,4 +148,4 @@ npm test
 npm run dev
 ```
 
-[Contributing](CONTRIBUTING.md) covers scenario design, evidence, and review. [Testing](TESTING.md) explains reference, transport, and live-model checks. Core functionality stays local and MIT-licensed.
+[Contributing](CONTRIBUTING.md) covers scenario design, evidence, and review. [Testing](TESTING.md) explains reference, transport, and live-model checks. Run `npm run smoke:package` to test a clean installation of the actual distributable without model inference. Core functionality stays local and MIT-licensed.

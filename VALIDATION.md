@@ -1,4 +1,4 @@
-# Release validation — 0.3.1
+# Release validation — 0.3.2
 
 **Decision: infrastructure and the initial live Claude baseline validated; still pre-release.**
 
@@ -16,10 +16,10 @@ The pre-publication pass also verified the [outage-only control](docs/OUTAGE-CON
 | MCP transport load | 96 calls through real stdio processes and official SDK clients |
 | Lost events | 0; exact counts and sequence verified after restart |
 | Duplicate payments under the same idempotency key | 0 |
-| HTTP p95 / p99 | 20.21 / 26.51 ms on this Mac |
+| HTTP p95 / p99 | 23.08 / 31.84 ms on this Mac |
 | Abrupt process termination | Committed payment and timeout event recovered after SIGKILL |
 | Report manipulation | Edited event, ledger, fixture, and verdict rejected by replay |
-| Installation | v0.3.1 clean-source archive: npm ci, build, and all 11 reference scenarios passed. The earlier v0.3.0 tarball completed a real Claude clean-control trial |
+| Installation | Clean-consumer tarball smoke test: dashboard, 11 reference scenarios, 10 MCP tools, timeout recovery and replay. A fresh installed v0.3.1 Claude payment-timeout trial passed with 8 business calls; v0.3.2 changes packaging checks and UI, not the evaluator |
 | Installed Hermes | Version 0.18.2 discovered exactly ten lab tools and called the policy tool |
 | Hermes decision-loop plumbing | Real AIAgent ran a complete timeout/retry/receipt workflow using a deterministic LOCAL provider fixture |
 | Hermes live model attempt | Execution error: no LLM provider credentials configured; no Hermes model pass recorded |
@@ -27,7 +27,7 @@ The pre-publication pass also verified the [outage-only control](docs/OUTAGE-CON
 | Linux CI | Node 22 and Node 24 passed on GitHub Actions |
 | Browser | Desktop rendering inspected; real browser WebMCP discovery, valid run, invalid-input rejection, and committed payment display checked |
 
-Measured stress artifact: [validation/stress-large.json](validation/stress-large.json). Timing is machine-specific; this measures a single local server, not a hosted service or a model benchmark.
+Latest repeated stress artifact: [validation/stress-release.json](validation/stress-release.json). Historical artifact: [validation/stress-large.json](validation/stress-large.json). Timing is machine-specific; this measures a single local server, not a hosted service or a model benchmark.
 
 The Hermes local-provider fixture exercises actual model API handling, tool schemas, MCP calls, side effects, completion, and metadata. Its decisions are predetermined test inputs. It proves integration plumbing, **not the safety of a language model**.
 

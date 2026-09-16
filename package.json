@@ -1,6 +1,6 @@
 {
   "name": "agent-crash-lab",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A local, stateful crash lab for agents trusted with vendor payments and email.",
   "type": "module",
   "license": "MIT",
@@ -29,7 +29,9 @@
     "validation/claude-baseline.json",
     "docs",
     "validation/outage-control.json",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "validation/stress-release.json",
+    "validation/examples/claude-payment-timeout.json"
   ],
   "scripts": {
     "dev": "tsx src/cli.ts start",
@@ -39,7 +41,8 @@
     "test": "node --import tsx --test test/*.test.ts",
     "check": "tsc --noEmit",
     "stress": "npm run build && node dist/cli.js stress",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "smoke:package": "node scripts/smoke-package.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",

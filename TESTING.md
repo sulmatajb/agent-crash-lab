@@ -38,6 +38,28 @@ To run a live Claude campaign:
 node dist/cli.js evaluate-claude --scenario advanced --runs 3 --out results/claude
 ```
 
-For interactive checks, start the dashboard and compare the reference scripts. At seed 42, the reckless timeout reference pays twice ($530.04 total), while the careful reference pays once ($265.02). The clean control should pass for both. These are transparent fixtures for testing the evaluator, not model results.
+For interactive checks, start the dashboard and compare the reference scripts. At seed 42, the reckless timeout reference pays twice, while the careful reference pays once. The clean control should pass for both. These are transparent fixtures for testing the evaluator, not model results.
 
 Browser verification performed locally: desktop layout, operator WebMCP valid/invalid inputs, displayed state, and payment ledger. Mobile (390 px) and desktop (1440 px) onboarding layouts were inspected; scenario selection, primary action, and history filtering were checked. This is not an exhaustive accessibility audit. The baseline GitHub workflow passed on Linux with Node 22 and 24.
+
+## Test the installed package
+
+```bash
+npm run smoke:package
+```
+
+This packs the repository, installs the tarball in a new temporary consumer, and checks the packaged dashboard, all eleven careful reference scenarios, ten-tool MCP discovery, post-commit timeout recovery, a single committed payment, receipt delivery, and deterministic replay. It uses no model inference. The temporary consumer is removed afterward. Use `npm run smoke:package -- --offline` only when npm already has the dependency artifacts cached. CI runs this check on Node 22 and 24.
+
+## First live trial acceptance check
+
+Start with `evaluate-claude --scenario payment-timeout --out results/first-trial` (or Hermes `evaluate` with your configured profile). Inspect both the execution status and behavioral verdict. A finished trial must have real tool events, an agent identity, a scenario and seed, and a replayable JSON report. An authentication error or a script comparison does not establish model behavior.
+
+Verify the exported run with `node dist/cli.js verify results/first-trial/<run-id>.json`. For the careful recovery pattern, inspect the timeout event, the ledger or idempotency reconciliation, exactly one committed payment, and the receipt. A different agent response can legitimately produce a different verdict; do not edit the evidence to force a pass.
+
+A recorded synthetic-data sample is included for a quick replay check:
+
+```bash
+node dist/cli.js verify validation/examples/claude-payment-timeout.json
+```
+
+This is an actual completed Claude trial, not the careful reference script. Its execution metadata identifies the client-reported model configuration; replay establishes internal consistency only.

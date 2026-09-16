@@ -40,7 +40,7 @@ export function createLabServer(store: RunStore, adminToken = randomBytes(32).to
         if (path === 'index.html') content = Buffer.from(content.toString().replace('__ADMIN_TOKEN__', adminToken));
         res.writeHead(200, { 'Content-Type': path.endsWith('.html') ? 'text/html; charset=utf-8' : path.endsWith('.js') ? 'text/javascript; charset=utf-8' : path.endsWith('.svg') ? 'image/svg+xml' : 'text/css; charset=utf-8', 'Cache-Control': 'no-store' }); return res.end(content);
       }
-      if (url.pathname === '/health' && req.method === 'GET') return send(res, 200, { ok: true, version: '0.3.1' });
+      if (url.pathname === '/health' && req.method === 'GET') return send(res, 200, { ok: true, version: '0.3.2' });
       const bearer = req.headers.authorization?.replace(/^Bearer /, '') ?? '';
       if (url.pathname.startsWith('/agent/')) {
         const run = store.resolve(bearer);

@@ -1,0 +1,49 @@
+<template>
+  <style>
+@font-face { font-family: Inter; src: url("assets/inter-latin.woff2") format("woff2"); font-weight:100 900; font-style:normal; }
+
+    #root { position: relative; width: 100%; height: 100%; overflow: hidden; container-type: size; color: #e8ece8; font-family: Inter, sans-serif; }
+    .f01-hook-ground { position: absolute; inset: 0; background: #101718; }
+    .f01-hook-stage { position: absolute; inset: 0; }
+    .f01-hook-headline { position: absolute; left: 5.5cqw; top: 10cqh; width: 78cqw; margin: 0; font-size: 6.5cqw; font-weight: 900; line-height: 1.3; letter-spacing: -.03em; }
+    .f01-hook-line { display: block; }
+    .f01-hook-question { position: absolute; left: 5.5cqw; top: 44cqh; width: 78cqw; margin: 0; font-size: 13cqw; font-weight: 900; line-height: .88; letter-spacing: -.04em; color: #c5f277; }
+    .f01-hook-support { position: absolute; left: 5.5cqw; top: 69.5cqh; width: 73cqw; min-height: 3.2cqw; margin: 0; font-size: 1.6cqw; font-weight: 400; line-height: 1.5; }
+    .f01-hook-brand { position: absolute; left: 5.5cqw; top: 5cqh; font-family: monospace; font-size: .9cqw; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: #c5f277; }
+  </style>
+  <div data-hf-id="hf-kl2e" id="root" data-composition-id="01-hook" data-width="1920" data-height="1080" data-duration="8">
+    <div data-hf-id="hf-8bgm" id="f01-hook-clip1" class="clip f01-hook-ground" data-start="0" data-duration="8" data-track-index="0"></div>
+    <div data-hf-id="hf-733b" id="f01-hook-clip2" class="clip f01-hook-stage" data-start="0" data-duration="8" data-track-index="1">
+      <h1 data-hf-id="hf-a17o" class="f01-hook-headline"><span data-hf-id="hf-xckr" id="f01-hook-line-1" class="f01-hook-line">your agent</span><span data-hf-id="hf-8pey" id="f01-hook-line-2" class="f01-hook-line">can act.</span></h1>
+      <p data-hf-id="hf-bdj4" id="f01-hook-question" class="f01-hook-question">should it?</p>
+      <p data-hf-id="hf-fqak" id="f01-hook-support" class="f01-hook-support">Test decisions before granting real authority.</p>
+      <div data-hf-id="hf-xa67" id="f01-hook-brand" class="f01-hook-brand">Agent Crash Lab</div>
+    </div>
+  </div>
+  <script src="assets/gsap.min.js"></script>
+  <script>
+    (function () {
+      // Content-weighted phase lengths keep the fixed 2 / 3 / 3 second shot sequence.
+      const entries = [
+        { body: 'your agent can act.', hold: .44 },
+        { body: 'should it?', hold: 1.8 },
+        { body: 'Test decisions before granting real authority.', hold: .36 }
+      ];
+      let cumulative = 0;
+      const phases = entries.map(function (entry) {
+        const start = cumulative;
+        cumulative += .8 + entry.body.length * .04 + entry.hold;
+        return { start: start, end: cumulative };
+      });
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo('#f01-hook-line-1', { opacity: 0, x: -36, y: 18 }, { opacity: 1, x: 0, y: 0, duration: .7, ease: 'power3.out' }, phases[0].start);
+      tl.fromTo('#f01-hook-line-2', { opacity: 0, x: -36, y: 18 }, { opacity: 1, x: 0, y: 0, duration: .7, ease: 'power3.out' }, phases[0].start + .48);
+      tl.fromTo('#f01-hook-question', { opacity: 0, x: -36, y: 18 }, { opacity: 1, x: 0, y: 0, duration: .95, ease: 'power3.out' }, phases[1].start);
+      tl.fromTo('#f01-hook-support', { opacity: 0, x: -24, y: 12 }, { opacity: 1, x: 0, y: 0, duration: .8, ease: 'power3.out' }, phases[2].start);
+      tl.fromTo('#f01-hook-brand', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: .65, ease: 'power3.out' }, phases[2].start + 1.35);
+      tl.to({}, { duration: .6 }, 7.4);
+      window.__timelines = window.__timelines || {};
+      window.__timelines['01-hook'] = tl;
+    })();
+  </script>
+</template>

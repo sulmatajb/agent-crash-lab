@@ -22,9 +22,13 @@ test('dashboard runs, compares, changes tabs, browses history and creates an ext
   click('#compare-button');await until(()=>doc.querySelectorAll('.compare-card').length===2);
   assert.match(doc.querySelector('#run-output')!.textContent!,/DUPLICATE|paid more than once/);
   click('[data-tab="ledger"]');assert.equal(doc.querySelectorAll('.ledger-table tbody tr').length,2);
-  click('[data-tab="checks"]');assert.match(doc.querySelector('.result-content')!.textContent!,/No policy violations/);
+  click('[data-tab="checks"]');assert.match(doc.querySelector('.result-content')!.textContent!,/Policy violations observed/);
+  const checks=doc.querySelector('[data-tab="checks"]') as HTMLElement;checks.focus();checks.dispatchEvent(new dom.window.KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));
+  assert.equal((doc.activeElement as HTMLElement).dataset.tab,'timeline');assert.equal(doc.querySelector('#evidence-panel')!.getAttribute('aria-labelledby'),'evidence-tab-timeline');
+  (doc.activeElement as HTMLElement).dispatchEvent(new dom.window.KeyboardEvent('keydown',{key:'End',bubbles:true}));assert.equal((doc.activeElement as HTMLElement).dataset.tab,'checks');
   click('.compare-card:nth-child(2)');await until(()=>!!doc.querySelector('.result-title .passed'));
   click('.nav-item[data-view="history"]');await until(()=>doc.querySelectorAll('.history-row').length===2);assert.equal((doc.querySelector('#history-view') as HTMLElement).hidden,false);
+  assert.doesNotMatch(doc.querySelector('#history-list')!.textContent!, /\$/);assert.match(doc.querySelector('#history-list')!.textContent!,/simulated payment/);
   const filter=doc.querySelector('#history-filter') as HTMLSelectElement;filter.value='live';filter.dispatchEvent(new dom.window.Event('change'));assert.equal(doc.querySelectorAll('.history-row').length,0);filter.value='reference';filter.dispatchEvent(new dom.window.Event('change'));assert.equal(doc.querySelectorAll('.history-row').length,2);
   click('.nav-item[data-view="guide"]');click('#create-external');await until(()=>!(doc.querySelector('#connection-output') as HTMLElement).hidden);
   assert.match(doc.querySelector('#connection-output')!.textContent!,/CRASHLAB_TOKEN/);
