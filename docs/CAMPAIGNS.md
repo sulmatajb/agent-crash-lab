@@ -19,6 +19,8 @@ node dist/cli.js verify-campaign results/claude/<campaign-id>.manifest.json
 
 Verification checks the configuration fingerprint, report file digests, run/campaign identity, scenario coverage and deterministic replay of each report. A completed campaign must contain every planned case with completed execution. Edited/missing report files or invalid coverage produce exit 2. Report files must be regular files within the manifest directory; filenames cannot traverse directories, and symbolic links are rejected. File inputs are limited to 10 MiB and reports to 10,000 events.
 
+Configuration fields must also have valid types and bounds; a matching hash cannot make an invalid configuration valid. Planned scenario/version pairs are checked even when no trial reached them. The writer rejects empty or duplicate scenario plans, reports from another campaign, unplanned cases, duplicate cases, and reports submitted after finalization.
+
 The JSON result reports the recorded and missing case counts. A valid interrupted campaign can verify successfully while remaining **stopped** or **cancelled**; verification is a consistency check, not a passing evaluation or proof of authorship. Use report verdicts and execution states when deciding whether a campaign is acceptable.
 
 | Status | Meaning |
