@@ -23,4 +23,6 @@ Use the issue templates for a reproducible defect or scenario proposal. Explain 
 
 Run `npm test` (no model credentials required), `npm run check:docs`, and inspect `npm pack --dry-run`. Installed-Hermes integration is optional and clearly skipped when its runtime is unavailable. Do not change dependency lockfiles without explaining why. Keep exported run data, client configuration and tokens out of commits.
 
+CI runs for pull requests and pushes to `main`, with a manual workflow trigger available after the workflow reaches the default branch. Feature-branch pushes are checked through their PR rather than running the same matrix twice. New commits cancel older checks on the same PR. Both Node 22 and 24 report results independently; a failure in one does not cancel the other. Each job has a ten-minute limit and named steps for documentation, integrations, twenty-seed reference coverage and clean package installation.
+
 For orientation: `src/scenarios.ts` defines fixtures; `src/engine.ts` implements effects and grading; `src/replay.ts` preserves historical evaluation semantics; `src/claude.ts` and `src/runner.ts` supervise agents; `public/` is the dependency-free dashboard. See [testing](TESTING.md) and the [release checklist](docs/RELEASE.md).
