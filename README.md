@@ -6,9 +6,11 @@ A local, stateful test environment for agents that process vendor invoices, move
 
 All payments and email are simulated. The verdict comes from tool events and committed state, not an agent’s account of its own behavior.
 
+The local lab is free to use under the MIT license and has no billing. Bring your own agent: its subscription limits or model-provider API charges still apply. MCP itself does not add a lab fee.
+
 ## Evaluate a real Hermes agent
 
-**Status: pre-release.** The runtime and transport have been integration-tested; a live model trial is still required before release. See [VALIDATION.md](VALIDATION.md) for measured evidence and the remaining gate.
+**Status: pre-release.** A live Claude Code baseline passed 21 trials across all seven scenarios. Hermes transport is verified, but its authenticated live-model campaign remains pending. See [CLAUDE-VALIDATION.md](CLAUDE-VALIDATION.md) and [VALIDATION.md](VALIDATION.md) for evidence and remaining release gates.
 
 ```bash
 npm ci
@@ -56,7 +58,7 @@ Open **http://127.0.0.1:4310**. Select **Compare reference agents**. Inspect the
 
 No account, model API key, or Docker is needed. Reference agents are deterministic scripts designed to validate the lab—not evidence about a language model.
 
-This project is **not yet published to npm or GitHub**. Do not assume `npx agent-crash-lab` installs this code. To install the local package:
+This project is **in a private GitHub repository and not published to npm**. Do not assume `npx agent-crash-lab` installs this code. To install the local package:
 
 ```bash
 npm pack

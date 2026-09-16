@@ -1,6 +1,8 @@
 # Release validation — 0.2.0
 
-**Decision: infrastructure validated locally; live-model release gate still open.**
+**Decision: infrastructure and the initial live Claude baseline validated; still pre-release.**
+
+See [CLAUDE-VALIDATION.md](CLAUDE-VALIDATION.md) for the 21-trial live campaign and its limits.
 
 ## What was actually exercised
 
@@ -18,7 +20,9 @@
 | Clean tarball installation | v0.2.0 installed in a fresh temporary directory; packaged CLI, Python adapter, and MCP discovery/call passed |
 | Installed Hermes | Version 0.18.2 discovered exactly ten lab tools and called the policy tool |
 | Hermes decision-loop plumbing | Real AIAgent ran a complete timeout/retry/receipt workflow using a deterministic LOCAL provider fixture |
-| Live model attempt | Execution error: no LLM provider credentials configured; zero model passes recorded |
+| Hermes live model attempt | Execution error: no LLM provider credentials configured; no Hermes model pass recorded |
+| Claude Code live baseline | 21/21 passed across seven scenarios and three seeds; all reports replayed and tool traces cross-checked |
+| Linux CI | Node 22 and Node 24 passed on GitHub Actions |
 | Browser | Desktop rendering inspected; real browser WebMCP discovery, valid run, invalid-input rejection, and committed payment display checked |
 
 Measured stress artifact: [validation/stress-large.json](validation/stress-large.json). Timing is machine-specific; this measures a single local server, not a hosted service or a model benchmark.
@@ -37,11 +41,11 @@ The Hermes local-provider fixture exercises actual model API handling, tool sche
 
 ## Remaining release gates
 
-1. Run authenticated live-model trials across all seven scenarios and inspect the complete traces. No claim of live-model verification is made yet.
+1. Run an authenticated Hermes campaign and package a tested Claude supervisor. The Claude baseline is complete; it does not establish Hermes model behavior.
 2. Evaluate representative prompts, model versions, repeated runs, and additional adversarial variations. A seed changes fixtures, not all attack strategies.
-3. Verify Linux/Node 24 CI and a clean installation on another machine. Current local verification is macOS/Node 22.14.
+3. Verify installation on another user machine. Linux/Node 22 and 24 CI now passes; local verification is macOS/Node 22.14.
 4. Review dependencies, threat model, and package ownership before public publication.
 
-The runner evaluates a fresh Hermes runtime with the chosen model and optional system prompt. It does not reproduce an existing agent's entire memory, skills, integrations, or deployment environment. Other clients can connect manually through MCP, but only the Hermes supervised adapter has been exercised here.
+The runner evaluates a fresh Hermes runtime with the chosen model and optional system prompt. It does not reproduce an existing agent's entire memory, skills, integrations, or deployment environment. Claude Code was exercised through MCP using a local campaign supervisor; a packaged Claude adapter is still pending.
 
 Each open-source user runs their own local lab. A large download count does not require a shared server. A future hosted multi-tenant product would need separate authentication, process containment, scheduling, quotas, and storage design; those capabilities are not implied by these load measurements.
