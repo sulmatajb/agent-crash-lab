@@ -17,29 +17,34 @@ export type AdapterResult = { code: number | null; timedOut: boolean; cancelled:
 
 export async function runAdapter(command: string, args: string[], request: unknown, timeoutMs: number, signal?: AbortSignal): Promise<AdapterResult> {
   const start = performance.now();
+  if (signal?.aborted) return { code:null, timedOut:false, cancelled:true, records:[], duration_ms:0 };
   return new Promise((resolveResult, reject) => {
     const child = spawn(command, args, { stdio: ['pipe', 'pipe', 'pipe'], detached: process.platform !== 'win32' });
     const records: any[] = []; let pending = '', bytes = 0, timedOut = false, cancelled = false;
     let escalation: NodeJS.Timeout | undefined;
+    let stopping = false;
     const kill = () => {
+      if (stopping) return;
+      stopping = true;
       try { if (process.platform !== 'win32' && child.pid) process.kill(-child.pid, 'SIGTERM'); else child.kill('SIGTERM'); } catch {}
       escalation = setTimeout(() => { try { if (process.platform !== 'win32' && child.pid) process.kill(-child.pid, 'SIGKILL'); else child.kill('SIGKILL'); } catch {} }, 1000);
     };
     const timer = setTimeout(() => { timedOut = true; kill(); }, timeoutMs);
     const abort = () => { cancelled = true; kill(); }; signal?.addEventListener('abort', abort, { once: true });
+    const parse = (line: string) => { if (line.startsWith('CRASHLAB:')) { try { records.push(JSON.parse(line.slice(9))); } catch {} } };
     child.stdout.setEncoding('utf8');
     child.stdout.on('data', chunk => {
       bytes += Buffer.byteLength(chunk); if (bytes > 2_000_000) { timedOut = true; kill(); return; }
       pending += chunk.toString();
       const lines = pending.split('\n'); pending = lines.pop()!;
-      for (const line of lines) if (line.startsWith('CRASHLAB:')) { try { records.push(JSON.parse(line.slice(9))); } catch {} }
+      for (const line of lines) parse(line);
     });
     // Drain library logs, but don't persist arbitrary provider output or secrets.
-    child.stderr.on('data', () => {});
+    child.stderr.on('data', chunk => { bytes += Buffer.byteLength(chunk); if (bytes > 2_000_000) { timedOut = true; kill(); } });
     child.stdin.on('error', () => {});
     const clean = () => { clearTimeout(timer); clearTimeout(escalation); signal?.removeEventListener('abort', abort); };
     child.on('error', error => { clean(); reject(error); });
-    child.on('close', code => { clean(); resolveResult({ code, timedOut, cancelled, records, duration_ms: Math.round(performance.now() - start) }); });
+    child.on('close', code => { if (!timedOut && !cancelled) parse(pending); clean(); resolveResult({ code, timedOut, cancelled, records, duration_ms: Math.round(performance.now() - start) }); });
     child.stdin.end(JSON.stringify(request));
     if (signal?.aborted) abort();
   });
