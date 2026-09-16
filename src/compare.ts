@@ -9,7 +9,7 @@ const MAX_REPORT_BYTES = 10 * 1024 * 1024;
 /** Accept a single export, CLI test bundle, or supervised campaign directory. */
 export function loadReports(path: string): Run[] {
   if (statSync(path).isDirectory()) {
-    const files = readdirSync(path, { withFileTypes: true }).filter(f => f.isFile() && f.name.endsWith('.json') && f.name !== 'summary.json' && !f.name.endsWith('.trace.json')).sort((a,b) => a.name.localeCompare(b.name));
+    const files = readdirSync(path, { withFileTypes: true }).filter(f => f.isFile() && f.name.endsWith('.json') && f.name !== 'summary.json' && !f.name.endsWith('.trace.json') && !f.name.endsWith('.manifest.json')).sort((a,b) => a.name.localeCompare(b.name));
     if (!files.length || files.length > 1000) throw new Error('Campaign must contain 1–1000 report files.');
     return files.flatMap(f => loadReports(join(path, f.name)));
   }

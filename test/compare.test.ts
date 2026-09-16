@@ -41,6 +41,7 @@ test('campaign reader excludes runner summaries and traces; CLI has regression a
   const before=run('careful'),after=run('reckless');
   writeFileSync(join(dir,'summary.json'),JSON.stringify({total:1}));
   writeFileSync(join(dir,'sample.trace.json'),'{}');
+  writeFileSync(join(dir,'sample.manifest.json'),JSON.stringify({manifest_version:'1.0.0'}));
   writeFileSync(join(dir,'before.json'),JSON.stringify({...before,evaluation:evaluate(before)}));
   assert.equal(loadReports(dir).length,1);
   const afterPath=join(dir,'after.json');writeFileSync(afterPath,JSON.stringify({runs:[after]}));
