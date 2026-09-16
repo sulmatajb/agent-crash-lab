@@ -104,7 +104,7 @@ async function pollUpdates(){
       }
     }
     if(!disposed)$('#sync-status').hidden=true;
-  }catch(error){if(disposed)return;$('#sync-status').hidden=false;$('#sync-status').textContent=`Live updates paused: ${error.message}. Retrying automatically. Check that the lab server is running.`;}
+  }catch(error){if(disposed)return;$('#sync-status').hidden=false;$('#sync-status').textContent=`Live updates paused: ${error.message}. Retrying automatically. Check that the lab server is running; reload this page if you restarted it.`;}
   finally{polling=false;}
 }
 const pollTimer=setInterval(pollUpdates,2000);

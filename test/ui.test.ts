@@ -5,13 +5,24 @@ import { JSDOM, VirtualConsole } from 'jsdom';
 import { createLabServer } from '../src/server.js';
 import { RunStore } from '../src/store.js';
 
+// Node 24 fetch requires a native AbortSignal; JSDOM uses a separate DOM realm.
+// Forward cancellation instead of dropping it so unload/timeout behavior stays covered.
+async function fetchFromDom(url:URL,options:any={}) {
+  const controller=new AbortController();
+  const abort=()=>controller.abort();
+  if(options.signal?.aborted)abort();
+  else options.signal?.addEventListener('abort',abort,{once:true});
+  try{return await fetch(url,{...options,signal:controller.signal});}
+  finally{options.signal?.removeEventListener('abort',abort);}
+}
+
 async function until(predicate:()=>boolean) { const end=Date.now()+6000;while(!predicate()){if(Date.now()>end)throw new Error('UI did not reach expected state');await new Promise(r=>setTimeout(r,20));} }
 test('dashboard runs, compares, changes tabs, browses history and creates an external connection',async t=>{
   const store=new RunStore(':memory:');const server=createLabServer(store);server.listen(0,'127.0.0.1');await once(server,'listening');
   const origin=`http://127.0.0.1:${(server.address() as any).port}`;
   const errors:Error[]=[];const console=new VirtualConsole();console.on('jsdomError',e=>errors.push(e));
   const registered=new Map<string,any>();
-  const dom=await JSDOM.fromURL(origin,{resources:'usable',runScripts:'dangerously',virtualConsole:console,beforeParse(window){window.fetch=((url:any,options:any)=>fetch(new URL(url,origin),options)) as any;Object.defineProperty(window.document,'modelContext',{value:{registerTool(tool:any){registered.set(tool.name,tool);}}});}});
+  const dom=await JSDOM.fromURL(origin,{resources:'usable',runScripts:'dangerously',virtualConsole:console,beforeParse(window){window.fetch=((url:any,options:any)=>fetchFromDom(new URL(url,origin),options)) as any;Object.defineProperty(window.document,'modelContext',{value:{registerTool(tool:any){registered.set(tool.name,tool);}}});}});
   t.after(async()=>{dom.window.dispatchEvent(new dom.window.Event('pagehide'));dom.window.close();server.closeAllConnections();await new Promise<void>(r=>server.close(()=>r()));store.close();});
   const doc=dom.window.document;
   const click=(selector:string)=>{const el=doc.querySelector(selector) as HTMLElement;assert.ok(el,selector);el.click();};
@@ -53,7 +64,7 @@ test('live dashboard discovers runs, preserves evidence, restores links and reco
   const store=new RunStore(':memory:');const server=createLabServer(store);server.listen(0,'127.0.0.1');await once(server,'listening');
   const origin=`http://127.0.0.1:${(server.address() as any).port}`;
   let offline=false; let hold=false; let release:(()=>void)|undefined;
-  const dom=await JSDOM.fromURL(origin,{resources:'usable',runScripts:'dangerously',beforeParse(window){window.fetch=((url:any,options:any)=>{if(offline)return Promise.reject(new Error('Server disconnected'));if(hold&&String(url).startsWith('/api/runs/')){hold=false;return fetch(new URL(url,origin),options).then(response=>new Promise<Response>(resolve=>{release=()=>resolve(response);}));}return fetch(new URL(url,origin),options);}) as any;}});
+  const dom=await JSDOM.fromURL(origin,{resources:'usable',runScripts:'dangerously',beforeParse(window){window.fetch=((url:any,options:any)=>{if(offline)return Promise.reject(new Error('Server disconnected'));if(hold&&String(url).startsWith('/api/runs/')){hold=false;return fetchFromDom(new URL(url,origin),options).then(response=>new Promise<Response>(resolve=>{release=()=>resolve(response);}));}return fetchFromDom(new URL(url,origin),options);}) as any;}});
   t.after(async()=>{dom.window.dispatchEvent(new dom.window.Event('pagehide'));dom.window.close();server.closeAllConnections();await new Promise<void>(r=>server.close(()=>r()));store.close();});
   const doc=dom.window.document;const click=(selector:string)=>(doc.querySelector(selector) as HTMLElement).click();
   await until(()=>doc.querySelectorAll('.scenario-button').length===11);
@@ -81,7 +92,7 @@ test('live dashboard discovers runs, preserves evidence, restores links and reco
   assert.match(doc.querySelector('#scenario-title')!.textContent!,/ordinary Tuesday/);
   assert.equal(doc.querySelector('.result-title'),null,'late polling response must not reopen the old run');
   assert.equal(dom.window.location.hash,'');
-  const linked=await JSDOM.fromURL(`${origin}/#run=${run.id}`,{resources:'usable',runScripts:'dangerously',beforeParse(window){window.fetch=((url:any,options:any)=>fetch(new URL(url,origin),options)) as any;}});
+  const linked=await JSDOM.fromURL(`${origin}/#run=${run.id}`,{resources:'usable',runScripts:'dangerously',beforeParse(window){window.fetch=((url:any,options:any)=>fetchFromDom(new URL(url,origin),options)) as any;}});
   t.after(()=>{linked.window.dispatchEvent(new linked.window.Event('pagehide'));linked.window.close();});
   await until(()=>linked.window.document.querySelectorAll('.event').length===2);
   assert.match(linked.window.document.querySelector('.result-title')!.textContent!,new RegExp(run.id.slice(0,8)));
