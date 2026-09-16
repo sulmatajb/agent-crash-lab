@@ -33,6 +33,7 @@ test('dashboard runs, compares, changes tabs, browses history and creates an ext
   click('.nav-item[data-view="guide"]');click('#create-external');await until(()=>!(doc.querySelector('#connection-output') as HTMLElement).hidden);
   assert.match(doc.querySelector('#connection-output')!.textContent!,/CRASHLAB_TOKEN/);
   click('#connection-output [data-run]');await until(()=>!!doc.querySelector('.result-title .running'));
+  assert.equal((doc.querySelector('.run-controls') as HTMLElement).hidden,true);assert.equal((doc.querySelector('#external-run-context') as HTMLElement).hidden,false);
   click('#finish-run');await until(()=>!!doc.querySelector('.result-title .incomplete'));
   assert.equal(registered.size,2);assert.equal(registered.get('crashlab_list_scenarios').execute({}).length,11);
   const operator=registered.get('crashlab_run_reference');assert.equal(operator.annotations.readOnlyHint,false);assert.equal(operator.inputSchema.required.length,3);

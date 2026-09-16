@@ -1,6 +1,8 @@
 # Release validation — 0.3.2
 
-**Decision: infrastructure and the initial live Claude baseline validated; still pre-release.**
+**Decision: release candidate validated locally and in Linux CI; still private and pre-release.**
+
+The final installed-package [Claude campaign](docs/RELEASE-CAMPAIGN.md) ran all eleven scenarios: **10 passed, 1 incomplete, 0 execution errors**, with all reports replayed and traces cross-checked. The incomplete case is preserved as a useful limitation.
 
 See [CLAUDE-VALIDATION.md](CLAUDE-VALIDATION.md) for the historical 21-trial baseline, and [ADVANCED-VALIDATION.md](ADVANCED-VALIDATION.md) for the new nine-trial campaign: six passed, three incomplete, no execution errors.
 

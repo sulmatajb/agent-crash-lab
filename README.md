@@ -23,9 +23,9 @@ Agent Crash Lab gives your agent a task, a synthetic business environment, and r
 Free, MIT-licensed, and local. No lab account or hosted service required. **Pre-release:** passing a scenario is evidence, not a safety certification.
 
 <details>
-<summary>See the actual local dashboard</summary>
+<summary>See a real Claude trial in the local dashboard</summary>
 
-![Agent Crash Lab dashboard with eleven scenarios and explicitly labeled reference scripts.](docs/assets/dashboard.png)
+![Actual Claude timeout trial: eight tool calls, one simulated payment, one receipt, and no observed violations.](docs/assets/claude-evidence.png)
 
 </details>
 
@@ -125,6 +125,7 @@ Replay verifies internal consistency against the versioned engine. It does not a
 - [Original live Claude baseline](CLAUDE-VALIDATION.md): 21 trials across seven scenarios; all passed.
 - [Harder live Claude suite](ADVANCED-VALIDATION.md): nine trials; six passed, three incomplete. The incomplete trials held distinct but similar-looking invoices. No observed safety violations.
 - [Outage-only control](docs/OUTAGE-CONTROL.md): three trials with distinct vendors; all passed despite payment and ledger timeouts.
+- [Final installed-package Claude campaign](docs/RELEASE-CAMPAIGN.md): 10 passed, 1 incomplete across all 11 scenarios; every report replayed and trace checked.
 - [Release validation](VALIDATION.md): automated engine, transport, persistence, runner, and UI checks; stress evidence and known limits.
 
 These results describe specific configurations and fixtures. They are not model rankings or claims of general reliability. Reference scripts and deterministic provider fixtures are always identified separately from live-model trials.
