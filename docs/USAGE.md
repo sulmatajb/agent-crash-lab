@@ -239,3 +239,7 @@ To measure local search with synthetic records, run `npm run build` then `node s
 ### Campaign provenance
 
 Supervised runners save unique campaign manifests with planned coverage, configuration fingerprints and report digests. Use `verify-campaign MANIFEST.json` to verify files, replay and coverage. See [campaign records and limitations](CAMPAIGNS.md).
+
+### Reading live evidence
+
+The main summary shows policy violations, task checks met, and tool-call count. Simulated payment totals and authorization limits appear under **Side effects**, alongside the actual committed ledger. A newly created empty run says **Waiting for the first action**; creating a connection alone does not prove an agent has connected. Screen-reader live announcements summarize the scenario, seed, call count and verdict without repeatedly reading the complete tool payloads.
