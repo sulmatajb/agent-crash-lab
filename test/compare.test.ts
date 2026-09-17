@@ -99,3 +99,31 @@ test('comparison rejects named pipes promptly, including a pipe alongside valid 
     assert.equal(result.error,undefined);assert.equal(result.status,2);assert.match(result.stderr,/regular file/);
   }
 });
+
+test('CLI campaign comparison rejects matching partial coverage, absent manifests and changed bytes', async t => {
+  const { startCampaign } = await import('../src/campaign.js');
+  const dir=mkdtempSync(join(tmpdir(),'crashlab-compare-plan-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));
+  const campaign=await startCampaign(dir,{adapter:'claude-code',scenarios:['payment-timeout'],seed:42,repetitions:1,timeoutMs:5000,maxTurns:10,task:'test'});
+  const report=run('careful');report.campaign_id=campaign.id;report.execution={adapter:'claude-code',status:'completed'};
+  const path=join(dir,`${report.id}.json`),manifest=join(dir,campaign.file);
+  const raw=JSON.stringify(report,null,2);writeFileSync(path,raw);await campaign.record(report);
+  const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
+  const invoke=(input=dir)=>spawnSync(process.execPath,[cli,'compare',input,input,'--json'],{encoding:'utf8',timeout:10000});
+  // Even all recorded cases are insufficient until the runner finalizes its plan.
+  assert.equal(invoke().status,2);assert.match(invoke().stderr,/requires completed/);
+  assert.equal(invoke(path).status,0); // Explicit selected-case comparison remains available.
+  await campaign.finish(false);
+  assert.equal(invoke().status,0);
+  const originalManifest=JSON.parse((await import('node:fs')).readFileSync(manifest,'utf8'));
+  for(const status of ['running','stopped','cancelled']) {
+    writeFileSync(manifest,JSON.stringify({...originalManifest,status,planned:[...originalManifest.planned,{...originalManifest.planned[0],seed:43}]}));
+    assert.equal(invoke().status,2);assert.match(invoke().stderr,/requires completed/);
+  }
+  writeFileSync(manifest,JSON.stringify(originalManifest));
+  writeFileSync(path,raw+' ');assert.equal(invoke().status,2);assert.match(invoke().stderr,/digest differs/);
+  writeFileSync(path,raw);
+  writeFileSync(join(dir,'duplicate.manifest.json'),JSON.stringify(originalManifest));
+  assert.equal(invoke().status,2);assert.match(invoke().stderr,/Duplicate campaign/);
+  rmSync(join(dir,'duplicate.manifest.json'));rmSync(manifest);
+  assert.equal(invoke().status,2);assert.match(invoke().stderr,/missing its manifest/);
+});
