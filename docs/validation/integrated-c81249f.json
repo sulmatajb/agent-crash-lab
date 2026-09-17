@@ -1,0 +1,57 @@
+{
+  "kind": "integrated-infrastructure-validation-not-model-evaluation",
+  "commit": "c81249fec70135bffbcec591c654ed7549a0a2f6",
+  "validation_date_utc": "2026-09-17",
+  "platform": "darwin",
+  "node": "v22.14.0",
+  "npm": "10.9.2",
+  "local_tests": {
+    "command": "HERMES_TEST_PYTHON=/path/to/hermes/venv/bin/python npm test",
+    "passed": 119,
+    "failed": 0,
+    "skipped": 0,
+    "hermes_provider": "deterministic local fixture, no model inference"
+  },
+  "ci": {
+    "url": "https://github.com/sulmatajb/agent-crash-lab/actions/runs/35187965300",
+    "passed_jobs": [
+      "ubuntu-latest / Node 22",
+      "ubuntu-latest / Node 24",
+      "macos-latest / Node 22",
+      "macos-latest / Node 24"
+    ],
+    "scope": "Locked install, documentation and license checks, automated integrations, 220 reference cases per job, clean tarball installation and CLI/MCP/dashboard checks"
+  },
+  "stress": {
+    "kind": "infrastructure-stress-not-model-evaluation",
+    "passed": true,
+    "node": "v22.14.0",
+    "platform": "darwin",
+    "worlds": 1000,
+    "concurrency": 64,
+    "seed": 845621,
+    "engine_calls": 200000,
+    "http_calls": 65000,
+    "mcp_calls": 96,
+    "total_calls": 265096,
+    "lost_events": 0,
+    "duplicate_payments_under_same_key": 0,
+    "restart_verified": true,
+    "latency_ms": {
+      "p50": 17.56,
+      "p95": 20.2,
+      "p99": 24.7
+    },
+    "event_loop_p99_ms": 20.45,
+    "duration_ms": 20609,
+    "rss_mb": 281,
+    "workload": "64 same-run retry requests per invoice across 1000 worlds, up to 64 concurrent HTTP workers, real MCP reads, restart readback",
+    "scope": "Single local server. Does not claim hosted multi-tenant scale or model safety."
+  },
+  "limitations": [
+    "Single local server stress workload, not hosted capacity.",
+    "Installed Hermes runtime used a deterministic provider, not an authenticated model campaign.",
+    "Hosted CI does not replace independent human onboarding.",
+    "Publication privacy and remaining third-party tool review are separate."
+  ]
+}

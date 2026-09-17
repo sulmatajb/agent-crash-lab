@@ -9,7 +9,7 @@ The repository remains private until the owner chooses to publish. This checklis
 - [x] Explicit separation of reference scripts, model behavior and execution errors.
 - [x] Live baseline and harder-scenario evidence, including non-passing outcomes.
 - [x] Tests for concurrency, process termination, evaluator defects, and runner errors.
-- [x] Linux CI on Node 22 and 24; local macOS validation.
+- [x] Linux and macOS CI on Node 22 and 24; local installed-Hermes runtime validation.
 - [x] Installed-tarball integration check added to CI: dashboard, 11 reference scenarios, real MCP timeout recovery and replay.
 - [x] MIT license, contribution guide, issue templates and synthetic-data boundaries.
 
@@ -24,6 +24,16 @@ Commit `997bcbf48afe1bd7f18e261ba2567be441346eb3` includes all 18 initial PRs. O
 - The production-dependency audit reported zero known vulnerabilities at that time. This does not replace the license and publication-time reviews below.
 
 These are infrastructure checks, not additional live-model trials. Follow the [alpha pilot guide](ALPHA-PILOT.md) for the remaining independent installation and agent-behavior evidence. Existing live-model results remain linked from the README.
+
+## Latest integrated verification
+
+Main commit `c81249fec70135bffbcec591c654ed7549a0a2f6` contains PRs 1–30. The [machine-readable validation record](validation/integrated-c81249f.json) captures the September 17 UTC / September 16 Los Angeles checks:
+
+- All 119 local automated tests passed with zero skips on macOS / Node 22.14.0. The installed Hermes runtime used a deterministic local provider fixture; no live model inference was involved.
+- [All four CI jobs](https://github.com/sulmatajb/agent-crash-lab/actions/runs/35187965300) passed: Ubuntu and macOS on Node 22 and 24, including fresh installs, integration tests, reference cases, clean-package checks and license inventory validation.
+- A fresh stress run completed 265,096 calls across 1,000 worlds at concurrency 64, with zero lost events, zero duplicate payments under the same idempotency key, and successful restart readback. Duration was 20.609 seconds; HTTP latency p95 was 20.2 ms on this local workload. This is not a hosted capacity claim.
+
+Since the initial integrated build, comparison now checks completed campaign plans and protects existing output files; the CLI rejects irrelevant flags; late dashboard polls cannot revert a finished verdict; package documentation links and dependency inventory are checked in CI. These changes improve the evidence workflow, not the breadth of live-model support claims.
 
 ## Before announcing broad support
 
