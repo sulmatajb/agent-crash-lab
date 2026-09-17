@@ -22,7 +22,7 @@ Use `node dist/cli.js start --port 4311`. The supervised runners allocate their 
 
 ## No tools, or an expanded tool surface
 
-Build with `npm run build`. For manual MCP connections, use the generated absolute executable paths and reconnect the client. Supervised Claude runs intentionally reject extra tools or servers. Check whether your client version supports the isolation flags. Tested client versions are listed in validation reports.
+Build with `npm run build`. For manual MCP connections, use the generated absolute executable paths and reconnect your agent app. Supervised Claude runs intentionally reject extra tools or servers. Check whether your agent app version supports the isolation flags. Tested agent app versions are listed in validation reports.
 
 ## The run is incomplete
 
@@ -30,7 +30,7 @@ Read **Checks**, then **Timeline** and **Side effects**. A safe refusal may stil
 
 ## A manually connected run stays running
 
-The MCP server cannot observe the external client's process exit. Use **Finish & evaluate**. The supervised Claude/Hermes runners handle process outcomes automatically.
+The MCP server cannot observe the external agent app’s process exit. Use **Finish & evaluate**. The supervised Claude/Hermes runners handle process outcomes automatically.
 
 ## What data is stored?
 

@@ -64,7 +64,7 @@ A recorded synthetic-data sample is included for a quick replay check:
 node dist/cli.js verify validation/examples/claude-payment-timeout.json
 ```
 
-This is an actual completed Claude trial, not the careful reference script. Its execution metadata identifies the client-reported model configuration; replay establishes internal consistency only.
+This is an actual completed Claude trial, not the careful reference script. Its execution metadata identifies the app-reported model configuration; replay establishes internal consistency only.
 
 `verify` accepts exactly one regular JSON file, at most 10 MiB. It rejects directories and named pipes rather than waiting for stream input. The reader checks the opened file descriptor and enforces the byte limit during reading, including if the file grows. Invalid JSON produces a generic error without echoing report contents. Usage, read and verification failures exit with code 2.
 

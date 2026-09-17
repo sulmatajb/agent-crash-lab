@@ -9,9 +9,9 @@ A manifest records:
 - The planned scenario versions and seeds, including cases not reached after an early failure.
 - Requested adapter, model/provider overrides, time limit and maximum turns.
 - Lab version, exposed tool names, hashes of the task and additional system prompt, and a configuration fingerprint.
-- Each report filename, exact file digest, observed verdict/execution state and client-reported model/runtime labels.
+- Each report filename, exact file digest, observed verdict/execution state and app-reported model/runtime labels.
 
-Raw prompts, executable paths, credentials and source profile contents are not copied into the manifest. Keep your own approved prompt/configuration source if you need to reproduce it. A fingerprint alone cannot reconstruct a prompt. Inherited client defaults and remote provider behavior are not fully captured, and client-reported model labels are not independently attested.
+Raw prompts, executable paths, credentials and source profile contents are not copied into the manifest. Keep your own approved prompt/configuration source if you need to reproduce it. A fingerprint alone cannot reconstruct a prompt. Inherited agent app defaults and remote provider behavior are not fully captured, and app-reported model labels are not independently attested.
 
 ## Verify the saved campaign
 
