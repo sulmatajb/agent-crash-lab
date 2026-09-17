@@ -116,7 +116,7 @@ document.addEventListener('click',async event=>{const button=event.target.closes
   if(button.dataset.scenario)selectScenario(button.dataset.scenario);
   if(button.dataset.run)await openRun(button.dataset.run);
   if(button.dataset.tab){state.tab=button.dataset.tab;renderOutput();$(`#evidence-tab-${state.tab}`).focus();}
-  if(button.id==='finish-run'){const id=state.run.id;const finished=await api(`/runs/${id}/finish`,{});if(state.run?.id===id){state.run=finished;renderOutput(true);}await refreshHistory();}
+  if(button.id==='finish-run'){++openRequest;const id=state.run.id;const finished=await api(`/runs/${id}/finish`,{});if(state.run?.id===id){++openRequest;state.run=finished;renderOutput(true);}await refreshHistory();}
   if(button.id==='copy-run-link'){const url=new URL(location.href);url.hash=`run=${encodeURIComponent(state.run.id)}`;await navigator.clipboard.writeText(url.href);toast('Local run link copied. Open it on this computer while the lab is running.');}
   if(button.id==='export-run'){const selected=state.run;const report=await api(`/runs/${selected.id}/report`);const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`crashlab-${selected.scenario}-${selected.id.slice(0,8)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
   if(button.id==='copy-config'){await navigator.clipboard.writeText(JSON.stringify(state.connection.connection,null,2));toast('MCP configuration copied.');}
@@ -129,9 +129,9 @@ async function pollUpdates(){
   try {
     if(state.view==='history')await refreshHistory();
     if((state.run?.status==='running'||state.run?.execution?.status==='starting')&&state.view==='lab'){
-      const id=state.run.id; const r=await api(`/runs/${encodeURIComponent(id)}`);
-      // A slow response must never replace another run the operator opened meanwhile.
-      if(!disposed&&state.run?.id===id&&JSON.stringify(r)!==JSON.stringify(state.run)){
+      const id=state.run.id,request=openRequest; const r=await api(`/runs/${encodeURIComponent(id)}`);
+      // Discard polls started before navigation or an explicit finish action.
+      if(!disposed&&request===openRequest&&state.run?.id===id&&JSON.stringify(r)!==JSON.stringify(state.run)){
         state.run=r;renderOutput(true);if(r.status==='completed')await refreshHistory();
       }
     }
