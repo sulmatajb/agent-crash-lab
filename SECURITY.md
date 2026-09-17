@@ -10,6 +10,7 @@ Agent Crash Lab is a behavioral simulator, not a hostile-code sandbox.
 - The operator page and database are trusted. Any process that can read the operator page over loopback, the source, or the database may inspect grading. Do not give those capabilities to an agent under test and claim evaluator isolation.
 - Never expose the port through a tunnel or reverse proxy. This alpha has no multi-user authentication, TLS termination, or hostile-client resource isolation.
 - Finish a run to disable subsequent tool actions. Tokens persist across restarts and are not time-expiring; keep configurations private.
+- HTTP error responses omit parser excerpts, rejected field names, and internal exception details. Invalid requests return `INVALID_REQUEST` (400); unexpected failures return `INTERNAL_ERROR` (500). Inspect the run before retrying a write after a server failure.
 - The local database and JSON reports can contain everything an external agent submits. Do not feed real secrets to the lab. `.crashlab/` is ignored by Git and excluded from the npm package.
 - MCP stdio uses the official SDK; the HTTP bridge refuses remote URLs and redirects. The lab does not inspect, restrict, or contain other agent tools or model-provider traffic.
 

@@ -1,36 +1,35 @@
-# Agent Crash Lab — recorded UI demo
+# Real-agent motion demo and interactive replay
 
-[Watch the 34-second MP4](launch.mp4) · [Contact sheet](contact-sheet.jpg) · [Recording provenance](SOURCES.md)
+**Would your agent pay twice?** A payment commits, its response times out, and the agent has to decide what to do next.
 
-![Video poster](poster.png)
+A 24-second HyperFrames marketing cut with original 120 BPM music, 3D graphics, a typed real invocation, and animated evidence from a fresh Claude Code trial.
 
-Actual UI recording of a fresh Claude Code run: tool calls arrive, a payment response times out, the agent checks the ledger, and the operator inspects one payment and one receipt. Minimal editorial text; no narration or music. 1920×1080 H.264 at 30 fps, from approximately 10 fps browser capture. The live waiting segment is visibly marked 2×.
+- [1080p video with sound](launch.mp4)
+- [Silent README loop](../../docs/assets/crash-lab-demo.gif)
+- [Interactive replay](replay/index.html): play, pause, scrub and inspect each exact call/response.
+- [Verified report](live-run.json) and [provenance](SOURCES.md)
 
-## Re-render
+## Open the interactive replay locally
 
-Requires Node.js 22+, Python 3 and FFmpeg. HyperFrames is pinned to 0.8.41.
+From this directory:
 
-```sh
-python3 build-recording.py
+```bash
+python3 -m http.server 4313 --bind 127.0.0.1
+```
+
+Open http://127.0.0.1:4313/replay/. It replays saved evidence and sends no agent calls. GitHub displays the HTML source; use the local server to interact with it.
+
+## Rebuild
+
+Requires the root repo's npm dependencies, Node 22+, FFmpeg, Python 3 and NumPy.
+
+```bash
+node build-live-demo.mjs
+node test-replay.mjs
+python3 build-beat.py
 npm run check
-npm run dev
-npm run render -- --quality delivery --output renders/agent-crash-lab-recorded.mp4
+npm run render -- --quality delivery --output launch.mp4
+python3 build-deliverables.py
 ```
 
-`EDIT.json` defines the cuts. `assets/recordings/` holds the actual source recordings, and `assets/recorded-session.mp4` is the assembled footage. The HyperFrames composition applies camera moves and the minimal labels. All assets are local. Raw frame working directories and render caches are ignored.
-
-## Evidence
-
-From the repository root:
-
-```sh
-node dist/cli.js verify videos/agent-crash-lab/recorded-run.json
-```
-
-The displayed seed-43 report replayed successfully and its eight business calls matched the client trace. Passing this fixture is not a general safety certification. See [SOURCES.md](SOURCES.md).
-
-## Dependencies
-
-Original recording and composition use the repository MIT license. Bundled Inter uses [SIL OFL](assets/Inter-OFL.txt). GSAP 3.14.2 retains its license header and uses the [GSAP Standard License](https://gsap.com/standard-license). The repository license does not replace third-party terms.
-
-The 0.8.42 upgrade check exposed an integrity mismatch in the prior composition. This revision corrects the local GSAP digest and retains the previously pinned 0.8.41 renderer. No external stock media, music, voice or reconstructed UI is used.
+HyperFrames is pinned to 0.8.43. The generator combines `marketing-shell.html.txt` with the fresh exported `live-run.json`; `index.html` is its seekable composition. The report is a real model trial; the presentation is explicitly an edited trace replay, not a continuous screen recording. Original timestamps and full responses remain inspectable. The closing invitation is “Test your agent. See what happens.” Results describe this scenario and configuration; they do not establish general reliability.

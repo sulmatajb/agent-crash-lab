@@ -1,70 +1,18 @@
 {
-  "duration": 34.0,
-  "capture": "Actual browser frames sampled at approximately 10 fps; timestamped source chunks. Encoded at 30 fps.",
+  "duration": 24,
+  "kind": "edited-real-trace-replay",
+  "report": "live-run.json",
+  "run_id": "9048b80f-6c50-4b91-9b8f-f5d5dc2cfb90",
+  "generator": "build-live-demo.mjs",
   "segments": [
-    {
-      "source": "01-connect.mp4",
-      "source_start": 0,
-      "source_duration": 3,
-      "playback_rate": 1,
-      "start": 0,
-      "duration": 3.0
-    },
-    {
-      "source": "04-live-framed.mp4",
-      "source_start": 0,
-      "source_duration": 10,
-      "playback_rate": 2,
-      "start": 3.0,
-      "duration": 5.0
-    },
-    {
-      "source": "04-live-framed.mp4",
-      "source_start": 10,
-      "source_duration": 7,
-      "playback_rate": 2,
-      "start": 8.0,
-      "duration": 3.5
-    },
-    {
-      "source": "05-timeout.mp4",
-      "source_start": 0.35,
-      "source_duration": 5,
-      "playback_rate": 1,
-      "start": 11.5,
-      "duration": 5.0
-    },
-    {
-      "source": "06-reconcile-close.mp4",
-      "source_start": 0.35,
-      "source_duration": 5,
-      "playback_rate": 1,
-      "start": 16.5,
-      "duration": 5.0
-    },
-    {
-      "source": "07-effects.mp4",
-      "source_start": 0.3,
-      "source_duration": 4,
-      "playback_rate": 1,
-      "start": 21.5,
-      "duration": 4.0
-    },
-    {
-      "source": "08-receipt.mp4",
-      "source_start": 0.3,
-      "source_duration": 4,
-      "playback_rate": 1,
-      "start": 25.5,
-      "duration": 4.0
-    },
-    {
-      "source": "09-checks.mp4",
-      "source_start": 0.3,
-      "source_duration": 4.5,
-      "playback_rate": 1,
-      "start": 29.5,
-      "duration": 4.5
-    }
-  ]
+    {"start":0,"duration":4,"content":"Would your agent pay twice? One payment. No response."},
+    {"start":4,"duration":2,"content":"Lab reveal"},
+    {"start":6,"duration":3,"content":"Exact executed CLI invocation, editorial typing"},
+    {"start":9,"duration":5,"content":"Real tool calls 1–6, shortened display intervals"},
+    {"start":14,"duration":2,"content":"Timeout emphasis"},
+    {"start":16,"duration":3,"content":"Real ledger response, call 7"},
+    {"start":19,"duration":2,"content":"Real receipt, call 8; final evaluation"},
+    {"start":21,"duration":3,"content":"Test your agent. See what happens."}
+  ],
+  "audio":{"source":"assets/crash-beat.wav","bpm":120,"duration":24,"origin":"Original deterministic synthesis; MIT"}
 }

@@ -2,17 +2,15 @@
 workflow: general-video
 flow: automation
 storyboard: no
-message: Watch a real agent recover from a committed-payment timeout.
-destination: website
-aspect: 1920x1080
-language: en
-length: 34s
-narration: no
-angle: actual UI recording
+duration: 24
 ---
-## User revision
-Replace the rejected text-led video with an actual recording of UI interaction and a real agent using the lab. Use as few added words as possible. Autonomous completion, editing and rendering remain authorized.
-## Material
-Actual browser frame captures of a fresh Claude Code payment-timeout trial, seed 43, run f1a6c3a9-f01a-4b03-b13a-cff557ee7dbb. Recordings show live tool updates and subsequent human/operator inspection. Connection overview precedes the run; the runner itself was invoked from the CLI. Do not imply the web interface launches Claude.
-## Editing
-34 seconds. Cut dead time and shorten the live waiting segment to 2x. Keep tool results intact. Use camera reframing of the recorded UI, with no recreated UI, fabricated tool calls, or synthetic agent narration. Minimal added text: recorded-session label, speed indicator, final repository URL. Silent by design; no voiceover or music sourcing.
+# Kinetic Agent Crash Lab launch cut
+The user rejected a static recording edit and explicitly requested a marketing video with strong movement, graphics, transformations, reveals, and matching music. Complete the rendered deliverable and README preview without another approval stop. Previous render authorization persists.
+
+Dark/lime palette, original 120 BPM electronic score. Open with inbox and credit-card access concerns; introduce the lab; show actual recorded connection instructions and live Claude tool calls; dramatize the payment-timeout event with a clearly editorial title; show real ledger/receipt evidence; close with an invitation to test your own agent. No invented model trace or certification claims. Reuse the existing trial, whose CLI invocation occurred offscreen. Animated call labels are excerpts from its recorded trace.
+
+## Fresh-trial revision
+User asked for more motion/interaction and real-life use. A new authenticated Claude trial was executed (seed 44). Replace old screen crops with exact invocation typography and animated real trace excerpts; label the film as an edited replay. Add a separate clickable replay with exact argument/response inspection and report download. Keep 24 seconds and the original music. Render and deliver both.
+
+## Focused hook revision
+Lead with “Would your agent pay twice?” and resolve that question using the existing verified seed-44 trial. End with “Test your agent. See what happens.” Keep the narrative concrete, with no broad AI-safety slogan or implication that a pass grants permission for real-world access. Align the README with this question, workflow, and bounded evidence.

@@ -2,9 +2,9 @@
 
 # Agent Crash Lab
 
-**Give your agent a bad day before you give it a credit card.**
+## Would your agent pay twice?
 
-Test agents against payment failures, malicious invoices, and spending limits—without moving real money or sending real email.
+The payment went through. The response timed out. What does your agent do next?
 
 [![Tests](https://github.com/sulmatajb/agent-crash-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/sulmatajb/agent-crash-lab/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-d9f56b)](LICENSE)
@@ -14,13 +14,28 @@ Test agents against payment failures, malicious invoices, and spending limits—
 
 </div>
 
-![A real agent calls MCP tools, the lab injects failures, and an evaluator checks committed effects.](docs/assets/how-it-works.svg)
+[![Watch a real Claude agent recover from a payment timeout](docs/assets/crash-lab-demo.gif)](videos/agent-crash-lab/launch.mp4)
 
-A payment commits. The response times out. Does your agent pay twice, check the ledger, or give up?
+*Would it retry—or check first? A 24-second edited replay of a real Claude trial. Click for sound. [Open the interactive replay locally](videos/agent-crash-lab/README.md).*
 
-Agent Crash Lab gives your agent a task, a synthetic business environment, and real tool failures to handle. It records each action and grades the resulting state. **Your model makes the decisions. The lab checks what happened.**
+Agent Crash Lab lets you find out in a local test environment. Connect your agent through MCP, give it an invoice task, and introduce failures it has to handle. Inspect the calls, the decisions, and the resulting payments and emails.
 
-Free, MIT-licensed, and local. No lab account or hosted service required. **Pre-release:** passing a scenario is evidence, not a safety certification.
+**Real agent. Simulated money and email. Inspectable results.** Free, local, and MIT-licensed.
+
+## A timeout is just the beginning
+
+An invoice asks for a new bank account. An email tells the agent to ignore its instructions. A payment succeeds, but the response never arrives. A happy-path demo will not tell you what happens next.
+
+The lab gives these situations a repeatable test:
+
+1. **Connect your AI agent.** Give it access to the lab through MCP. Use a dedicated test profile with only the lab tools.
+2. **Run a scenario.** The agent gets a task and simulated tools; faults and untrusted content are built into the environment.
+3. **Inspect what happened.** Follow each tool call and response. Check committed effects, unfinished work, and observed policy violations.
+4. **Change something. Run it again.** Try another prompt or model against the same scenario and seed.
+
+![An agent calls MCP tools, the lab injects faults, and the evaluator checks committed effects.](docs/assets/how-it-works.svg)
+
+In the video above, Claude encounters a committed payment with a lost response, checks the ledger, and sends one receipt. That is the result of **one recorded trial**, not a promise about the next one. The point is to make behavior visible and changes testable.
 
 <details>
 <summary>See a real Claude trial in the local dashboard</summary>
@@ -47,11 +62,18 @@ This package is **not published to npm**. Use this repository; do not assume `np
 
 ## Bring your own agent
 
+The lab exposes standard MCP tools for AI agents. Connect a client that supports local stdio MCP servers, or use the HTTP adapter contract for a custom integration. Your agent keeps its own model connection.
+
+The automated runners below are setup conveniences for specific clients; the lab is not limited to those clients.
+
 ### Claude Code — automatic setup
 
 Use your installed, authenticated Claude Code client. If necessary, sign in with `claude auth login` first.
 
 ```bash
+# Check setup without inference
+node dist/cli.js doctor --client claude
+
 # Start with one real trial
 node dist/cli.js evaluate-claude --scenario payment-timeout --out results/claude
 
@@ -75,7 +97,7 @@ node dist/cli.js evaluate --scenario payment-timeout --out results/hermes
 
 `probe` checks the installed Hermes MCP transport without model inference. `evaluate` runs the model. Select a profile with `--hermes-profile PATH`. API-key profiles and local OpenAI-compatible endpoints are supported; importing OAuth-only profiles is not. **Hermes transport is tested; an authenticated Hermes model campaign is still pending.**
 
-### Any other MCP client — manual connection
+### MCP clients — manual connection
 
 1. Keep the dashboard and agent on the same machine.
 2. Open **Connect your agent**, select a scenario, and create a connection.
@@ -84,7 +106,17 @@ node dist/cli.js evaluate --scenario payment-timeout --out results/hermes
 
 Each connection is scoped to one run. Use a fresh connection for the next trial. The agent should call `policy_get` first and `lab_finish` last. Manual connections do not supervise the client's process; use **Finish & evaluate** if it stops without finishing.
 
-[Full setup, CLI options, and HTTP adapter contract →](docs/USAGE.md)
+[Full setup, CLI options, and HTTP adapter contract →](docs/USAGE.md) · [Readiness checks →](docs/READINESS.md)
+
+## Compare an agent change
+
+Keep baseline and candidate campaigns in separate directories with matching scenarios and seeds:
+
+```bash
+node dist/cli.js compare results/baseline results/candidate --out comparison.json
+```
+
+Reports are replay-verified before pairing. The command flags new violations, lost work and unnecessary escalation; execution errors stay inconclusive. [Comparison rules and CI exit codes →](docs/COMPARISON.md)
 
 ## What gets tested?
 

@@ -1,0 +1,112 @@
+import { randomUUID, createHash } from 'node:crypto';
+import { readFile, writeFile, rename, rm, open } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { join } from 'node:path';
+import { evaluate, newRun, toolDefinitions, type Run } from './engine.js';
+import type { ScenarioId } from './scenarios.js';
+import { z } from 'zod';
+
+const hash=(text:string)=>createHash('sha256').update(text).digest('hex');
+const digest=z.string().regex(/^[a-f0-9]{64}$/);
+const configurationSchema=z.object({
+  adapter:z.enum(['claude-code','hermes','hermes-probe']),lab_version:z.string().min(1),
+  requested_model:z.string().nullable(),requested_provider:z.string().nullable(),
+  timeout_ms:z.number().int().min(1).max(900000),max_turns:z.number().int().min(1).max(100),
+  task_sha256:digest,system_prompt_sha256:digest,
+  tool_names:z.array(z.string().min(1)).min(1).max(100).refine(names=>new Set(names).size===names.length),
+});
+const caseKey=(r:{scenario:string;scenario_version:string;seed:number})=>`${r.scenario}@${r.scenario_version}:${r.seed}`;
+type Settings={adapter:'claude-code'|'hermes'|'hermes-probe';scenarios:ScenarioId[];seed:number;repetitions:number;timeoutMs:number;maxTurns:number;model?:string;provider?:string;systemPrompt?:string;task:string};
+export async function startCampaign(out:string,settings:Settings) {
+  if(!Array.isArray(settings.scenarios)||!settings.scenarios.length||new Set(settings.scenarios).size!==settings.scenarios.length)throw new Error('Campaign scenarios must be nonempty and unique.');
+  if(!Number.isSafeInteger(settings.seed)||settings.seed<0||!Number.isInteger(settings.repetitions)||settings.repetitions<1||settings.repetitions>100||settings.seed+settings.repetitions-1>2147483647||!Number.isInteger(settings.maxTurns)||settings.maxTurns<1||settings.maxTurns>100||!Number.isInteger(settings.timeoutMs)||settings.timeoutMs<1||settings.timeoutMs>900000)throw new Error('Invalid campaign bounds.');
+  const id=randomUUID(),file=`${id}.manifest.json`;
+  const labVersion=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version as string;
+  const planned=settings.scenarios.flatMap(scenario=>Array.from({length:settings.repetitions},(_,i)=>({scenario,scenario_version:newRun(scenario,settings.seed+i,settings.adapter).scenario_version,seed:settings.seed+i})));
+  const configuration={adapter:settings.adapter,lab_version:labVersion,requested_model:settings.model??null,requested_provider:settings.provider??null,timeout_ms:settings.timeoutMs,max_turns:settings.maxTurns,task_sha256:hash(settings.task),system_prompt_sha256:hash(settings.systemPrompt??''),tool_names:[...Object.keys(toolDefinitions),'lab_finish'].sort()};
+  if(!configurationSchema.safeParse(configuration).success)throw new Error('Invalid campaign configuration.');
+  const reports:{id:string;file:string;sha256:string;scenario:ScenarioId;scenario_version:string;seed:number;verdict:string;execution:string;observed_model?:string;runtime_version?:string}[]=[];
+  let manifest={manifest_version:'1.0.0',campaign_id:id,created_at:new Date().toISOString(),finished_at:undefined as string|undefined,status:'running',configuration,configuration_sha256:hash(JSON.stringify(configuration)),planned,reports,limitation:'Configuration records requested settings and prompt hashes, not raw prompts, credentials or inherited client defaults. Runtime/model labels are client-reported. File hashes detect changes relative to this manifest; they do not authenticate its author. A running manifest left behind may indicate interruption.'};
+  const save=async(next=manifest)=>{
+    const temporary=join(out,`${file}.${randomUUID()}.tmp`);
+    try{await writeFile(temporary,JSON.stringify(next,null,2),{mode:0o600,flag:'wx'});await rename(temporary,join(out,file));}
+    catch(error){await rm(temporary,{force:true}).catch(()=>{});throw error;}
+  };
+  let pending=Promise.resolve();
+  const enqueue=(action:()=>Promise<void>)=>{const operation=pending.then(action);pending=operation.catch(()=>{});return operation;};
+  await save();
+  return {id,file,async record(report:Run){
+    report=structuredClone(report);
+    return enqueue(async()=>{
+    if(manifest.status!=='running')throw new Error('Campaign is already finished.');
+    if(report.campaign_id!==id||!planned.some(entry=>caseKey(entry)===caseKey(report)))throw new Error('Report does not belong to a planned campaign case.');
+    if(manifest.reports.some(entry=>caseKey(entry)===caseKey(report)))throw new Error('Campaign case already recorded.');
+    if(manifest.reports.some(r=>r.id===report.id))throw new Error('Report already recorded in campaign.');
+    const entry={id:report.id,file:`${report.id}.json`,sha256:hash(JSON.stringify(report,null,2)),scenario:report.scenario,scenario_version:report.scenario_version,seed:report.seed,verdict:evaluate(report).verdict,execution:report.execution?.status??'unsupervised',observed_model:report.execution?.model,runtime_version:report.execution?.runtime_version};
+    const next={...manifest,reports:[...manifest.reports,entry]};
+    await save(next);manifest=next;
+    });
+  },async finish(cancelled:boolean){return enqueue(async()=>{
+    if(manifest.status!=='running')return;
+    const next={...manifest,status:cancelled?'cancelled':manifest.reports.some(r=>r.execution!=='completed')||manifest.reports.length!==planned.length?'stopped':'completed',finished_at:new Date().toISOString()};
+    await save(next);manifest=next;
+  });}};
+}
+
+export async function verifyCampaign(path:string) {
+  const {dirname}=await import('node:path');
+  const {verifyReport}=await import('./replay.js');
+  const fileLimit = 10 * 1024 * 1024;
+  const campaignLimit = 64 * 1024 * 1024;
+  let totalBytes = 0;
+  const boundedRead = async (file: string) => {
+    // Check and read the same descriptor. NONBLOCK prevents FIFO opens from
+    // waiting for a writer; NOFOLLOW preserves the manifest's no-symlink rule.
+    const handle = await open(file, constants.O_RDONLY | constants.O_NONBLOCK | constants.O_NOFOLLOW);
+    try {
+      const stat = await handle.stat();
+      if (!stat.isFile()) throw new Error('Expected a regular evidence file.');
+      if (stat.size > fileLimit) throw new Error('Evidence exceeds the 10 MiB input limit.');
+      if (totalBytes + stat.size > campaignLimit) throw new Error('Campaign exceeds the 64 MiB aggregate input limit.');
+      const chunks: Buffer[] = [];
+      let bytes = 0;
+      for (;;) {
+        const chunk = Buffer.allocUnsafe(Math.min(65536, fileLimit + 1 - bytes, campaignLimit + 1 - totalBytes));
+        const { bytesRead } = await handle.read(chunk, 0, chunk.length, null);
+        if (!bytesRead) break;
+        bytes += bytesRead;
+        totalBytes += bytesRead;
+        if (bytes > fileLimit) throw new Error('Evidence exceeds the 10 MiB input limit.');
+        if (totalBytes > campaignLimit) throw new Error('Campaign exceeds the 64 MiB aggregate input limit.');
+        chunks.push(chunk.subarray(0, bytesRead));
+      }
+      return Buffer.concat(chunks, bytes).toString('utf8');
+    } finally { await handle.close(); }
+  };
+  const parseJson = (raw: string) => {
+    try { return JSON.parse(raw); }
+    catch { throw new Error('Campaign evidence is not valid JSON.'); }
+  };
+  const manifest = parseJson(await boundedRead(path));
+  if(manifest?.manifest_version!=='1.0.0'||typeof manifest.campaign_id!=='string'||!['running','completed','stopped','cancelled'].includes(manifest.status)||!Array.isArray(manifest.planned)||!Array.isArray(manifest.reports)||manifest.reports.length>1100||!manifest.planned.length||manifest.planned.length>1100)throw new Error('Invalid campaign manifest.');
+  if(!configurationSchema.safeParse(manifest.configuration).success)throw new Error('Invalid campaign configuration.');
+  if(hash(JSON.stringify(manifest.configuration))!==manifest.configuration_sha256)throw new Error('Configuration fingerprint differs from manifest.');
+  for(const entry of manifest.planned){if(!entry||!['1.1.0','1.2.0','1.2.1','1.2.2'].includes(entry.scenario_version))throw new Error('Invalid planned scenario version.');const plannedRun=newRun(entry.scenario,entry.seed,'manifest-validation');plannedRun.scenario_version=entry.scenario_version;verifyReport(plannedRun);}
+  const planned=new Set<string>(manifest.planned.map(caseKey));
+  if(planned.size!==manifest.planned.length)throw new Error('Duplicate planned campaign case.');
+  const seen=new Set<string>();
+  for(const entry of manifest.reports){
+    if(!entry||typeof entry.file!=='string'||!/^[a-f0-9-]{36}\.json$/.test(entry.file)||entry.file!==`${entry.id}.json`)throw new Error('Invalid campaign report filename.');
+    const raw=await boundedRead(join(dirname(path),entry.file));
+    if(hash(raw)!==entry.sha256)throw new Error(`Report digest differs: ${entry.id}`);
+    const report=parseJson(raw);
+    if(report.id!==entry.id||report.campaign_id!==manifest.campaign_id||caseKey(report)!==caseKey(entry)||!planned.has(caseKey(report))||seen.has(caseKey(report)))throw new Error('Campaign report identity or coverage mismatch.');
+    if(!Array.isArray(report.events)||report.events.length>10000)throw new Error('Invalid report event count.');
+    const verified=verifyReport(report);
+    if(entry.observed_model!==report.execution?.model||entry.runtime_version!==report.execution?.runtime_version||verified.verdict!==entry.verdict||(report.execution?.status??'unsupervised')!==entry.execution)throw new Error('Campaign report outcome mismatch.');
+    if(manifest.status==='completed'&&(report.status!=='completed'||report.execution?.status!=='completed'))throw new Error('Completed campaign contains an unfinished execution.');
+    seen.add(caseKey(report));
+  }
+  if(manifest.status==='completed'&&seen.size!==planned.size)throw new Error('Completed campaign is missing planned reports.');
+  return {verified:true,campaign_id:manifest.campaign_id,status:manifest.status,planned:planned.size,recorded:seen.size,missing:planned.size-seen.size,limitation:'Checks file digests, report replay and recorded coverage; does not authenticate the manifest or establish agent safety.'};
+}

@@ -63,3 +63,55 @@ test('standalone HTTP adapter completes every scenario without importing the sim
     const report=await(await api(`/api/runs/${created.run.id}`)).json();assert.equal(report.evaluation.verdict,'passed',scenario.id);
   }
 });
+
+test('history traverses beyond 250 runs without duplicates when newer runs arrive',async t=>{
+  const {api,store}=await fixture(t);const ids=new Set<string>();
+  for(let i=0;i<267;i++){const r=newRun('clean-control',i,'external');r.created_at='2026-01-01T00:00:00.000Z';store.save(r);ids.add(r.id);}
+  const first=await(await api('/api/history?limit=40')).json();assert.equal(first.total,267);assert.equal(first.runs.length,40);
+  assert.equal(first.runs[0].world,undefined);assert.equal(first.runs[0].events,undefined);
+  const incoming=newRun('clean-control',999,'external');incoming.created_at='2026-01-01T00:00:00.000Z';store.save(incoming);
+  const seen=new Set<string>(first.runs.map((r:any)=>r.id));let cursor=first.next_cursor;
+  while(cursor){const page=await(await api(`/api/history?limit=40&before=${cursor}`)).json();for(const r of page.runs){assert.ok(!seen.has(r.id));seen.add(r.id);}cursor=page.next_cursor;}
+  assert.deepEqual(seen,ids);assert.ok(!seen.has(incoming.id));
+  assert.equal((await(await api('/api/history?limit=1')).json()).runs[0].id,incoming.id);
+  assert.equal((await(await api('/api/runs')).json()).length,250,'legacy endpoint remains compatible');
+});
+test('history rejects invalid pagination and remains operator-only',async t=>{
+  const {api}=await fixture(t);
+  for(const query of ['limit=0','limit=101','limit=1.5','limit=abc','before=not-a-cursor','unexpected=yes'])assert.equal((await api(`/api/history?${query}`)).status,400,query);
+  assert.equal((await api('/api/history?before=00000000-0000-4000-8000-000000000000')).status,404);
+  assert.equal((await api('/api/history',undefined,'wrong')).status,401);
+  const connection=await(await api('/api/runs',{scenario:'clean-control',agent:'external'})).json();
+  assert.equal((await api('/api/history',undefined,connection.connection.mcpServers['agent-crash-lab'].env.CRASHLAB_TOKEN)).status,401);
+});
+
+test('global history search finds old metadata, combines filters and follows outcome changes',async t=>{
+  const {api,store}=await fixture(t);const {finishRun}=await import('../src/engine.js');
+  const target=newRun('clean-control',424242,'target-hermes');target.created_at='2025-01-01T00:00:00.000Z';target.execution={adapter:'hermes',status:'starting',model:'local-specific-model'};store.save(target);
+  for(let i=0;i<270;i++)store.save(newRun('payment-timeout',i,'external'));
+  const search=async(q:string,filter='all')=>(await(await api(`/api/history?q=${encodeURIComponent(q)}&filter=${filter}`)).json());
+  assert.equal((await search('LOCAL-SPECIFIC-MODEL')).runs[0].id,target.id);
+  assert.equal((await search('ordinary Tuesday')).matched_total,1);
+  assert.equal((await search(target.world.vendors[0].private_note.slice(0,80))).matched_total,0);
+  assert.equal((await search('424242','running')).runs[0].id,target.id);
+  assert.equal((await search('target-hermes','reference')).matched_total,0);
+  store.mutate(target.id,r=>{finishRun(r);r.execution!.status='completed';});
+  assert.equal((await search('target-hermes','running')).matched_total,0);
+  assert.equal((await search('target-hermes','attention')).matched_total,1);
+  assert.equal((await search("' OR 1=1 --")).matched_total,0);
+  assert.equal((await api('/api/history?q='+ 'x'.repeat(201))).status,400);
+});
+test('search index migrates old records, refreshes legacy writers and rolls back atomically',()=>{
+  const dir=mkdtempSync(join(tmpdir(),'crashlab-search-'));const path=join(dir,'runs.sqlite');
+  const store=new RunStore(path);const run=newRun('clean-control',42,'original');store.save(run);
+  store.db.exec('DROP TRIGGER runs_search_insert; DROP TRIGGER runs_search_update; DROP TRIGGER runs_search_delete; DROP TABLE run_search; DROP TABLE run_search_dirty;');store.close();
+  const reopened=new RunStore(path);
+  try{
+    assert.equal(reopened.page(50,undefined,'original').matched_total,1);
+    assert.throws(()=>reopened.mutate(run.id,r=>{r.agent='rolled-back';reopened.save(r);throw new Error('abort');}),/abort/);
+    assert.equal(reopened.page(50,undefined,'rolled-back').matched_total,0);
+    run.agent='legacy-writer';reopened.db.prepare('UPDATE runs SET data=? WHERE id=?').run(JSON.stringify(run),run.id);
+    assert.equal(reopened.page(50,undefined,'legacy-writer').matched_total,1);
+    assert.equal(reopened.page(50,undefined,'original').matched_total,0);
+  }finally{reopened.close();rmSync(dir,{recursive:true,force:true});}
+});

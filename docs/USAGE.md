@@ -62,6 +62,8 @@ The original profile is not modified. Its memory, skills, other MCP servers, ter
 
 `results/hermes/summary.json` summarizes the campaign. Each trial also gets a full evidence JSON file. Use `node dist/cli.js verify results/hermes/<run-id>.json` to replay and validate internal consistency. The verifier does not prove authorship or agent identity.
 
+Verification rejects malformed report envelopes, unknown run/execution statuses, and histories exceeding the engine's 200-call limit before replay. If an evaluation field is included, it must exactly match the replayed evaluation; omit it to verify raw run evidence. Structural errors name the field without echoing submitted values. These checks do not attest timestamps, model labels, or report authorship.
+
 ## Try the reference comparison locally
 
 Requires **Node.js 22.13+** and npm. Node 22 may print an experimental warning for its built-in SQLite module.
@@ -94,10 +96,12 @@ The dashboard binds only to `127.0.0.1`. Default port: 4310. Override with `--po
 2. Open **Connect your agent** in the dashboard. Choose a scenario and seed, then **Create connection**.
 3. Copy the generated `mcpServers` configuration into your MCP client’s configuration. The precise config location depends on the client. It uses your local Node executable, the compiled CLI, and a run-scoped token.
 4. Create a **dedicated test profile** with the lab’s MCP server. Remove live payment, email, browser, shell, and other unrelated tools from that profile.
-5. Copy the displayed task to the agent. It should start with `policy_get` and finish with `lab_finish`.
+5. Copy the displayed task to the agent, or enable the optional task resource (below) and have a resource-capable MCP client read `crashlab://task`. It should start with `policy_get` and finish with `lab_finish`.
 6. Select **Watch this run**. The dashboard refreshes as tool calls arrive. If the agent stops without calling `lab_finish`, select **Finish & evaluate**.
 
 Each connection belongs to one run. Completed runs reject further tool calls; create a fresh connection for the next trial. An MCP connection exposes tools—it does not launch or orchestrate your model. The lab never needs your model key, but your model provider can charge for the agent’s inference.
+
+For a manual connection, add `"CRASHLAB_RESOURCES": "1"` to the generated MCP server’s `env` to enable the read-only `crashlab://task` resource. It returns JSON containing `task`, `policy`, `run_id`, and `status` for the connection’s run. Reading it does not create a tool event or change the run. It remains readable after completion so the client can see that it needs a fresh connection. Invalid tokens cannot read it, and evaluator findings, fixture internals, reports, and other runs are not exposed. Resources are disabled by default because some clients convert them into extra model tools. Leave this option off for supervised runners, which require an exact ten-tool surface. Clients without resource support can use the displayed task.
 
 The MCP transport is **stdio** using the official TypeScript SDK. The stdio process bridges to a local HTTP endpoint with a run-scoped capability. Agent-facing endpoints cannot read reports, modify scenarios, or invoke operator endpoints. The operator dashboard has separate authorization.
 
@@ -222,6 +226,28 @@ Thousands of GitHub users would each run their own local lab. The load results m
 
 ### Watching and finding runs
 
-Open **Run history** while your agent runs. It updates every two seconds; use **Running now** to find active trials, or search the latest 250 runs by agent, scenario, seed or run ID. Opening a run adds its ID to the browser URL, so reloading keeps the same evidence open. **Copy run link** creates a local bookmark, usable on the same computer while this server and database are available; it contains no agent capability token. Export JSON for portable evidence.
+Open **Run history** while your agent runs. It updates every two seconds; use **Running now** to find active trials, or search the complete database by agent, model, scenario title/ID, seed or run ID. Use **Older runs**, **Previous**, and **Newest runs** to navigate the complete database, 50 runs at a time. Filters and search apply across all stored runs; changing them returns to the first matching page. Newer inserts do not shift the cursor used to fetch older pages. Opening a run adds its ID to the browser URL, so reloading keeps the same evidence open. **Copy run link** creates a local bookmark, usable on the same computer while this server and database are available; it contains no agent capability token. Export JSON for portable evidence.
 
 Live updates preserve expanded tool responses and keyboard focus. A connection banner appears if the server is unavailable and clears when polling recovers.
+
+### Paginated operator history API
+
+`GET /api/history?limit=50&before=RUN_ID&q=QUERY&filter=all` returns `{ runs, next_cursor, total, matched_total }`. Search is case-insensitive literal metadata matching, bounded to 200 characters. Filters are `all`, `reference`, `live`, `attention`, and `running`. `total` counts all records; `matched_total` counts matching records across all pages. Search covers run ID, scenario title/ID, agent, client-reported model, and seed; it does not scan private fixture bodies or tool arguments. Use `next_cursor` as `before` for the next page; null means the end. Omit `before` for newest runs. Limits are 1–100; invalid input returns 400 and a missing cursor returns 404. The operator bearer token is required; agent capabilities cannot browse history. Ordering uses creation time and insertion order for ties. Newer arrivals do not shift older-page boundaries. Return to the newest page to discover new arrivals.
+
+The original `GET /api/runs` remains available with its existing 250-run array response. Both listing endpoints omit fixture worlds and tool events; open a run for complete evidence.
+
+Search metadata is derived from the authoritative run and committed in the same transaction. Existing databases backfill automatically. SQLite triggers mark writes from older runner processes for refresh before searching. Database rollback includes both evidence and search metadata.
+
+To measure local search with synthetic records, run `npm run build` then `node scripts/benchmark-history.mjs 10000` from the source checkout. It creates a temporary SQLite database, runs 100 bounded queries and removes the database afterward. The initial local 10,000-run check measured approximately 3 ms median and 9 ms p95; this is not an HTTP, concurrency or production-scale guarantee.
+
+### Campaign provenance
+
+Supervised runners save unique campaign manifests with planned coverage, configuration fingerprints and report digests. Use `verify-campaign MANIFEST.json` to verify files, replay and coverage. See [campaign records and limitations](CAMPAIGNS.md).
+
+### Reading live evidence
+
+The main summary shows policy violations, task checks met, and tool-call count. Simulated payment totals and authorization limits appear under **Side effects**, alongside the actual committed ledger. A newly created empty run says **Waiting for the first action**; creating a connection alone does not prove an agent has connected. Screen-reader live announcements summarize the scenario, seed, call count and verdict without repeatedly reading the complete tool payloads.
+
+## Scenario arguments
+
+Pass scenario names with `--scenario`, for example `node dist/cli.js evaluate-claude --scenario payment-timeout`. A bare positional scenario such as `evaluate-claude payment-timeout` exits with code 2 before launching a client or creating a campaign. Other unexpected positional arguments are rejected as well; evidence commands accept their documented file or directory operands.
