@@ -1,7 +1,8 @@
 """Hermes adapter: real Hermes MCP discovery and AIAgent execution in a fresh profile.
 
 Receives one JSON request on stdin. Emits only CRASHLAB-prefixed JSON records.
-Never modifies the source Hermes profile or persists its inference credentials.
+Never imports source tools or persists inference credentials in the test profile.
+OAuth resolution may refresh the selected source provider credentials.
 """
 import contextlib
 import hashlib
@@ -11,6 +12,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import subprocess
 
 OUTPUT = sys.stdout
 SECRETS = []
@@ -23,6 +25,39 @@ def emit(kind, **data):
             text = text.replace(secret, "[REDACTED]")
     OUTPUT.write("CRASHLAB:" + text + "\n")
     OUTPUT.flush()
+
+
+def resolve_codex_oauth(source):
+    # Resolve in a separate process: Hermes caches profile paths at import time.
+    # The agent process must import Hermes only AFTER selecting the isolated home.
+    env = os.environ.copy()
+    env["HERMES_HOME"] = str(source.resolve())
+    for key in ["HERMES_PROFILE", "HERMES_CONFIG", "HERMES_ENV"]:
+        env.pop(key, None)
+    code = """
+import contextlib, json, sys
+with contextlib.redirect_stdout(sys.stderr):
+    from hermes_cli.auth import resolve_codex_runtime_credentials
+    credentials = resolve_codex_runtime_credentials()
+print(json.dumps({key: credentials.get(key) for key in ['api_key', 'base_url']}))
+"""
+    try:
+        result = subprocess.run([sys.executable, "-c", code], env=env,
+                                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                timeout=20, check=True, text=True)
+        credentials = json.loads(result.stdout)
+        key = credentials.get("api_key")
+        if not isinstance(key, str) or not key or len(key) > 16384:
+            raise ValueError("Missing OAuth access token")
+        SECRETS.append(key)
+        # Prevent a source profile override from forwarding this token elsewhere.
+        base_url = (credentials.get("base_url") or "").rstrip("/")
+        if base_url != "https://chatgpt.com/backend-api/codex":
+            raise ValueError("Unsupported OAuth endpoint")
+        return {"provider": "openai-codex", "api_mode": "codex_responses",
+                "api_key": key, "base_url": base_url}
+    except Exception:
+        raise RuntimeError("Hermes OpenAI Codex authentication could not be resolved. Sign in on the machine running this trial, then retry.") from None
 
 
 def main(request):
@@ -55,9 +90,10 @@ def main(request):
              mcp_available=importlib.util.find_spec("mcp") is not None,
              credential_configured=bool(explicit_key or any(os.environ.get(k) for k in allowed_credentials)),
              source_profile=str(source), configuration_untouched=True,
-             note="OAuth-only profiles are not imported by this adapter; use an API-key or local-model test profile.")
+             note="OpenAI Codex OAuth is supported with --provider openai-codex; doctor does not resolve or refresh OAuth credentials.")
         return
 
+    oauth_runtime = resolve_codex_oauth(source) if request["mode"] == "evaluate" and provider == "openai-codex" else None
     home = Path(request["home"])
     os.environ["HERMES_HOME"] = str(home)
     for key in ["HERMES_PROFILE", "HERMES_CONFIG", "HERMES_ENV"]:
@@ -96,7 +132,7 @@ def main(request):
             return
         from hermes_cli.runtime_provider import resolve_runtime_provider
         from run_agent import AIAgent
-        runtime = resolve_runtime_provider(requested=provider, explicit_api_key=explicit_key,
+        runtime = oauth_runtime or resolve_runtime_provider(requested=provider, explicit_api_key=explicit_key,
                                            explicit_base_url=safe_model.get("base_url"), target_model=model)
         agent = AIAgent(model=model, provider=runtime.get("provider"), api_key=runtime.get("api_key"),
                         base_url=runtime.get("base_url"), api_mode=runtime.get("api_mode"),

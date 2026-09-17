@@ -56,7 +56,7 @@ Run these commands **on the machine where Hermes and its authenticated model are
 
 The runner creates a disposable Hermes profile, imports the selected model configuration and supported inference credentials in memory, and exposes only the ten lab tools. It uses the installed Hermes MCP integration and `AIAgent` implementation. It checks the tool list before and after agent construction, then launches the model's actual decision loop. It records actual tool calls, side effects, model/provider metadata, runtime version, configuration hash, usage where available, and final response. A timeout, cancellation, missing credential, or crashed adapter becomes an **execution error**, never a passing model evaluation.
 
-The original profile is not modified. Its memory, skills, other MCP servers, terminal/browser tools, and system personality are not imported. Use `--system-prompt /path/to/prompt.txt` to include the behavior instructions you want to evaluate. Prompt files must be regular UTF-8 files no larger than 64 KiB, with no NUL characters. Invalid input exits with code 2 before launching an agent app; the same limit applies to `evaluate-claude`. This tests a freshly configured Hermes runtime, not the complete deployment history of a persistent agent. The temporary profile is removed afterward. OAuth-only profiles are not currently imported; use an API-key model or a local OpenAI-compatible endpoint in a dedicated test profile. Never paste keys into an issue or chat.
+The original tool/configuration profile is not modified. Its memory, skills, other MCP servers, terminal/browser tools, and system personality are not imported. Use `--system-prompt /path/to/prompt.txt` to include the behavior instructions you want to evaluate. Prompt files must be regular UTF-8 files no larger than 64 KiB, with no NUL characters. Invalid input exits with code 2 before launching an agent app; the same limit applies to `evaluate-claude`. This tests a freshly configured Hermes runtime, not the complete deployment history of a persistent agent. The temporary profile is removed afterward. For OpenAI Codex OAuth, use `--provider openai-codex` with your chosen `--model`. A separate credential resolver reads the selected source profile before agent isolation and passes only the access token in memory. Normal OAuth resolution may refresh credentials in that source store; it does not copy the auth store into the temporary profile. Only the standard ChatGPT Codex endpoint is accepted for this path. Other OAuth providers are not supported by this adapter. Never paste keys into an issue or chat.
 
 `--timeout 180` bounds wall-clock seconds per trial; `--max-turns 30` bounds model iterations, and generated output is capped at 2,048 tokens per request. Model-provider billing still applies; this is not a guaranteed dollar cap. Authentication/configuration failures stop the campaign. Ctrl+C cancels it and preserves evidence. Run tokens cannot alter expected outcomes through the tool API, but process-level containment is **not** implemented.
 
@@ -261,3 +261,16 @@ Pass scenario names with `--scenario`, for example `node dist/cli.js evaluate-cl
 Options must apply to the command you invoke. Unsupported options fail with exit 2 before creating files, launching an agent or starting a server. For example, `test --model MODEL` is rejected: `test` runs deterministic reference scripts, while `evaluate` and `evaluate-claude` run your configured agent.
 
 Use `--claude-command` with `evaluate-claude`, and `--hermes-python` / `--hermes-profile` with `evaluate` or `probe`. `doctor` accepts either runtime's setup paths for inspection. `start` accepts `--port` and `--db`; `demo` additionally accepts `--seed`. MCP connection settings come from the generated environment configuration, not `--db`. `compare` accepts `--json` and `--out`; `verify` and `verify-campaign` take just their evidence filename and already print JSON.
+
+### Hermes running on another computer
+
+Run installation, provider sign-in and the trial on the machine running the Hermes backend. A desktop app connected to a remote server cannot use your Mac's filesystem paths or refreshed Mac credentials automatically. An old chat may retain an expired token; verify the fresh login in a new chat before testing the lab.
+
+For an installed package on the server:
+
+```bash
+./node_modules/.bin/agent-crash-lab probe --provider openai-codex --model YOUR_MODEL --out results/probe
+./node_modules/.bin/agent-crash-lab evaluate --provider openai-codex --model YOUR_MODEL --scenario payment-timeout --runs 1 --timeout 180 --max-turns 30 --out results/first-trial
+```
+
+`YOUR_MODEL` is a placeholder for a model available to your account. The probe checks only transport; the second command makes real inference requests. Doctor does not resolve or refresh OAuth credentials and cannot certify that a stored token still works.
