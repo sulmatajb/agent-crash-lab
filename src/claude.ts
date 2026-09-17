@@ -45,6 +45,7 @@ export async function runClaudeProcess(options: ClaudeProcessOptions) {
 }
 
 export async function evaluateClaude(options: CampaignOptions & { command?: string }) {
+  if (options.provider !== undefined) throw new Error('--provider is supported by the Hermes runner only. Configure the provider in your Claude Code client; use --model to select its model.');
   if (!Number.isInteger(options.repetitions) || options.repetitions < 1 || options.repetitions > 100 || !Number.isInteger(options.timeoutMs) || options.timeoutMs < 1 || options.timeoutMs > 900000) throw new Error('Invalid campaign bounds.');
   const selected = options.scenario === 'all' ? scenarios : options.scenario === 'advanced' ? scenarios.filter(s => (advancedScenarioIds as readonly string[]).includes(s.id)) : scenarios.filter(s => s.id === options.scenario);
   if (!selected.length) throw new Error('Unknown scenario');
