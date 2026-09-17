@@ -48,8 +48,8 @@ The [publication audit](PUBLICATION-AUDIT.md) records the Git-history credential
 
 ## Prepared media
 
-- [x] [24-second 1080p MP4](../videos/agent-crash-lab/launch.mp4) rendered and decoded for inspection.
-- [x] Reproducible video source, local assets, contact sheet, and [evidence map](../videos/agent-crash-lab/SOURCES.md).
+- [x] [24-second 1080p MP4](https://github.com/sulmatajb/agent-crash-lab/blob/main/videos/agent-crash-lab/launch.mp4) rendered and decoded for inspection.
+- [x] Reproducible video source, local assets, contact sheet, and [evidence map](https://github.com/sulmatajb/agent-crash-lab/blob/main/videos/agent-crash-lab/SOURCES.md).
 - [x] [Actual Claude recovery sample](../validation/examples/claude-payment-timeout.json) replay verified.
 - [ ] Owner reviews final video and chooses the public posting destination.
 

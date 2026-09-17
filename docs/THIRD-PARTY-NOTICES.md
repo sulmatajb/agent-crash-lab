@@ -16,4 +16,4 @@ The [production dependency inventory](DEPENDENCY-LICENSES.md) lists the 94 insta
 
 ## Demo assets
 
-The demo score is synthesized by `videos/agent-crash-lab/build-beat.py` without third-party audio samples. Recorded UI, synthetic trial data and authored graphics come from this project. See [media provenance](../videos/agent-crash-lab/SOURCES.md) for the underlying run and editorial treatment. The HyperFrames rendering tool and any installed registry components retain their upstream terms; this inventory is not a blanket MIT relicensing of external tools or assets.
+The demo score is synthesized by `videos/agent-crash-lab/build-beat.py` without third-party audio samples. Recorded UI, synthetic trial data and authored graphics come from this project. See [media provenance](https://github.com/sulmatajb/agent-crash-lab/blob/main/videos/agent-crash-lab/SOURCES.md) for the underlying run and editorial treatment. The HyperFrames rendering tool and any installed registry components retain their upstream terms; this inventory is not a blanket MIT relicensing of external tools or assets.
