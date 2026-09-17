@@ -29,3 +29,7 @@ Review development/rendering-tool licenses and the registry-component provenance
 ## Reproducible dependency inventory follow-up
 
 The root lockfile inventory now includes 73 development entries alongside the 94 production entries. All 167 entries declare a license; optional platform packages are counted even when not installed locally. CI checks that the generated inventory matches the lockfile and rejects missing declarations. This extends metadata coverage, not license compatibility approval. External rendering tools and registry components remain outside the root lockfile and still require their separate provenance/terms review.
+
+## Video source provenance follow-up
+
+The [third-party notices](THIRD-PARTY-NOTICES.md#hyperframes-renderer-and-registry-components) now pin upstream sources and record exact hashes for all three retained HyperFrames registry components. Terminal and whip-pan sources match byte-for-byte; headline has editor/serialization changes with unchanged JavaScript and CSS. The upstream Apache 2.0 text is included locally, and the renderer package's license declaration is recorded. This closes the unidentified-source gap for those three files. Transitive rendering dependencies, tracked-media privacy review and Git metadata review remain separate publication work.
