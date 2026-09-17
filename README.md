@@ -95,7 +95,7 @@ node dist/cli.js probe
 node dist/cli.js evaluate --scenario payment-timeout --out results/hermes
 ```
 
-`probe` checks the installed Hermes MCP transport without model inference. `evaluate` runs the model. Select a profile with `--hermes-profile PATH`. API-key profiles and local OpenAI-compatible endpoints are supported; importing OAuth-only profiles is not. **Hermes transport is tested; an authenticated Hermes model campaign is still pending.**
+`probe` checks the installed Hermes MCP transport without model inference. `evaluate` runs the model. Select a profile with `--hermes-profile PATH`. API-key profiles, local OpenAI-compatible endpoints, and OpenAI Codex OAuth (`--provider openai-codex`) are supported. OAuth sign-in must exist on the machine running the trial. The adapter resolves the selected token in memory; it does not import your other tools or copy the auth store into the test profile.
 
 ### Connect your agent through MCP
 

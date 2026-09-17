@@ -30,7 +30,7 @@ export async function claudeReadiness(command='claude',probe:Probe=probeCommand)
 export function summarizeHermes(record:any):Check[] {
   const checks:Check[]=[{id:'hermes.installation',status:'pass',message:'Hermes runtime loaded successfully.'},
     {id:'hermes.mcp',status:record.mcp_available===true?'pass':'fail',message:record.mcp_available===true?'Hermes MCP dependency is available.':'Hermes MCP dependency is unavailable.',next_step:record.mcp_available===true?undefined:'Install the MCP dependencies in the selected Hermes Python environment, then run probe.'}];
-  checks.push({id:'hermes.authentication',status:'warn',message:record.credential_configured===true?'A credential is configured; validity and selected-provider compatibility are not verified.':'No supported API-key credential was detected. A local provider may still work; OAuth-only profiles are not imported.',next_step:'Run probe for transport, then one bounded evaluate trial with your configured provider.'});
+  checks.push({id:'hermes.authentication',status:'warn',message:record.credential_configured===true?'A credential is configured; validity and selected-provider compatibility are not verified.':'No API-key credential was detected. A local provider or OpenAI Codex OAuth may still work; OAuth credentials are not inspected by this check.',next_step:'Run probe for transport, then one bounded evaluate trial with your configured provider.'});
   return checks;
 }
 export async function readiness(options:{client:'claude'|'hermes'|'all';command?:string;python?:string;profile?:string}) {

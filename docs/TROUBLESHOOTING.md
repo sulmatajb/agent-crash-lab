@@ -10,7 +10,7 @@ Pass `--claude-command /absolute/path/to/claude` to `evaluate-claude`. Keep Clau
 
 ## Hermes probe works but evaluation fails
 
-A successful probe proves MCP connectivity, not model authentication. Run `doctor`, check the selected model/profile, and use `--hermes-profile PATH` if necessary. OAuth-only profiles are not imported. See the Hermes section in [usage](USAGE.md).
+A successful probe proves MCP connectivity, not model authentication. Run `doctor`, check the selected model/profile, and use `--hermes-profile PATH` if necessary. OpenAI Codex OAuth requires `--provider openai-codex` and a working login on the same machine as the trial. Other OAuth providers are not imported. See the Hermes section in [usage](USAGE.md).
 
 ## Port 4310 is occupied
 
