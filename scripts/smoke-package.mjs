@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, dirname, resolve, relative } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { once } from 'node:events';
@@ -22,6 +22,21 @@ try {
   const installed = join(temp, 'node_modules', 'agent-crash-lab');
   for (const file of ['public/index.html', 'public/app.js', 'public/style.css', 'adapters/hermes.py', 'docs/USAGE.md', 'dist/claude.js', 'LICENSE', 'README.md', 'SECURITY.md']) assert.ok(existsSync(join(installed, file)), `Package missing ${file}`);
   for (const file of ['results', '.crashlab', '.env', 'videos']) assert.ok(!existsSync(join(installed, file)), `Package contains private/development material: ${file}`);
+  let documentationLinks = 0;
+  for (const { path } of packed[0].files.filter(file => file.path.endsWith('.md'))) {
+    const text = readFileSync(join(installed, path), 'utf8').replace(/```[^\n]*\n[\s\S]*?```/g, '');
+    const links = [...text.matchAll(/!?\[[^\]\n]*\]\(([^)\n]+)\)/g)].map(match => match[1]);
+    links.push(...[...text.matchAll(/^\s*\[[^\]\n]+\]:\s*(\S+)/gm)].map(match => match[1]));
+    for (let link of links) {
+      link = link.startsWith('<') ? link.slice(1, link.indexOf('>')) : link.split(/\s+["']/)[0];
+      if (/^(?:[a-z][a-z0-9+.-]*:|#|\/\/)/i.test(link)) continue;
+      link = decodeURIComponent(link.split(/[?#]/)[0]);
+      if (!link) continue;
+      const target = resolve(dirname(join(installed, path)), link);
+      assert.ok(!relative(installed, target).startsWith('..') && existsSync(target), `Packaged documentation ${path} has missing target: ${link}`);
+      documentationLinks++;
+    }
+  }
   const cli = join(installed, 'dist/cli.js');
   const command = (args, expectedExit = 0) => {
     try {
@@ -81,7 +96,7 @@ try {
   assert.equal(JSON.parse(command(['verify', reportPath])).verified, true);
   const edited = structuredClone(report); edited.payments[0].amount_cents++;
   writeFileSync(reportPath, JSON.stringify(edited)); command(['verify', reportPath], 2);
-  console.log(JSON.stringify({ kind: 'installed-package-integration-not-model-evaluation', version: JSON.parse(readFileSync(join(installed, 'package.json'))).version, passed: true, reference_scenarios: 11, discovered_mcp_tools: 10, post_commit_timeout_recovered: true, duplicate_payments: 0, dashboard_http: 200, packaged_assets_served: true, replay_verified: true, cli_exit_contracts_verified: [0, 1, 2], edited_evidence_rejected: true }, null, 2));
+  console.log(JSON.stringify({ kind: 'installed-package-integration-not-model-evaluation', version: JSON.parse(readFileSync(join(installed, 'package.json'))).version, passed: true, reference_scenarios: 11, discovered_mcp_tools: 10, post_commit_timeout_recovered: true, duplicate_payments: 0, dashboard_http: 200, packaged_assets_served: true, replay_verified: true, cli_exit_contracts_verified: [0, 1, 2], edited_evidence_rejected: true, documentation_links_checked: documentationLinks }, null, 2));
 } finally {
   await client?.close();
   if (server) { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }

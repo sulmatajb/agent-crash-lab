@@ -10,13 +10,13 @@ The payment went through. The response timed out. What does your agent do next?
 [![License: MIT](https://img.shields.io/badge/license-MIT-d9f56b)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%E2%89%A522.13-142125)](package.json)
 
-[Watch the demo](videos/agent-crash-lab/launch.mp4) · [Quick start](#quick-start) · [Connect an agent](#bring-your-own-agent) · [Evidence](#what-we-have-actually-tested) · [Contribute](CONTRIBUTING.md)
+[Watch the demo](https://github.com/sulmatajb/agent-crash-lab/blob/main/videos/agent-crash-lab/launch.mp4) · [Quick start](#quick-start) · [Connect an agent](#bring-your-own-agent) · [Evidence](#what-we-have-actually-tested) · [Contribute](CONTRIBUTING.md)
 
 </div>
 
-[![Watch a real Claude agent recover from a payment timeout](docs/assets/crash-lab-demo.gif)](videos/agent-crash-lab/launch.mp4)
+[![Watch a real Claude agent recover from a payment timeout](docs/assets/crash-lab-demo.gif)](https://github.com/sulmatajb/agent-crash-lab/blob/main/videos/agent-crash-lab/launch.mp4)
 
-*Would it retry—or check first? A 24-second edited replay of a real Claude trial. Click for sound. [Open the interactive replay locally](videos/agent-crash-lab/README.md).*
+*Would it retry—or check first? A 24-second edited replay of a real Claude trial. Click for sound. [Open the interactive replay locally](https://github.com/sulmatajb/agent-crash-lab/blob/main/videos/agent-crash-lab/README.md).*
 
 Agent Crash Lab lets you find out in a local test environment. Connect your agent through MCP, give it an invoice task, and introduce failures it has to handle. Inspect the calls, the decisions, and the resulting payments and emails.
 
