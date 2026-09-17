@@ -115,4 +115,22 @@ test('live dashboard discovers runs, preserves evidence, restores links and reco
   t.after(()=>{linked.window.dispatchEvent(new linked.window.Event('pagehide'));linked.window.close();});
   await until(()=>linked.window.document.querySelectorAll('.event').length===2);
   assert.match(linked.window.document.querySelector('.result-title')!.textContent!,new RegExp(run.id.slice(0,8)));
+  // Hold the old running snapshot until after the finish POST has rendered.
+  let releaseStalePoll:(()=>void)|undefined;
+  const originalFetch=linked.window.fetch;
+  linked.window.fetch=(async (url:any,options:any)=>{
+    const response=await originalFetch(url,options);
+    if(String(url)===`/api/runs/${run.id}`&&options?.method==='GET'&&!releaseStalePoll) {
+      return new Promise<Response>(resolve=>{releaseStalePoll=()=>resolve(response);});
+    }
+    return response;
+  }) as any;
+  await until(()=>!!releaseStalePoll);
+  (linked.window.document.querySelector('#finish-run') as HTMLElement).click();
+  await until(()=>!!linked.window.document.querySelector('.result-title .incomplete'));
+  releaseStalePoll!();
+  await new Promise(resolve=>setTimeout(resolve,150));
+  assert.ok(linked.window.document.querySelector('.result-title .incomplete'),'a stale poll cannot revert a finished run');
+  assert.equal(linked.window.document.querySelector('#finish-run'),null);
+
 });
