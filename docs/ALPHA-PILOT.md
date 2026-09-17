@@ -35,7 +35,7 @@ node dist/cli.js probe
 node dist/cli.js evaluate --scenario payment-timeout --seed 42 --runs 1 --timeout 180 --max-turns 30 --out results/pilot-baseline
 ```
 
-For another AI agent, use the dashboard's generated local stdio MCP configuration and displayed task. Follow [manual connection instructions](USAGE.md#connect-your-own-agent). Record the client/model versions and export the finished run's report. Manual connections do not provide the same process supervision or campaign manifest as the built-in runners; do not claim equivalent isolation.
+For another AI agent, use the dashboard's generated local stdio MCP configuration and displayed task. Follow [manual connection instructions](USAGE.md#connect-your-own-agent). Record the agent app and model versions and export the finished run's report. Manual connections do not provide the same process supervision or campaign manifest as the built-in runners; do not claim equivalent isolation.
 
 A successful transport probe does not test the model. Stop and record authentication or connection errors before attempting a larger campaign.
 
@@ -68,7 +68,7 @@ Copy this into a private issue or message after removing credentials and private
 
 ```text
 Commit / OS / Node version:
-Agent client version / model / provider (no keys):
+Agent app version / model / provider (no keys):
 Supervised runner or manual MCP:
 Scenario / seed:
 Setup step that failed or needed explanation:
@@ -83,4 +83,4 @@ Do not attach the SQLite database, MCP capability configuration, provider logs, 
 
 ## Pilot completion
 
-Record at least one independent clean installation and one authenticated live Hermes campaign before announcing those support claims. For additional MCP clients, document the exact tested client version and connection method. Fix observed setup blockers or misleading evidence first; retain non-passing agent outcomes rather than hiding them.
+Record at least one independent clean installation and one authenticated live Hermes campaign before announcing those support claims. For additional agent apps with MCP support, document the exact tested agent app version and connection method. Fix observed setup blockers or misleading evidence first; retain non-passing agent outcomes rather than hiding them.

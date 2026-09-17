@@ -6,7 +6,7 @@ Do not post this until repository visibility and release scope are approved.
 
 Give your agent a bad day before you give it a credit card.
 
-Agent Crash Lab is a local test environment for agents handling vendor payments and invoice email. Connect Claude Code, Hermes, or another MCP client. The agent makes real decisions against simulated tools; the lab injects timeouts, malicious invoice content, and duplicate records, then checks committed effects.
+Agent Crash Lab is a local test environment for agents handling vendor payments and invoice email. Connect your AI agent through MCP. The agent makes real decisions against simulated tools; the lab injects timeouts, malicious invoice content, and duplicate records, then checks committed effects.
 
 The interesting result isn't always a failure. In our advanced Claude trials, six passed and three were incomplete: the agent avoided unsafe actions but held legitimate work. A distinct-vendor control helped us investigate why.
 

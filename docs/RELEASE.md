@@ -30,7 +30,7 @@ These are infrastructure checks, not additional live-model trials. Follow the [a
 - [ ] Run an authenticated Hermes model campaign. Transport-only evidence is insufficient.
 - [ ] Have another person install from scratch on another machine.
 - [ ] Independently review scenario assumptions and evaluator rules, especially incomplete results.
-- [ ] Check model/client compatibility against the versions advertised at release time.
+- [ ] Check model and agent app compatibility against the versions advertised at release time.
 - [ ] Review dependency advisories and licenses again at publication time.
 
 ## Publication operations
