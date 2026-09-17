@@ -127,3 +127,30 @@ test('CLI campaign comparison rejects matching partial coverage, absent manifest
   rmSync(join(dir,'duplicate.manifest.json'));rmSync(manifest);
   assert.equal(invoke().status,2);assert.match(invoke().stderr,/missing its manifest/);
 });
+
+test('comparison output preserves existing evidence and rejects file aliases and pipes', async t => {
+  const {readFileSync,linkSync,symlinkSync,statSync}=await import('node:fs');
+  const dir=mkdtempSync(join(tmpdir(),'crashlab-compare-output-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));
+  const report=join(dir,'evidence.json'),raw=JSON.stringify(run('careful'));
+  writeFileSync(report,raw);
+  const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
+  const invoke=(out:string)=>spawnSync(process.execPath,[cli,'compare',report,report,'--json','--out',out],{encoding:'utf8',timeout:3000});
+  const existing=join(dir,'previous-comparison.json');writeFileSync(existing,'preserve previous result');
+  const blocked=[report,existing,dir];
+  if(process.platform!=='win32') {
+    const hard=join(dir,'hard.json'),symbolic=join(dir,'symbolic.json'),pipe=join(dir,'pipe.json');
+    linkSync(report,hard);symlinkSync(report,symbolic);assert.equal(spawnSync('mkfifo',[pipe]).status,0);
+    blocked.push(hard,symbolic,pipe);
+  }
+  for(const out of blocked) {
+    const result=invoke(out);assert.equal(result.error,undefined);assert.equal(result.status,2);
+    assert.match(result.stderr,/output already exists/);assert.equal(result.stdout,'');
+    assert.equal(readFileSync(report,'utf8'),raw);
+    assert.equal(readFileSync(existing,'utf8'),'preserve previous result');
+  }
+  const fresh=join(dir,'new-comparison.json'),result=invoke(fresh);
+  assert.equal(result.status,0,result.stderr);
+  assert.deepEqual(JSON.parse(readFileSync(fresh,'utf8')),JSON.parse(result.stdout));
+  if(process.platform!=='win32')assert.equal(statSync(fresh).mode&0o077,0);
+  assert.equal(invoke(fresh).status,2);
+});

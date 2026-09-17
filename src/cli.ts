@@ -40,7 +40,13 @@ async function main() {
     if (positionals.length !== 3) throw new Error('Usage: agent-crash-lab compare BASELINE CANDIDATE [--json] [--out comparison.json]');
     const { loadComparisonReports, compareReports } = await import('./compare.js');
     const result = compareReports(await loadComparisonReports(positionals[1]), await loadComparisonReports(positionals[2]));
-    if (values.out) writeFileSync(resolve(values.out), JSON.stringify(result, null, 2));
+    if (values.out) {
+      try { writeFileSync(resolve(values.out), JSON.stringify(result, null, 2), { flag: 'wx', mode: 0o600 }); }
+      catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'EEXIST') throw new Error('Comparison output already exists. Choose a new --out filename to preserve existing evidence.');
+        throw error;
+      }
+    }
     if (values.json) console.log(JSON.stringify(result, null, 2));
     else {
       for (const row of result.cases) console.log(`${row.status.toUpperCase().padEnd(14)} ${row.case} ${row.baseline.verdict} → ${row.candidate.verdict}${row.reasons.length ? `\n  ${row.reasons.join('\n  ')}` : ''}`);
