@@ -48,7 +48,7 @@ Browser verification performed locally: desktop layout, operator WebMCP valid/in
 npm run smoke:package
 ```
 
-This packs the repository, installs the tarball in a new temporary consumer, and checks the packaged dashboard, all eleven careful reference scenarios, ten-tool MCP discovery, post-commit timeout recovery, a single committed payment, receipt delivery, and deterministic replay. It uses no model inference. The temporary consumer is removed afterward. Use `npm run smoke:package -- --offline` only when npm already has the dependency artifacts cached. CI runs this check on Node 22 and 24.
+This packs the repository, installs the tarball in a new temporary consumer, and checks the packaged dashboard, all eleven careful reference scenarios, ten-tool MCP discovery, post-commit timeout recovery, a single committed payment, receipt delivery, and deterministic replay. It uses no model inference. The temporary consumer is removed afterward. Use `npm run smoke:package -- --offline` only when npm already has the dependency artifacts cached. CI runs this check on fresh Ubuntu and macOS runners with Node 22 and 24.
 
 The installed CLI is also invoked for help, scenario discovery, passing and failing reference runs, and exported-report verification. The check requires exit 0 for valid evidence, exit 1 for observed reference-agent failures, and exit 2 for unknown commands, missing reports and edited payment evidence. Packaged JavaScript and CSS must be served successfully with matching content types; the license and core documentation must be included. Local Markdown links are also checked against the installed package, so a link that works only in a source checkout fails this gate. Demo videos remain outside the tarball and use repository URLs.
 
@@ -69,3 +69,16 @@ This is an actual completed Claude trial, not the careful reference script. Its 
 `verify` accepts exactly one regular JSON file, at most 10 MiB. It rejects directories and named pipes rather than waiting for stream input. The reader checks the opened file descriptor and enforces the byte limit during reading, including if the file grows. Invalid JSON produces a generic error without echoing report contents. Usage, read and verification failures exit with code 2.
 
 MCP connection failures use structured `LAB_*` error codes, distinct from simulated business faults such as `TIMEOUT`. The bridge does not automatically retry writes: if a request loses its response, a payment may already have committed. Inspect the run, reconcile with `payments_list`, and preserve the original idempotency key when retrying. An authorization error requires a fresh dashboard connection. Transport errors have `retryable: false` to prevent blind retry loops; this does not mean the payment is known to have failed. Responses are bounded to 15 seconds and 1 MiB; redirects are refused and raw HTTP error bodies are omitted.
+
+## Automated platform coverage
+
+The [CI workflow](https://github.com/sulmatajb/agent-crash-lab/blob/main/.github/workflows/ci.yml) uses four jobs: Ubuntu and macOS, each on Node 22 and 24. Every job installs the lockfile from scratch, runs the integration suite, exercises all eleven reference scenarios across twenty seeds, and installs and tests the packed tarball. A failure on one platform does not cancel the other jobs. The workflow requires no agent credentials and performs no model inference.
+
+| Environment | Coverage | Limit |
+| --- | --- | --- |
+| Ubuntu / Node 22 and 24 | Fresh CI installation, integrations, reference scenarios, packaged CLI/MCP/dashboard | No authenticated agent campaign or visual browser review |
+| macOS / Node 22 and 24 | Same fresh CI checks as Ubuntu | Hosted runner architecture; not every Mac or macOS version |
+| Windows | Unverified | No support claim until equivalent checks pass |
+| Claude Code and Hermes | Runner fixtures in CI; separately documented live or installed-runtime evidence | CI does not establish provider authentication or model behavior |
+
+Hosted runners are disposable machines, but this is automated infrastructure coverage. It does not replace the independent human onboarding trial in the [alpha pilot guide](docs/ALPHA-PILOT.md). Node patch versions and hosted OS images change over time; inspect the setup steps in a particular CI run for its exact environment.
