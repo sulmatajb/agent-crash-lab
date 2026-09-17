@@ -51,6 +51,25 @@ export function loadReports(path: string): Run[] {
   return reports;
 }
 
+/** Directory comparisons include the runner's plan, not just surviving reports. */
+export async function loadComparisonReports(path: string): Promise<Run[]> {
+  const reports = loadReports(path);
+  if (!statSync(path).isDirectory()) return reports;
+  const manifests = readdirSync(path).filter(name => name.endsWith('.manifest.json'));
+  if (manifests.length > MAX_REPORTS) throw new Error('Too many campaign manifests.');
+  const { verifyCampaign } = await import('./campaign.js');
+  const campaigns = new Set<string>();
+  for (const file of manifests) {
+    const verified = await verifyCampaign(join(path, file));
+    if (verified.status !== 'completed') throw new Error('Campaign comparison requires completed manifests. Finish the campaign or compare individual reports as selected cases.');
+    if (campaigns.has(verified.campaign_id)) throw new Error('Duplicate campaign manifest.');
+    campaigns.add(verified.campaign_id);
+    if (reports.filter(report => report?.campaign_id === verified.campaign_id).length !== verified.recorded) throw new Error('Campaign directory report coverage differs from its manifest.');
+  }
+  if (reports.some(report => report?.campaign_id && !campaigns.has(report.campaign_id))) throw new Error('Campaign report is missing its manifest. Keep the original manifest alongside its reports, or compare individual report files as selected cases.');
+  return reports;
+}
+
 function index(reports: Run[], side: string) {
   if (!reports.length || reports.length > MAX_REPORTS) throw new Error(`${side}: expected 1–1100 reports.`);
   const indexed = new Map<string, Run>();

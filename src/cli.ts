@@ -38,8 +38,8 @@ async function main() {
   if (command === 'stress') { const { stressLab } = await import('./stress.js'); console.log(JSON.stringify(await stressLab({ worlds: Number(values.worlds), concurrency: Number(values.concurrency), out: values.out }), null, 2)); return; }
   if (command === 'compare') {
     if (positionals.length !== 3) throw new Error('Usage: agent-crash-lab compare BASELINE CANDIDATE [--json] [--out comparison.json]');
-    const { loadReports, compareReports } = await import('./compare.js');
-    const result = compareReports(loadReports(positionals[1]), loadReports(positionals[2]));
+    const { loadComparisonReports, compareReports } = await import('./compare.js');
+    const result = compareReports(await loadComparisonReports(positionals[1]), await loadComparisonReports(positionals[2]));
     if (values.out) writeFileSync(resolve(values.out), JSON.stringify(result, null, 2));
     if (values.json) console.log(JSON.stringify(result, null, 2));
     else {
