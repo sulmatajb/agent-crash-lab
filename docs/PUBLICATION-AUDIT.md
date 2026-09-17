@@ -25,3 +25,7 @@ The 94 production lockfile entries declare MIT, ISC or BSD licenses and include 
 This is a text-pattern scan, not proof that the repository contains no private information. Images, recordings, audio, Git author metadata, previously unreachable objects and content without recognizable credential patterns require separate review. The scanner's byte count does not imply every binary was inspected. Continue the tracked-media and personal-information review before changing visibility.
 
 Review development/rendering-tool licenses and the registry-component provenance before redistributing those sources. The npm runtime dependency inventory alone does not close that check. Refresh the dependency advisory scan at publication time. Authenticated Hermes behavior and independent fresh-machine installation remain separate pilot gates.
+
+## Reproducible dependency inventory follow-up
+
+The root lockfile inventory now includes 73 development entries alongside the 94 production entries. All 167 entries declare a license; optional platform packages are counted even when not installed locally. CI checks that the generated inventory matches the lockfile and rejects missing declarations. This extends metadata coverage, not license compatibility approval. External rendering tools and registry components remain outside the root lockfile and still require their separate provenance/terms review.

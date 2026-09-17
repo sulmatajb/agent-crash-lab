@@ -45,7 +45,9 @@
     "stress": "npm run build && node dist/cli.js stress",
     "prepack": "npm run build",
     "smoke:package": "node scripts/smoke-package.mjs",
-    "check:docs": "node scripts/check-docs.mjs"
+    "check:docs": "node scripts/check-docs.mjs",
+    "check:licenses": "node scripts/dependency-licenses.mjs",
+    "licenses:update": "node scripts/dependency-licenses.mjs --write"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
