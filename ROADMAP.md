@@ -1,6 +1,6 @@
 # Roadmap and acceptance criteria
 
-The initial focus is vendor-payment and invoice-email agents. The priority is useful, reproducible evidence for developers, followed by a contributor workflow that can sustain more cases. Status below reflects the integrated main build; remaining acceptance work is listed separately. A merged implementation does not establish compatibility with every agent client.
+The initial focus is vendor-payment and invoice-email agents. The priority is useful, reproducible evidence for developers, followed by a contributor workflow that can sustain more cases. Status below reflects the integrated main build; remaining acceptance work is listed separately. A merged implementation does not establish compatibility with every agent app.
 
 ## Make evidence useful in development
 
@@ -19,7 +19,7 @@ The initial focus is vendor-payment and invoice-email agents. The priority is us
 | Unified readiness check | Implemented | Claude and Hermes installation/configuration issues produce actionable diagnostics with no inference and no secret output. |
 | Live Hermes campaign | Remaining | An authenticated supported provider completes repeated trials; all failures, runtime settings and replay results are retained. Transport fixtures alone do not close this item. |
 | Independent clean install | Remaining | A second person reproduces install, one real trial and report verification on another machine using only published instructions. |
-| Platform support matrix | Remaining | Advertised OS/client versions have reproducible checks; unsupported combinations and authentication modes are explicit. |
+| Platform support matrix | Partial | Fresh Ubuntu/macOS CI covers Node 22/24 and installed packages. Windows is unverified; live agent-app/provider combinations still need separately recorded trials. |
 
 ## Grow the suite responsibly
 
