@@ -24,11 +24,11 @@ for bar in range(12):
   at=start+b*.5
   if 14<=at<15:continue
   add(kick(),at,.84 if bar>=2 else .5)
-  if b%2:add(clap(),at,.8)
+  if b%2:add(clap(),at,.48)
  for step in range(8):
   at=start+step*.25
   if 14<=at<15:continue
-  add(hat(),at,.42 if step%2 else .24,(-1 if step%2 else 1)*.35)
+  add(hat(),at,.24 if step%2 else .14,(-1 if step%2 else 1)*.35)
   t=time(.22);f=root*(2 if step in [3,7] else 1)
   bass=(np.sin(2*np.pi*f*t)+.25*np.sin(4*np.pi*f*t)+.12*np.sin(6*np.pi*f*t))*np.minimum(t/.008,1)*np.exp(-t*13)
   add(bass,at+.03,.48)
@@ -39,12 +39,10 @@ for bar in range(12):
   gain=.11 if bar<2 else .17
   if 14<=at<16:gain*=.25
   add(tone,at,gain,.5*np.sin(step));add(tone,at+.1875,gain*.3,-.5*np.sin(step))
-for at in [3.5,5.5,8.5,13.5,15.5,18.5,20.5]:
- t=time(.5);n=rng.normal(size=len(t));n=np.convolve(n,np.ones(9)/9,'same');rise=n*(t/.5)**2
- add(rise,at,.42)
+# No noise risers or swooshes: transitions ride the existing musical beat.
 for at in [4,6,9,14,16,19,21]:
  t=time(.65);hit=np.sin(2*np.pi*(36*t+10*(1-np.exp(-t*9))))*np.exp(-t*7)
- add(hit,at,.48)
+ add(hit,at,.20)
 # The timeout interrupts the groove; two short descending digital notes mark the fault.
 for at,f in [(14,440),(14.25,220)]:
  t=time(.2);add(np.sin(2*np.pi*f*t)*np.exp(-t*22),at,.22)

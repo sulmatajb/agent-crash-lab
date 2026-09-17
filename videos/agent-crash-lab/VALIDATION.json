@@ -14,7 +14,7 @@
   "report_replay_verified": true,
   "client_trace_matched": true,
   "recorded_report_sha256": "b44a9fad1b834ed317cc4b995b3c76e91f6c30c3e9ba85c654620b1cc2497829",
-  "video_sha256": "afce2d4163891180b529142f196cb82ebe3e865643ed7191b3ccd08355476cde",
+  "video_sha256": "9e90cc40da316b23d022d0fda2a6e8d08decb80026af1f06c081750a84938dac",
   "review": "Question-led revision using the existing verified seed-44 Claude trial; no new model trial. Final encoded frames visually inspected at 0.3, 1.5, 2.8, 4.8, 7.8, 9.4, 12.5, 13.5, 14.8, 17.5, 20 and 23.8 seconds. H264 1920x1080, 720 frames, 24 seconds, AAC audio confirmed. Strict HyperFrames check passed, 52/52 contrast checks. Interactive replay tests passed.",
   "hyperframes_version": "0.8.43",
   "readme_gif_sha256": "1db1dbe60ce5d93585b77206eeeaeb33098603d981a2db626df133d4a8327e20",
@@ -27,5 +27,6 @@
   "run_id": "9048b80f-6c50-4b91-9b8f-f5d5dc2cfb90",
   "scenario": "payment-timeout",
   "seed": 44,
-  "interactive_replay_tests_passed": true
+  "interactive_replay_tests_passed": true,
+  "audio_revision": "Removed all noise risers/swooshes; reduced impact, hat and clap gains. Strict composition check passed; picture timing unchanged."
 }
