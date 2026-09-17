@@ -1,6 +1,6 @@
 # Test and reproduce
 
-Read [VALIDATION.md](VALIDATION.md) for measured results and remaining release gates.
+Read [VALIDATION.md](VALIDATION.md) for historical measured results and [the integrated build evidence](docs/RELEASE.md#integrated-build-evidence) for the merged release candidate. For a fresh-machine trial with your own agent, use the [alpha pilot guide](docs/ALPHA-PILOT.md).
 
 ```bash
 npm ci
