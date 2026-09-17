@@ -33,6 +33,10 @@ These are infrastructure checks, not additional live-model trials. Follow the [a
 - [ ] Check model and agent app compatibility against the versions advertised at release time.
 - [ ] Review dependency advisories and licenses again at publication time.
 
+## Publication audit progress
+
+The [publication audit](PUBLICATION-AUDIT.md) records the Git-history credential scan and runtime license inventory, plus the binary/media and tool-license review still needed.
+
 ## Publication operations
 
 - [ ] Owner confirms repository visibility change and release scope.
