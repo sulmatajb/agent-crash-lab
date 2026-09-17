@@ -29,6 +29,8 @@ jobs:
         run: npm ci
       - name: Check local documentation links
         run: npm run check:docs
+      - name: Check dependency license inventory
+        run: npm run check:licenses
       - name: Build and test integrations
         run: npm test
       - name: Exercise reference scenarios across twenty seeds

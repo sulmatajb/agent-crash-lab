@@ -1,6 +1,14 @@
-# Production dependency license inventory
+# Dependency license inventory
 
-Generated from the committed package-lock.json. This inventory records declared licenses; installed packages retain their individual notices. Development tools are outside this runtime inventory. Recheck after dependency changes.
+Generated from the committed package-lock.json by `npm run licenses:update`. CI runs `npm run check:licenses` and fails if this inventory differs or a package lacks a declared license. Recheck licenses and notices when updating dependencies; regenerating this list is not approval of new terms.
+
+This inventory records declarations, not a legal compatibility assessment or proof that all required notices are present. It includes optional packages for other platforms, whether or not installed here. Production means not marked dev-only by npm; development entries include build and test tools. Package paths distinguish nested versions. Dependencies retain their own licenses.
+
+Standalone video assets and tools invoked outside the root lockfile, including HyperFrames and its registry components, are outside this inventory. See [third-party notices](THIRD-PARTY-NOTICES.md) and the [publication audit](PUBLICATION-AUDIT.md).
+
+## Production dependencies
+
+94 lockfile entries: 1 BSD-2-Clause, 2 BSD-3-Clause, 7 ISC, 84 MIT.
 
 | Package path | Version | Declared license |
 | --- | --- | --- |
@@ -98,3 +106,83 @@ Generated from the committed package-lock.json. This inventory records declared 
 | wrappy | 1.0.2 | ISC |
 | zod | 3.25.76 | MIT |
 | zod-to-json-schema | 3.25.2 | ISC |
+
+## Development dependencies
+
+73 lockfile entries: 2 Apache-2.0, 2 BSD-2-Clause, 2 BSD-3-Clause, 1 BlueOak-1.0.0, 1 CC0-1.0, 1 ISC, 62 MIT, 2 MIT-0.
+
+| Package path | Version | Declared license |
+| --- | --- | --- |
+| @asamuzakjp/css-color | 5.1.11 | MIT |
+| @asamuzakjp/dom-selector | 7.1.1 | MIT |
+| @asamuzakjp/generational-cache | 1.0.1 | MIT |
+| @asamuzakjp/nwsapi | 2.3.9 | MIT |
+| @bramus/specificity | 2.4.2 | MIT |
+| @csstools/color-helpers | 6.1.1 | MIT-0 |
+| @csstools/css-calc | 3.4.0 | MIT |
+| @csstools/css-color-parser | 4.2.3 | MIT |
+| @csstools/css-parser-algorithms | 4.0.0 | MIT |
+| @csstools/css-syntax-patches-for-csstree | 1.1.14 | MIT-0 |
+| @csstools/css-tokenizer | 4.0.0 | MIT |
+| @esbuild/aix-ppc64 | 0.28.2 | MIT |
+| @esbuild/android-arm | 0.28.2 | MIT |
+| @esbuild/android-arm64 | 0.28.2 | MIT |
+| @esbuild/android-x64 | 0.28.2 | MIT |
+| @esbuild/darwin-arm64 | 0.28.2 | MIT |
+| @esbuild/darwin-x64 | 0.28.2 | MIT |
+| @esbuild/freebsd-arm64 | 0.28.2 | MIT |
+| @esbuild/freebsd-x64 | 0.28.2 | MIT |
+| @esbuild/linux-arm | 0.28.2 | MIT |
+| @esbuild/linux-arm64 | 0.28.2 | MIT |
+| @esbuild/linux-ia32 | 0.28.2 | MIT |
+| @esbuild/linux-loong64 | 0.28.2 | MIT |
+| @esbuild/linux-mips64el | 0.28.2 | MIT |
+| @esbuild/linux-ppc64 | 0.28.2 | MIT |
+| @esbuild/linux-riscv64 | 0.28.2 | MIT |
+| @esbuild/linux-s390x | 0.28.2 | MIT |
+| @esbuild/linux-x64 | 0.28.2 | MIT |
+| @esbuild/netbsd-arm64 | 0.28.2 | MIT |
+| @esbuild/netbsd-x64 | 0.28.2 | MIT |
+| @esbuild/openbsd-arm64 | 0.28.2 | MIT |
+| @esbuild/openbsd-x64 | 0.28.2 | MIT |
+| @esbuild/openharmony-arm64 | 0.28.2 | MIT |
+| @esbuild/sunos-x64 | 0.28.2 | MIT |
+| @esbuild/win32-arm64 | 0.28.2 | MIT |
+| @esbuild/win32-ia32 | 0.28.2 | MIT |
+| @esbuild/win32-x64 | 0.28.2 | MIT |
+| @exodus/bytes | 1.15.1 | MIT |
+| @types/jsdom | 30.0.0 | MIT |
+| @types/jsdom/node_modules/undici-types | 8.10.2 | MIT |
+| @types/node | 22.20.3 | MIT |
+| @types/tough-cookie | 4.0.5 | MIT |
+| bidi-js | 1.1.0 | MIT |
+| css-tree | 3.2.1 | MIT |
+| data-urls | 7.0.0 | MIT |
+| decimal.js | 10.6.0 | MIT |
+| entities | 8.1.0 | BSD-2-Clause |
+| esbuild | 0.28.2 | MIT |
+| fsevents | 2.3.3 | MIT |
+| html-encoding-sniffer | 6.0.0 | MIT |
+| is-potential-custom-element-name | 1.0.1 | MIT |
+| jsdom | 29.1.1 | MIT |
+| lru-cache | 11.5.2 | BlueOak-1.0.0 |
+| mdn-data | 2.27.1 | CC0-1.0 |
+| parse5 | 8.0.1 | MIT |
+| punycode | 2.3.1 | MIT |
+| saxes | 6.0.0 | ISC |
+| source-map-js | 1.2.1 | BSD-3-Clause |
+| symbol-tree | 3.2.4 | MIT |
+| tldts | 7.4.13 | MIT |
+| tldts-core | 7.4.13 | MIT |
+| tough-cookie | 6.0.2 | BSD-3-Clause |
+| tr46 | 6.0.0 | MIT |
+| tsx | 4.23.13 | MIT |
+| typescript | 5.9.3 | Apache-2.0 |
+| undici | 7.29.1 | MIT |
+| undici-types | 6.21.0 | MIT |
+| w3c-xmlserializer | 5.0.0 | MIT |
+| webidl-conversions | 8.0.1 | BSD-2-Clause |
+| whatwg-mimetype | 5.0.0 | MIT |
+| whatwg-url | 16.0.1 | MIT |
+| xml-name-validator | 5.0.0 | Apache-2.0 |
+| xmlchars | 2.2.0 | MIT |
