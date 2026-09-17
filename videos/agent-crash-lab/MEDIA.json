@@ -92,8 +92,8 @@
   },
   {
     "file": "assets/crash-beat.wav",
-    "sha256": "236f5edd21ab4c3f66bceb324960f652b494fb46687565d7b93968d95520c811",
-    "origin": "Original deterministic synthesis from build-beat.py; 120 BPM; no third-party samples",
+    "sha256": "e8cdff57e1843d4a2ed48f8565a4221b10234ed29aade4adf235e159065c4bb6",
+    "origin": "Original deterministic 120 BPM synthesis; revised without noise risers or swooshes, with softer transition hits and percussion; no third-party samples",
     "license": "MIT (project-authored composition and master)"
   },
   {

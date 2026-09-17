@@ -32,7 +32,7 @@ The repository remains private until the owner chooses to publish. This checklis
 
 ## Prepared media
 
-- [x] [34-second 1080p MP4](../videos/agent-crash-lab/launch.mp4) rendered and decoded for inspection.
+- [x] [24-second 1080p MP4](../videos/agent-crash-lab/launch.mp4) rendered and decoded for inspection.
 - [x] Reproducible video source, local assets, contact sheet, and [evidence map](../videos/agent-crash-lab/SOURCES.md).
 - [x] [Actual Claude recovery sample](../validation/examples/claude-payment-timeout.json) replay verified.
 - [ ] Owner reviews final video and chooses the public posting destination.
