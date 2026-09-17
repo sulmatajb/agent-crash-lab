@@ -255,3 +255,9 @@ Pass scenario names with `--scenario`, for example `node dist/cli.js evaluate-cl
 ### Claude provider selection
 
 `--provider` belongs to the Hermes runner. `evaluate-claude` rejects it before creating campaign artifacts because the lab does not forward a provider override to Claude Code. Configure provider access in the selected Claude Code installation and use `--model` for its model selection. A campaign must not imply an unsupported setting was applied.
+
+## Command-specific options
+
+Options must apply to the command you invoke. Unsupported options fail with exit 2 before creating files, launching an agent or starting a server. For example, `test --model MODEL` is rejected: `test` runs deterministic reference scripts, while `evaluate` and `evaluate-claude` run your configured agent.
+
+Use `--claude-command` with `evaluate-claude`, and `--hermes-python` / `--hermes-profile` with `evaluate` or `probe`. `doctor` accepts either runtime's setup paths for inspection. `start` accepts `--port` and `--db`; `demo` additionally accepts `--seed`. MCP connection settings come from the generated environment configuration, not `--db`. `compare` accepts `--json` and `--out`; `verify` and `verify-campaign` take just their evidence filename and already print JSON.

@@ -8,7 +8,7 @@ import { scenarios, type ScenarioId } from './scenarios.js';
 import { runScripted } from './agents.js';
 
 async function main() {
-  const { values, positionals } = parseArgs({ allowPositionals: true, options: {
+  const { values, positionals, tokens } = parseArgs({ allowPositionals: true, tokens: true, options: {
     port: { type: 'string', default: '4310' }, db: { type: 'string', default: '.crashlab/runs.sqlite' },
     agent: { type: 'string', default: 'careful' }, scenario: { type: 'string', default: 'all' },
     seed: { type: 'string', default: '42' }, runs: { type: 'string', default: '1' },
@@ -24,6 +24,25 @@ async function main() {
   }
   if (!['compare', 'verify', 'verify-campaign'].includes(command) && positionals.length > 1) {
     throw new Error('Unexpected positional arguments. Select a scenario with --scenario ID; use --help for command options.');
+  }
+  const runnerOptions = ['scenario','seed','runs','timeout','max-turns','out','db','model','system-prompt','json'];
+  const commandOptions: Record<string, string[]> = {
+    start: ['port','db'], demo: ['port','db','seed'],
+    test: ['agent','scenario','seed','runs','json','out'],
+    mcp: [], scenarios: [],
+    doctor: ['client','claude-command','hermes-python','hermes-profile','json'],
+    stress: ['worlds','concurrency','out'], compare: ['json','out'],
+    verify: [], 'verify-campaign': [],
+    evaluate: [...runnerOptions,'hermes-python','hermes-profile','provider'],
+    probe: [...runnerOptions,'hermes-python','hermes-profile','provider'],
+    'evaluate-claude': [...runnerOptions,'claude-command','provider'],
+  };
+  const allowed = commandOptions[command];
+  if (!allowed) throw new Error(`Unknown command: ${command}`);
+  for (const token of tokens) {
+    if (token.kind === 'option' && !allowed.includes(token.name)) {
+      throw new Error(`--${token.name} is not supported by ${command}. Use --help for command options.`);
+    }
   }
   if (command === 'mcp') { const { startMcp } = await import('./mcp.js'); await startMcp(); return; }
   if (command === 'scenarios') { for (const s of scenarios) console.log(`${s.id.padEnd(20)} ${s.title}`); return; }
