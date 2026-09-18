@@ -46,7 +46,7 @@ In the video above, Claude encounters a committed payment with a lost response, 
 
 ## Quick start
 
-Requires **Node.js 22.13+**, npm, and Git. macOS and Linux are tested; Windows is not yet verified. Repository access is currently restricted while we prepare the public release.
+Requires **Node.js 22.13+**, npm, and Git. macOS and Linux are tested; Windows is not yet verified.
 
 ```bash
 git clone https://github.com/sulmatajb/agent-crash-lab.git
