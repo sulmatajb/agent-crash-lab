@@ -37,15 +37,21 @@ Since the initial integrated build, comparison now checks completed campaign pla
 
 ## Before announcing broad support
 
-- [ ] Run an authenticated Hermes model campaign. Transport-only evidence is insufficient.
+- [x] [Full authenticated Hermes campaign](HERMES-RELEASE-CAMPAIGN.md): 10 passed, 1 incomplete, zero execution errors; all 11 reports and campaign coverage verified.
 - [ ] Have another person install from scratch on another machine.
 - [ ] Independently review scenario assumptions and evaluator rules, especially incomplete results.
 - [ ] Check model and agent app compatibility against the versions advertised at release time.
-- [ ] Review dependency advisories and licenses again at publication time.
+- [x] Refresh root dependency advisories and declared licenses: September 17, 2026, zero known advisories and 167 lockfile entries checked. Refresh again if dependencies change.
 
 ## Publication audit progress
 
 The [publication audit](PUBLICATION-AUDIT.md) records the Git-history credential scan and runtime license inventory, plus the binary/media and tool-license review still needed.
+
+## September 17 technical checks
+
+The [machine-readable check record](validation/launch-checks-2026-09-17.json) records all 120 distinct automated tests passing (119 in the suite, plus the separately enabled installed-Hermes integration). Clean packaged installations passed on macOS and Linux, including all 11 reference scenarios, 10 MCP tools, payment-timeout recovery, dashboard assets and evidence replay. The Linux source archive was installed in an empty directory with no previous dependencies or database.
+
+This is automated fresh-machine evidence, not an independent human onboarding test. The owner or another tester still needs to follow [the pilot walkthrough](ALPHA-PILOT.md) without assistance, or explicitly accept that limitation for an alpha launch.
 
 ## Publication operations
 

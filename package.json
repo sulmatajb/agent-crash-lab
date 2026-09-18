@@ -33,7 +33,8 @@
     "validation/stress-release.json",
     "validation/examples/claude-payment-timeout.json",
     "validation/claude-release.json",
-    "ROADMAP.md"
+    "ROADMAP.md",
+    "validation/hermes-release.json"
   ],
   "scripts": {
     "dev": "tsx src/cli.ts start",

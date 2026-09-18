@@ -1,6 +1,8 @@
 # Release validation — 0.3.2
 
-**Decision: release candidate validated locally and in Linux CI; still private and pre-release.**
+**Decision: technical checks and full live Claude/Hermes campaigns are complete; still private and pre-release. Independent human onboarding is not yet verified.**
+
+Latest September 17 checks: [120 distinct automated tests and clean macOS/Linux package checks](docs/validation/launch-checks-2026-09-17.json). The [full live Hermes campaign](docs/HERMES-RELEASE-CAMPAIGN.md) completed all 11 scenarios: **10 passed, 1 incomplete, zero execution errors**. Every report replayed and campaign coverage verified. Older observations below are historical, not the current support status.
 
 The final installed-package [Claude campaign](docs/RELEASE-CAMPAIGN.md) ran all eleven scenarios: **10 passed, 1 incomplete, 0 execution errors**, with all reports replayed and traces cross-checked. The incomplete case is preserved as a useful limitation.
 
@@ -12,7 +14,7 @@ The pre-publication pass also verified the [outage-only control](docs/OUTAGE-CON
 
 | Check | Observed outcome |
 | --- | --- |
-| Automated suite | 62 tests, including the installed Hermes runtime integration |
+| Automated suite | 120 distinct tests passed: 119 in the suite plus the separately enabled installed-Hermes runtime test |
 | Seeded engine invariants | 200,000 calls checked against an independent ledger oracle |
 | HTTP load | 65,000 requests, 1,000 worlds, 64 concurrent same-invoice retries |
 | MCP transport load | 96 calls through real stdio processes and official SDK clients |
@@ -24,7 +26,7 @@ The pre-publication pass also verified the [outage-only control](docs/OUTAGE-CON
 | Installation | Clean-consumer tarball smoke test: dashboard, 11 reference scenarios, 10 MCP tools, timeout recovery and replay. A fresh installed v0.3.1 Claude payment-timeout trial passed with 8 business calls; v0.3.2 changes packaging checks and UI, not the evaluator |
 | Installed Hermes | Version 0.18.2 discovered exactly ten lab tools and called the policy tool |
 | Hermes decision-loop plumbing | Real AIAgent ran a complete timeout/retry/receipt workflow using a deterministic LOCAL provider fixture |
-| Hermes live model attempt | Execution error: no LLM provider credentials configured; no Hermes model pass recorded |
+| Hermes live model campaign | 11 scenarios through Codex OAuth: 10 passed, 1 incomplete, zero execution errors; all reports verified |
 | Claude Code live baseline | 21/21 passed across seven scenarios and three seeds; all reports replayed and tool traces cross-checked |
 | Linux CI | Node 22 and Node 24 passed on GitHub Actions |
 | Browser | Desktop rendering inspected; real browser WebMCP discovery, valid run, invalid-input rejection, and committed payment display checked |
@@ -43,12 +45,13 @@ The Hermes local-provider fixture exercises actual model API handling, tool sche
 - The UI could show stale seed/agent controls after opening a report. Controls now follow the selected reference run.
 - There was no supervised real-agent command. The Hermes runner now bounds execution, checks tools, records configuration/runtime metadata, and separates execution failure from agent behavior.
 
-## Remaining release gates
+## Remaining release decisions and limits
 
-1. Run an authenticated Hermes campaign. The packaged Claude runner has automated protocol/failure tests and live trials; this does not establish Hermes model behavior.
-2. Evaluate representative prompts, model versions, repeated runs, and additional adversarial variations. A seed changes fixtures, not all attack strategies.
-3. Verify installation on another user machine. Linux/Node 22 and 24 CI now passes; local verification is macOS/Node 22.14.
-4. Review dependencies, threat model, and package ownership before public publication.
+1. Independent human onboarding is unverified. Automated clean installations passed on macOS and Linux, but a separate person has not yet followed the README without assistance.
+2. Coverage is limited to the tested configurations. More prompts, model versions, repeated trials and adversarial variations are ongoing validation work; a seed changes fixtures, not all attack strategies.
+3. Publication remains an owner decision. Review the [publication audit](docs/PUBLICATION-AUDIT.md), including visible Git author metadata. npm package ownership is a separate prerequisite only if publishing to npm.
+
+The full Hermes campaign is complete, including its incomplete outage-control result. Root dependency advisories and declared licenses were refreshed on September 17. Neither those checks nor passing agent trials certify safety.
 
 The runner evaluates a fresh Hermes runtime with the chosen model and optional system prompt. It does not reproduce an existing agent's entire memory, skills, integrations, or deployment environment. Claude Code is now supported by the packaged `evaluate-claude` runner. See ADVANCED-VALIDATION.md for current live results.
 

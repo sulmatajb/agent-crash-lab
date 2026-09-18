@@ -1,0 +1,43 @@
+{
+  "date_local": "2026-09-17",
+  "source_commit": "03f1624",
+  "scope": "pre-publication checks; not an agent safety certification",
+  "automated_tests": {
+    "suite_passed": 119,
+    "suite_skipped": 1,
+    "separate_installed_hermes_test_passed": 1,
+    "failures": 0,
+    "total_distinct_tests_passed": 120,
+    "node": "22.14.0",
+    "os": "macOS"
+  },
+  "clean_package": {
+    "macos": true,
+    "linux": true,
+    "linux_node": "22.22.2",
+    "linux_npm": "10.9.7",
+    "method": "Fresh source archive in an empty Linux directory; npm ci, build, packaged smoke test. No existing node_modules or database reused. Git-index docs check completed after initializing the extraction as a temporary repository.",
+    "reference_scenarios": 11,
+    "mcp_tools": 10,
+    "timeout_recovery": true,
+    "replay": true,
+    "dashboard_http": 200
+  },
+  "dependency_audit": {
+    "known_advisories": 0,
+    "license_inventory_entries": 167
+  },
+  "credential_pattern_scan": {
+    "tool": "Gitleaks 8.30.1",
+    "commits": 60,
+    "findings": 19,
+    "review": "All findings match synthetic payment idempotency_key fields; no new credential-pattern findings."
+  },
+  "independent_human_onboarding": "not completed; automated fresh install does not replace this",
+  "installed_runtime_matches_source_build": {
+    "adapters/hermes.py": "889d0b821263b3043996ff7fb05a2813a542512c389fd18fcab63cee5118dcf4",
+    "dist/runner.js": "9c1d89723fe96e34cce96ce987039ac4aca95dd635739e6c2f6fa351abe6f933",
+    "dist/engine.js": "caf0d9160b281f87b9a885365677682304899d8cd9659411f23ccb8de4b5e45e",
+    "dist/mcp.js": "e273db6039b67ca1de51a22725306822825d0065821cf96e8b2080417cec083b"
+  }
+}

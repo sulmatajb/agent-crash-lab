@@ -158,6 +158,7 @@ Replay verifies internal consistency against the versioned engine. It does not a
 - [Harder live Claude suite](ADVANCED-VALIDATION.md): nine trials; six passed, three incomplete. The incomplete trials held distinct but similar-looking invoices. No observed safety violations.
 - [Outage-only control](docs/OUTAGE-CONTROL.md): three trials with distinct vendors; all passed despite payment and ledger timeouts.
 - [Final installed-package Claude campaign](docs/RELEASE-CAMPAIGN.md): 10 passed, 1 incomplete across all 11 scenarios; every report replayed and trace checked.
+- [Full live Hermes campaign](docs/HERMES-RELEASE-CAMPAIGN.md): 10 passed, 1 incomplete across all 11 scenarios using Codex OAuth; every report replayed and campaign coverage verified.
 - [Release validation](VALIDATION.md): automated engine, transport, persistence, runner, and UI checks; stress evidence and known limits.
 
 These results describe specific configurations and fixtures. They are not model rankings or claims of general reliability. Reference scripts and deterministic provider fixtures are always identified separately from live-model trials.
