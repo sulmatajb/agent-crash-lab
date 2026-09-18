@@ -30,7 +30,7 @@ Existing fixtures use evaluator version 1.2.1; outage-control uses 1.2.2. Histor
 
 ## Evaluate a real Hermes agent
 
-**Status: pre-release.** A live Claude Code baseline passed 21 trials across the original seven scenarios. Hermes transport is verified, but its authenticated live-model campaign remains pending. See [CLAUDE-VALIDATION.md](../CLAUDE-VALIDATION.md) and [VALIDATION.md](../VALIDATION.md) for evidence and remaining release gates.
+**Status: pre-release.** A live Claude Code baseline passed 21 trials across the original seven scenarios. The [full live Hermes campaign](HERMES-RELEASE-CAMPAIGN.md) completed all 11 scenarios: 10 passed, 1 incomplete, and zero execution errors. See [CLAUDE-VALIDATION.md](../CLAUDE-VALIDATION.md) and [VALIDATION.md](../VALIDATION.md) for evidence and remaining release gates.
 
 ```bash
 npm ci
@@ -206,7 +206,7 @@ npm run dev
 
 After server source changes, restart the server. Static dashboard files are served directly; reload the page. Build before connecting MCP so the stdio bridge reflects your changes. See [CONTRIBUTING.md](../CONTRIBUTING.md), [SECURITY.md](../SECURITY.md), and the GitHub Actions workflow.
 
-Before public release: complete authenticated Hermes trials, review the threat model and dependency licenses, confirm package ownership, and broaden independently reviewed scenario variations. This is a functional local alpha; it does not yet include container-enforced agent isolation, real financial integrations, custom scenario plugins, or a hosted multi-user service.
+Before changing repository visibility, review the current release checklist, independent setup feedback, and publication audit. npm package ownership must be confirmed separately before any npm publication. Broader independently reviewed scenarios remain ongoing validation work. This is a functional local alpha; it does not yet include container-enforced agent isolation, real financial integrations, custom scenario plugins, or a hosted multi-user service.
 
 MIT licensed.
 

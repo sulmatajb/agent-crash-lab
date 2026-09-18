@@ -1,23 +1,37 @@
-# Launch copy — draft for owner review
+# Launch copy for owner review
 
-Do not post this until repository visibility and release scope are approved.
+Do not post until repository visibility and release scope are approved.
 
-## Short announcement
+## X
 
-Give your agent a bad day before you give it a credit card.
+Would your AI agent pay the same invoice twice?
 
-Agent Crash Lab is a local test environment for agents handling vendor payments and invoice email. Connect your AI agent through MCP. The agent makes real decisions against simulated tools; the lab injects timeouts, malicious invoice content, and duplicate records, then checks committed effects.
+I built Agent Crash Lab to test what agents do when payments and email go wrong.
 
-The interesting result isn't always a failure. In our advanced Claude trials, six passed and three were incomplete: the agent avoided unsafe actions but held legitimate work. A distinct-vendor control helped us investigate why.
+Connect through MCP. Run a test. Inspect what happened.
 
-Local web app + CLI + MCP server. MIT-licensed. Replayable evidence. No real payments or email delivery. Passing a fixture is not a safety certification.
+Simulated money. Real agent decisions.
 
-Start here: https://github.com/sulmatajb/agent-crash-lab
+https://github.com/sulmatajb/agent-crash-lab
 
-Attach `videos/agent-crash-lab/launch.mp4` (34 seconds, 1080p, silent).
+## LinkedIn
 
-## Release scope
+Giving your AI agent access to a credit card or email is easy. Knowing what it will do when something goes wrong is harder.
 
-Say “early release” and invite scenario/evaluator contributions. Claude Code has live-model evidence. Hermes transport and decision-loop plumbing are tested with a deterministic local provider; an authenticated Hermes model campaign is still pending. Do not imply otherwise.
+I built Agent Crash Lab to help test that.
 
-Do not advertise an npm install until a package is actually published. Repository installation is the supported route. Do not claim model rankings, general agent safety, production containment, or hosted multi-user scale.
+Connect your agent through MCP and see how it handles payment timeouts, duplicate invoices, suspicious bank changes, and instructions hidden in emails.
+
+It uses simulated payments and email, so you can inspect mistakes without moving real money or sending real messages. Change your agent’s instructions, run it again, and compare.
+
+In this video, a payment goes through but the response times out. The agent checks whether it was paid before trying again.
+
+Free, local, and open source. It won’t guarantee your agent is safe, but it gives you a way to find problems before giving it real access.
+
+Try it with your agent: https://github.com/sulmatajb/agent-crash-lab
+
+## Media and scope
+
+Use the 24-second silent export of the original video. The original repository MP4 includes audio; strip the audio stream for social posting. The animation is an edited replay of a real Claude trial, not a continuous screen recording. The separate Hermes screen recording is supporting evidence.
+
+Describe a public alpha focused on vendor payments and invoice email. Use the linked release validation records for measured support. Do not advertise an npm install until a package is actually published. Repository installation is the supported route. Do not claim model rankings, general agent safety, production containment, or hosted multi-user scale.

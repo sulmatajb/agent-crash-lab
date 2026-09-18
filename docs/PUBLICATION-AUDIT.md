@@ -33,3 +33,11 @@ The root lockfile inventory now includes 73 development entries alongside the 94
 ## Video source provenance follow-up
 
 The [third-party notices](THIRD-PARTY-NOTICES.md#hyperframes-renderer-and-registry-components) now pin upstream sources and record exact hashes for all three retained HyperFrames registry components. Terminal and whip-pan sources match byte-for-byte; headline has editor/serialization changes with unchanged JavaScript and CSS. The upstream Apache 2.0 text is included locally, and the renderer package's license declaration is recorded. This closes the unidentified-source gap for those three files. Transitive rendering dependencies, tracked-media privacy review and Git metadata review remain separate publication work.
+
+## Refresh on September 17, 2026
+
+The reviewed source was main commit `03f1624` (including the Hermes OAuth fix). Gitleaks 8.30.1 scanned all local Git refs again with redaction. Its 19 findings were exclusively synthetic `idempotency_key` values in payment fixtures and their replay excerpts, matching the previous review. No new credential-pattern findings were reported. No broad allowlist was introduced.
+
+The root `npm audit --json` reported zero known advisories, and the checked license inventory matched all 167 root lockfile entries. This is a point-in-time dependency check. External video rendering dependencies are outside that lockfile.
+
+The three tracked PNG screenshots/poster and sampled frames from all tracked MP4s showed the lab UI, synthetic records, and authored marketing graphics. The connect-screen sample showed a CLI invocation, not a generated capability token. Sampling does not inspect every frame or prove the absence of private information. Git history uses the owner’s name and personal email address as author metadata; making the repository public makes that metadata public too. No history was rewritten.
