@@ -1,3 +1,4 @@
+import { isUtf8 } from 'node:buffer';
 import { randomUUID, createHash } from 'node:crypto';
 import { readFile, writeFile, rename, rm, open } from 'node:fs/promises';
 import { constants } from 'node:fs';
@@ -80,7 +81,9 @@ export async function verifyCampaign(path:string) {
         if (totalBytes > campaignLimit) throw new Error('Campaign exceeds the 64 MiB aggregate input limit.');
         chunks.push(chunk.subarray(0, bytesRead));
       }
-      return Buffer.concat(chunks, bytes).toString('utf8');
+      const contents = Buffer.concat(chunks, bytes);
+      if (!isUtf8(contents)) throw new Error('Campaign evidence is not valid UTF-8.');
+      return contents.toString('utf8');
     } finally { await handle.close(); }
   };
   const parseJson = (raw: string) => {

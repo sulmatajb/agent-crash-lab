@@ -5,7 +5,7 @@ const token = $('meta[name="lab-token"]').content;
 const pageLifecycle=new AbortController();
 let disposed=false;
 window.addEventListener('pagehide',event=>{if(!event.persisted){disposed=true;pageLifecycle.abort();}});
-const state = { scenarios:[], selected:'payment-timeout', runs:[], run:null, tab:'timeline', comparison:[], connection:null, view:'lab', busy:false, historyBefore:null, historyStack:[], historyNext:null, historyMatched:0 };
+const state = { scenarios:[], selected:'payment-timeout', runs:[], run:null, tab:'timeline', timelineFilter:'all', comparison:[], connection:null, view:'lab', busy:false, historyBefore:null, historyStack:[], historyNext:null, historyMatched:0, imported:null };
 async function api(path, body) {
   const res = await fetch(`/api${path}`, { signal:AbortSignal.any([pageLifecycle.signal,AbortSignal.timeout(10000)]), method:body === undefined ? 'GET':'POST', headers:{ Authorization:`Bearer ${token}`, 'Content-Type':'application/json' }, body:body === undefined ? undefined:JSON.stringify(body) });
   const data = await res.json(); if (!res.ok) throw new Error(data.error || 'Request failed'); return data;
@@ -14,8 +14,8 @@ let toastTimer;
 function toast(message) { $('#toast').textContent = message; $('#toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').hidden = true, 5500); }
 function busy(value) { state.busy = value; for (const id of ['run-button','compare-button','create-external']) $(`#${id}`).disabled = value; $('#run-button').innerHTML = value ? 'Running…' : 'Run reference test <span>↗</span>'; }
 function seed(id) { const v = Number($(id).value); if (!Number.isInteger(v) || v < 0 || v > 2147483647 || !$(id).value.trim()) throw new Error('Enter a whole-number seed from 0 to 2147483647.'); return v; }
-function changeView(view) { state.view = view; for (const el of document.querySelectorAll('.view')) el.hidden = el.id !== `${view}-view`; for (const b of document.querySelectorAll('.nav-item')) b.classList.toggle('active', b.dataset.view === view); $('#page-breadcrumb').textContent = {lab:'Crash lab',history:'Run history',guide:'Connect your agent'}[view]; if (view === 'history') refreshHistory().catch(e => toast(e.message)); }
-function selectScenario(id) { ++openRequest; history.replaceState(null,'',location.pathname+location.search); state.selected = id; state.run = null; state.comparison = []; renderScenarios(); renderOutput(); }
+function changeView(view) { if(view!==state.view)++openRequest; state.view = view; for (const el of document.querySelectorAll('.view')) el.hidden = el.id !== `${view}-view`; for (const b of document.querySelectorAll('.nav-item')) b.classList.toggle('active', b.dataset.view === view); $('#page-breadcrumb').textContent = {lab:'Crash lab',history:'Run history',guide:'Connect your agent',reports:'Compare reports'}[view]; if (view === 'history') refreshHistory().catch(e => toast(e.message)); if(view==='reports')($('#report-comparison-heading')??$('#report-comparison-title')).focus({preventScroll:true}); }
+function selectScenario(id) { ++openRequest; state.imported=null; history.replaceState(null,'',location.pathname+location.search); state.selected = id; state.run = null; state.timelineFilter='all'; state.comparison = []; renderScenarios(); renderOutput(); }
 function renderScenarios() {
   $('#scenarios').innerHTML = state.scenarios.map((s,i) => `<button class="scenario-button ${s.id === state.selected ? 'selected':''}" data-scenario="${esc(s.id)}" aria-pressed="${s.id === state.selected}"><span class="scenario-meta"><span>${String(i+1).padStart(2,'0')} / ${esc(s.category.toUpperCase())}</span>${s.id === state.selected ? '<span class="scenario-arrow">↗</span>':''}</span><strong>${esc(s.title)}</strong></button>`).join('');
   const s = state.scenarios.find(s => s.id === state.selected);
@@ -33,73 +33,189 @@ function renderOutput(preserve=false) {
   const active=preserve&&output.contains(document.activeElement)?document.activeElement:null;
   const focusId=active?.id;
   const focusEvidence=active?.closest('details')?.dataset.evidence;
-  const scroll=preserve?[...output.querySelectorAll('pre')].map(el=>[el.scrollTop,el.scrollLeft]):[];
-  const external=!!state.run&&!['careful','reckless'].includes(state.run.agent);
-  $('.run-controls').hidden=external;$('.control-note').hidden=external;$('#external-run-context').hidden=!external;
+  const scroll=new Map(preserve?[...output.querySelectorAll('details[data-evidence] pre')].map(el=>[el.closest('details').dataset.evidence,[el.scrollTop,el.scrollLeft]]):[]);
+  const imported=Boolean(state.imported);
+  $('#imported-report-context').hidden=!imported;$('#compare-button').hidden=imported;
+  $('#back-report-comparison').hidden=!state.imported?.compared;
+  $('#imported-report-label').textContent=imported ? `${state.imported.name} · Internal consistency checked. Report authorship, agent identity and timestamps are unverified. This is a snapshot, not a live connection; it is not saved in run history.` : '';
+  const external=!imported&&!!state.run&&!['careful','reckless'].includes(state.run.agent);
+  $('.run-controls').hidden=external||imported;$('.control-note').hidden=external||imported;$('#external-run-context').hidden=!external;
   $('#external-run-label').textContent=state.run?.status==='running'?'Watching this run. New actions appear automatically.':'Viewing a connected agent’s recorded run.';
   let comparison = state.comparison.length ? `<div class="compare-strip">${state.comparison.map(r => `<button class="compare-card" data-run="${r.id}"><strong>${r.agent === 'careful' ? 'Careful':'Reckless'} reference</strong>${badge(r.evaluation.verdict)}<p>${r.evaluation.violations} violations · ${r.payments.length} simulated payment${r.payments.length===1?'':'s'} · ${r.evaluation.tool_calls} calls</p></button>`).join('')}</div>` : '';
   if (!state.run) { $('#run-announcement').textContent=''; $('#run-output').innerHTML = comparison + '<div class="empty-result"><span class="empty-icon">⌁</span><h3>The best place to make a mistake.</h3><p>Connect your agent to collect real decisions, or run a reference script to explore the lab.</p></div>'; return; }
   const r = state.run, e = r.evaluation;
-  const announcement=`${state.scenarios.find(s=>s.id===r.scenario)?.title??r.scenario}, seed ${r.seed}. ${e.tool_calls} tool calls recorded. ${e.verdict==='running'?'Run in progress':e.verdict}.`;
+  const announcement=`${imported?'Imported read-only snapshot. ':''}${state.scenarios.find(s=>s.id===r.scenario)?.title??r.scenario}, seed ${r.seed}. ${e.tool_calls} tool calls recorded. ${e.verdict==='running'?(imported?'Snapshot recorded in progress':'Run in progress'):e.verdict}.`;
   if($('#run-announcement').textContent!==announcement)$('#run-announcement').textContent=announcement;
-  const title = {passed:'Policy held. Work completed.',failed:'A boundary was crossed.',incomplete:e.complete?'Work completed. Unnecessary escalation.':'No violation. Work unfinished.',running:r.events.length?'Run in progress.':'Waiting for the first action.',error:'Execution error. No safety verdict.'}[e.verdict];
-  const subtitle = !['careful','reckless'].includes(r.agent) ? `${esc(r.agent)}${r.execution?.model ? ` · ${esc(r.execution.model)}` : ''} · ${r.execution?.status === 'error' ? 'model execution unavailable' : 'external runtime'} · containment not verified` : `${r.agent === 'careful' ? 'Careful':'Reckless'} reference agent · deterministic script`;
-  $('#run-output').innerHTML = comparison + `<div class="result"><div class="result-summary"><div class="result-title">${badge(e.verdict)}<h3>${title}</h3><span class="run-id">${esc(r.id.slice(0,8))}</span></div><p>${subtitle} · seed ${r.seed}</p><div class="metrics"><div class="metric"><strong class="${e.violations ? 'bad':''}">${e.violations}</strong><span>POLICY VIOLATIONS</span></div><div class="metric"><strong>${e.obligations.filter(o=>o.met).length}/${e.obligations.length}</strong><span>TASK CHECKS MET</span></div><div class="metric"><strong>${e.tool_calls}</strong><span>TOOL CALLS</span></div></div></div><div class="tabs" role="tablist" aria-label="Run evidence">${[['timeline','Timeline'],['ledger','Side effects'],['checks','Checks']].map(([id,label])=>`<button class="tab ${state.tab===id?'selected':''}" role="tab" id="evidence-tab-${id}" aria-controls="evidence-panel" tabindex="${state.tab===id?0:-1}" aria-selected="${state.tab===id}" data-tab="${id}">${label}</button>`).join('')}</div><div class="result-content" id="evidence-panel" role="tabpanel" aria-labelledby="evidence-tab-${state.tab}" tabindex="0">${r.execution?.error ? `<div class="error-message">${esc(r.execution.error)}</div>` : ''}${renderTab(r)}</div><div class="result-footer"><span>Scenario v${r.scenario_version} · ${r.status==='completed'?'Evidence saved locally':'Auto-refreshing every 2 seconds'}</span><div>${r.status==='running'?'<button class="text-button" id="finish-run">Finish & evaluate</button> &nbsp; ':''}<button class="text-button" id="copy-run-link">Copy run link</button> &nbsp; <button class="text-button" id="export-run">Export JSON ↗</button></div></div></div>`;
+  const title = {passed:'Policy held. Work completed.',failed:'A boundary was crossed.',incomplete:e.complete?'Work completed. Unnecessary escalation.':'No violation. Work unfinished.',running:imported?'Recorded run was in progress.':r.events.length?'Run in progress.':'Waiting for the first action.',error:'Execution error. No safety verdict.'}[e.verdict];
+  const subtitle = imported ? `Report-declared agent: ${esc(r.agent)}${r.execution?.model ? ` · ${esc(r.execution.model)}` : ''} · identity unverified` : !['careful','reckless'].includes(r.agent) ? `${esc(r.agent)}${r.execution?.model ? ` · ${esc(r.execution.model)}` : ''} · ${r.execution?.status === 'error' ? 'model execution unavailable' : 'external runtime'} · containment not verified` : `${r.agent === 'careful' ? 'Careful':'Reckless'} reference agent · deterministic script`;
+  $('#run-output').innerHTML = comparison + `<div class="result"><div class="result-summary"><div class="result-title">${badge(e.verdict)}<h3>${title}</h3><span class="run-id">${esc(r.id.slice(0,8))}</span></div><p>${subtitle} · seed ${r.seed}</p><div class="metrics"><div class="metric"><strong class="${e.violations ? 'bad':''}">${e.violations}</strong><span>POLICY VIOLATIONS</span></div><div class="metric"><strong>${e.obligations.filter(o=>o.met).length}/${e.obligations.length}</strong><span>TASK CHECKS MET</span></div><div class="metric"><strong>${e.tool_calls}</strong><span>TOOL CALLS</span></div></div></div><div class="tabs" role="tablist" aria-label="Run evidence">${[['timeline','Timeline'],['ledger','Side effects'],['checks','Checks']].map(([id,label])=>`<button class="tab ${state.tab===id?'selected':''}" role="tab" id="evidence-tab-${id}" aria-controls="evidence-panel" tabindex="${state.tab===id?0:-1}" aria-selected="${state.tab===id}" data-tab="${id}">${label}</button>`).join('')}</div><div class="result-content" id="evidence-panel" role="tabpanel" aria-labelledby="evidence-tab-${state.tab}" tabindex="0">${r.execution?.error ? `<div class="error-message">${esc(r.execution.error)}</div>` : ''}${renderTab(r)}</div><div class="result-footer"><span>Scenario v${r.scenario_version} · ${imported?'Imported snapshot · not saved in history':r.status==='completed'?'Evidence saved locally':'Auto-refreshing every 2 seconds'}</span><div>${!imported&&r.status==='running'?'<button class="text-button" id="finish-run">Finish & evaluate</button> &nbsp; ':''}${!imported?'<button class="text-button" id="copy-run-link">Copy run link</button> &nbsp; <button class="text-button" id="export-run">Export JSON ↗</button>':''}</div></div></div>`;
   for(const el of output.querySelectorAll('details[data-evidence]')) {
     if(expanded.includes(el.dataset.evidence))el.open=true;
     if(focusEvidence===el.dataset.evidence)el.querySelector('summary').focus({preventScroll:true});
   }
   if(focusId)document.getElementById(focusId)?.focus({preventScroll:true});
-  [...output.querySelectorAll('pre')].forEach((el,i)=>{if(scroll[i]){el.scrollTop=scroll[i][0];el.scrollLeft=scroll[i][1];}});
+  for(const el of output.querySelectorAll('details[data-evidence] pre')) {
+    const position=scroll.get(el.closest('details').dataset.evidence);
+    if(position){el.scrollTop=position[0];el.scrollLeft=position[1];}
+  }
 }
 function renderTab(r) {
-  if (state.tab === 'timeline') return r.events.length ? r.events.map(event => `<div class="event ${event.findings.length?'violation':event.fault?'fault':''}"><div class="event-head"><span class="event-num">${String(event.seq).padStart(2,'0')}</span><span class="event-name">${esc(event.tool)}</span><span class="event-status">${event.findings.length?'VIOLATION':event.fault?'FAULT INJECTED':event.result.ok?'OK':'ERROR'}</span></div>${event.fault?`<p class="event-note">↯ ${esc(event.fault)}</p>`:''}${!event.result.ok?`<p class="event-note">${esc(event.result.error.message)}</p>`:''}${event.findings.map(f=>`<div class="finding">${esc(f.message)}</div>`).join('')}<details data-evidence="event-${event.seq}"><summary>Inspect arguments & response</summary><pre>${esc(JSON.stringify({arguments:event.arguments,response:event.result},null,2))}</pre></details></div>`).join('') : `<p class="muted">${r.status==='running'?'Waiting for the agent’s first tool call. Connect it using the configuration in “Connect your agent”.':'No tool calls were recorded. This run has ended.'}</p>`;
+  if (state.tab === 'timeline') {
+    const events=state.timelineFilter==='attention'?r.events.filter(event=>event.findings.length>0||event.fault||!event.result.ok):r.events;
+    const controls=`<div class="timeline-toolbar"><label for="timeline-filter">Timeline events<select id="timeline-filter" aria-describedby="timeline-filter-help"><option value="all" ${state.timelineFilter==='all'?'selected':''}>All events</option><option value="attention" ${state.timelineFilter==='attention'?'selected':''}>Needs attention</option></select></label><p class="muted" id="timeline-count" role="status">${events.length} of ${r.events.length} events shown</p></div><p class="muted timeline-help" id="timeline-filter-help">Needs attention includes policy findings, injected faults, or failed tool results. Totals, checks and exports always include every event.</p>`;
+    if(!r.events.length)return controls+`<p class="muted">${state.imported?'No tool calls in this imported snapshot.':r.status==='running'?'Waiting for the agent’s first tool call. Connect it using the configuration in “Connect your agent”.':'No tool calls were recorded. This run has ended.'}</p>`;
+    if(!events.length)return controls+'<p class="muted">No events need attention. Choose All events to inspect successful tool calls.</p>';
+    return controls+events.map(event => `<div class="event ${event.findings.length?'violation':event.fault?'fault':''}"><div class="event-head"><span class="event-num">${String(event.seq).padStart(2,'0')}</span><span class="event-name">${esc(event.tool)}</span><span class="event-status">${event.findings.length?'VIOLATION':event.fault?'FAULT INJECTED':event.result.ok?'OK':'ERROR'}</span></div>${event.fault?`<p class="event-note">↯ ${esc(event.fault)}</p>`:''}${!event.result.ok?`<p class="event-note">${esc(event.result.error.message)}</p>`:''}${event.findings.map(f=>`<div class="finding">${esc(f.message)}</div>`).join('')}<details data-evidence="event-${event.seq}"><summary>Inspect arguments & response</summary><pre>${esc(JSON.stringify({arguments:event.arguments,response:event.result},null,2))}</pre></details></div>`).join('');
+  }
   if (state.tab === 'ledger') return `<p class="muted">Committed effects, even when a tool reported an error.</p><p class="notice">Simulated payment total: ${money(r.evaluation.spent_cents)} of ${money(r.evaluation.budget_cents)} authorized. No real money moves.</p><h3 class="subheading">Payments (${r.payments.length})</h3>${r.payments.length?`<div class="table-wrap"><table class="ledger-table"><thead><tr><th>Payment / invoice</th><th>Recipient account</th><th>Amount</th></tr></thead><tbody>${r.payments.map(p=>`<tr><td>${esc(p.id)}<br><span class="muted">${esc(p.reference)}</span></td><td>${esc(p.account_id)}</td><td>${money(p.amount_cents)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">No simulated payments.</p>'}<h3 class="subheading">Sent emails (${r.emails.length})</h3>${r.emails.map((m,i)=>`<details class="check" data-evidence="email-${i}"><summary>${esc(m.to)} · ${esc(m.subject)}</summary><pre>${esc(m.body)}</pre></details>`).join('')||'<p class="muted">No emails sent.</p>'}<h3 class="subheading">Approval requests (${r.approvals.length})</h3>${r.approvals.map(a=>`<div class="check"><span class="pill incomplete">PENDING</span><p>${esc(a.reason)}</p></div>`).join('')||'<p class="muted">No approvals requested.</p>'}`;
   return `<div class="check"><span class="check-icon ${r.findings.length?'bad':''}">${r.findings.length?'!':'✓'}</span><p>${r.findings.length ? 'Policy violations observed' : 'No policy violations'} <span class="muted">(${r.findings.length} observed)</span></p></div>${r.evaluation.obligations.map(o=>`<div class="check"><span class="check-icon ${o.met?'':'bad'}">${o.met?'✓':'○'}</span><p>${esc(o.label)}</p></div>`).join('')}<div class="check"><span class="check-icon ${r.evaluation.unnecessary_escalations?'bad':''}">${r.evaluation.unnecessary_escalations?'!':'✓'}</span><p>${r.evaluation.unnecessary_escalations ? 'Unnecessary escalation observed' : 'No unnecessary escalation'} <span class="muted">(${r.evaluation.unnecessary_escalations} observed)</span></p></div><div class="notice">${esc(r.evaluation.limitation)}</div>`;
 }
 let historyRequest;
-let historyRequestKey;
-const historyKey=()=>JSON.stringify([state.historyBefore,$('#history-filter').value,$('#history-search').value.trim()]);
+let historyRevision=0;
+let historyDisplayedQuery;
+const historyQuery=()=>JSON.stringify([$('#history-filter').value,$('#history-search').value.trim()]);
 function renderHistoryNavigation() {
-  $('#history-newest').disabled=!state.historyBefore;
-  $('#history-previous').disabled=!state.historyStack.length;
-  $('#history-next').disabled=!state.historyNext;
+  const pending=Boolean(searchTimer||(historyRequest&&historyRequest.revision===historyRevision)||historyQuery()!==historyDisplayedQuery);
+  $('#history-newest').disabled=pending||!state.historyBefore;
+  $('#history-previous').disabled=pending||!state.historyStack.length;
+  $('#history-next').disabled=pending||!state.historyNext;
 }
-async function refreshHistory() {
-  const cursor=state.historyBefore,key=historyKey();
-  if(historyRequest&&historyRequestKey===key)return historyRequest;
-  const request=(async()=>{
-    const page=await api(`/history?limit=50&q=${encodeURIComponent($('#history-search').value.trim())}&filter=${encodeURIComponent($('#history-filter').value)}${cursor?`&before=${encodeURIComponent(cursor)}`:''}`);
-    if(disposed||historyKey()!==key)return;
-    const changed=JSON.stringify(page.runs)!==JSON.stringify(state.runs);
-    state.runs=page.runs;state.historyNext=page.next_cursor;state.historyMatched=page.matched_total;
-    $('#history-count').textContent=page.total;
-    if(changed||!$('#history-status').textContent)renderHistory();else $('#history-status').textContent=`${state.historyMatched} matching runs · ${state.runs.length} on this page · updates automatically`;
-    renderHistoryNavigation();
+async function refreshHistory(target) {
+  if(searchTimer)return;
+  const query=historyQuery();
+  const active=historyRequest?.revision===historyRevision&&historyRequest.query===query;
+  if(!target&&active)return historyRequest.promise;
+  target=target||(query===historyDisplayedQuery?{before:state.historyBefore,stack:state.historyStack}:{before:null,stack:[]});
+  const request={before:target.before,stack:[...target.stack],query,revision:++historyRevision};
+  const current=()=>!disposed&&historyRequest===request&&request.revision===historyRevision&&historyQuery()===query;
+  historyRequest=request;renderHistoryNavigation();
+  request.promise=(async()=>{
+    try {
+      const [filter,search]=JSON.parse(query);
+      const page=await api(`/history?limit=50&q=${encodeURIComponent(search)}&filter=${encodeURIComponent(filter)}${request.before?`&before=${encodeURIComponent(request.before)}`:''}`);
+      if(!current())return;
+      const changed=JSON.stringify(page.runs)!==JSON.stringify(state.runs);
+      // Commit navigation with its rows; a failed request leaves the displayed page retryable.
+      state.historyBefore=request.before;state.historyStack=request.stack;historyDisplayedQuery=query;
+      state.runs=page.runs;state.historyNext=page.next_cursor;state.historyMatched=page.matched_total;
+      $('#history-count').textContent=page.total;
+      if(changed||!$('#history-status').textContent)renderHistory();else $('#history-status').textContent=`${state.historyMatched} matching runs · ${state.runs.length} on this page · updates automatically`;
+    } catch(error) {
+      if(current())throw error;
+    } finally {
+      if(historyRequest===request){historyRequest=null;if(!disposed)renderHistoryNavigation();}
+    }
   })();
-  historyRequest=request;historyRequestKey=key;
-  try{await request;}finally{if(historyRequest===request)historyRequest=null;}
+  return request.promise;
 }
 async function historyPage(direction) {
-  if(direction==='next'&&state.historyNext){state.historyStack.push(state.historyBefore);state.historyBefore=state.historyNext;}
-  else if(direction==='previous'&&state.historyStack.length)state.historyBefore=state.historyStack.pop();
-  else if(direction==='newest'){state.historyStack=[];state.historyBefore=null;}
+  if($(`#history-${direction}`).disabled)return;
+  let target;
+  if(direction==='next'&&state.historyNext)target={before:state.historyNext,stack:[...state.historyStack,state.historyBefore]};
+  else if(direction==='previous'&&state.historyStack.length)target={before:state.historyStack.at(-1),stack:state.historyStack.slice(0,-1)};
+  else if(direction==='newest')target={before:null,stack:[]};
   else return;
-  for(const id of ['history-next','history-previous','history-newest'])$(`#${id}`).disabled=true;
-  try{await refreshHistory();}catch(error){toast(error.message);renderHistoryNavigation();}
+  try{await refreshHistory(target);}catch(error){toast(error.message);}
 }
 
 function renderHistory() { const focusedRun=document.activeElement?.closest('.history-row')?.dataset.run; const runs=state.runs; $('#history-status').textContent=`${state.historyMatched} matching runs · ${runs.length} on this page · updates automatically`; $('#history-list').innerHTML = runs.length ? `<div class="card">${runs.map(r=>`<button class="history-row" data-run="${r.id}"><div><strong>${esc(state.scenarios.find(s=>s.id===r.scenario)?.title||r.scenario)}</strong><small>${esc(new Date(r.created_at).toLocaleString())} · seed ${r.seed}</small></div><span>${badge(r.evaluation.verdict)}</span><span>${esc(r.agent)}<small>${r.evaluation.tool_calls} tool calls</small></span><span>${r.payments.length} simulated payment${r.payments.length===1?'':'s'}<small>${r.evaluation.violations} violations</small></span><span>Inspect ↗</span></button>`).join('')}</div>`:'<div class="empty-result"><h3>No matching runs.</h3><p>Connect your agent, run a reference test, or choose another filter.</p></div>'; if(focusedRun)[...document.querySelectorAll('.history-row')].find(el=>el.dataset.run===focusedRun)?.focus({preventScroll:true}); }
 let openRequest=0;
-async function openRun(id) { const request=++openRequest; const r=await api(`/runs/${encodeURIComponent(id)}`); if(request!==openRequest)return; history.replaceState(null,'',`#run=${encodeURIComponent(r.id)}`); state.selected=r.scenario; state.run=r; state.tab='timeline'; $('#seed-input').value=String(r.seed); if(['careful','reckless'].includes(r.agent))$('#agent-select').value=r.agent; if(state.comparison.some(c=>c.scenario!==r.scenario||c.seed!==r.seed))state.comparison=[]; renderScenarios(); renderOutput(); changeView('lab'); }
+async function openRun(id) { const request=++openRequest; const r=await api(`/runs/${encodeURIComponent(id)}`); if(request!==openRequest)return; history.replaceState(null,'',`#run=${encodeURIComponent(r.id)}`); state.imported=null;state.selected=r.scenario; state.run=r; state.tab='timeline';state.timelineFilter='all'; $('#seed-input').value=String(r.seed); if(['careful','reckless'].includes(r.agent))$('#agent-select').value=r.agent; if(state.comparison.some(c=>c.scenario!==r.scenario||c.seed!==r.seed))state.comparison=[]; renderScenarios(); renderOutput(); changeView('lab'); }
 async function execute(compare=false) {
-  try { const n=seed('#seed-input'),scenario=state.selected,request=++openRequest; busy(true); state.comparison=[]; const agents=compare?['reckless','careful']:[$('#agent-select').value]; const results=[]; for(const agent of agents) { const {run}=await api('/runs',{scenario,agent,seed:n}); results.push(run); } if(request!==openRequest){await refreshHistory();return;} state.run=results[0]; history.replaceState(null,'',`#run=${encodeURIComponent(state.run.id)}`); state.tab='timeline'; if(compare)state.comparison=results; renderOutput(); await refreshHistory(); }
+  try { const n=seed('#seed-input'),scenario=state.selected,request=++openRequest; busy(true); state.comparison=[]; const agents=compare?['reckless','careful']:[$('#agent-select').value]; const results=[]; for(const agent of agents) { const {run}=await api('/runs',{scenario,agent,seed:n}); results.push(run); } if(request!==openRequest){await refreshHistory();return;} state.imported=null;state.run=results[0]; history.replaceState(null,'',`#run=${encodeURIComponent(state.run.id)}`); state.tab='timeline';state.timelineFilter='all'; if(compare)state.comparison=results; renderOutput(); await refreshHistory(); }
   catch(e){toast(e.message);} finally{busy(false);}
 }
+document.addEventListener('change',event=>{
+  if(event.target.id!=='timeline-filter')return;
+  state.timelineFilter=event.target.value==='attention'?'attention':'all';
+  renderOutput(true);
+});
+const MAX_REVIEW_BYTES=10*1024*1024;
+// Comparison files and results live only in this page, separately from run history.
+const reportPair={baseline:null,candidate:null,result:null,pending:false};
+const reportFileRevision={baseline:0,candidate:0};
+let reportPairRevision=0;
+const comparisonDownloads=new Map();
+function releaseComparisonDownload(url){clearTimeout(comparisonDownloads.get(url));comparisonDownloads.delete(url);URL.revokeObjectURL(url);}
+window.addEventListener('pagehide',()=>{for(const url of comparisonDownloads.keys())releaseComparisonDownload(url);});
+function saveReportComparison(){
+  if(disposed||reportPair.pending||!reportPair.result)return;
+  let url,link;
+  try{
+    const blob=new Blob([JSON.stringify(reportPair.result.comparison,null,2)],{type:'application/json'});
+    url=URL.createObjectURL(blob);
+    comparisonDownloads.set(url,setTimeout(()=>releaseComparisonDownload(url),1000));
+    link=document.createElement('a');link.href=url;link.download='crashlab-comparison.json';link.hidden=true;
+    document.body.append(link);link.click();
+    $('#report-pair-status').textContent='Comparison download requested. Check your browser’s downloads for crashlab-comparison.json.';
+  }catch{
+    if(url)releaseComparisonDownload(url);
+    $('#report-pair-status').textContent='Could not prepare comparison download. Try Save comparison JSON again; if it still fails, use CLI compare --out.';
+  }finally{link?.remove();}
+}
+function renderReportComparison(message='') {
+  $('#compare-reports-submit').disabled=reportPair.pending||!reportPair.baseline||!reportPair.candidate;
+  $('#compare-reports-submit').textContent=reportPair.pending?'Comparing…':'Compare selected reports';
+  $('#report-pair-status').textContent=message;
+  const data=reportPair.result;
+  if(!data){$('#report-comparison-result').replaceChildren();return;}
+  const row=data.comparison.cases[0],labels={regression:'Regression observed','no-regression':'No regression observed',inconclusive:'Comparison inconclusive'};
+  $('#report-comparison-result').innerHTML=`<section class="card report-comparison-summary"><h2 id="report-comparison-heading" tabindex="-1">${labels[row.status]}</h2><p class="muted">${esc(row.case)}</p><div class="compare-strip">${['baseline','candidate'].map(side=>`<div class="compare-card"><h3>${side==='baseline'?'Baseline':'Candidate'}</h3><p>${esc(reportPair[side].name)}</p>${badge(row[side].verdict)}<p>Report-declared agent: ${esc(row[side].agent)}</p><button class="text-button" type="button" data-inspect-report="${side}">Inspect ${side}</button></div>`).join('')}</div><h3 class="subheading">Candidate compared with baseline</h3>${row.reasons.length?`<ul>${row.reasons.map(reason=>`<li>${esc(reason)}</li>`).join('')}</ul>`:'<p>No additional regression reasons were observed.</p>'}<p>Tool calls: ${row.tool_call_delta>0?'+':''}${row.tool_call_delta} from baseline.</p><p class="notice">${esc(data.comparison.limitation)} Report identities and timestamps are unverified.</p><button class="button secondary" type="button" id="save-report-comparison" aria-describedby="comparison-download-help">Save comparison JSON</button><p class="muted" id="comparison-download-help">Summary only, in the same format as CLI compare --out. Original reports and filenames are not included. Keep the originals to inspect evidence; this summary cannot be reopened with Open report. Report-declared IDs and agents remain unverified.</p></section>`;
+}
+for(const side of ['baseline','candidate'])$(`#${side}-report`).addEventListener('change',async event=>{
+  const file=event.target.files[0],revision=++reportFileRevision[side];
+  ++reportPairRevision;reportPair[side]=null;reportPair.result=null;reportPair.pending=false;
+  renderReportComparison(file?`Reading ${side} report…`:'Choose both reports to compare.');
+  const current=()=>!disposed&&revision===reportFileRevision[side];
+  if(!file)return;
+  try{
+    if(file.size>MAX_REVIEW_BYTES)throw new Error('The selected report exceeds the 10 MiB combined limit.');
+    const bytes=await file.arrayBuffer();if(!current())return;
+    if(bytes.byteLength>MAX_REVIEW_BYTES)throw new Error('The selected report exceeds the 10 MiB combined limit.');
+    let input;try{input=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));}catch{throw new Error('The selected report must be valid UTF-8 JSON.');}
+    reportPair[side]={name:file.name,input};renderReportComparison(reportPair.baseline&&reportPair.candidate?'Ready to compare.':'Choose the other report to compare.');
+  }catch(error){if(current())renderReportComparison(error.message||'Report could not be read.');}
+});
+$('#report-comparison-form').addEventListener('submit',async event=>{
+  event.preventDefault();if(reportPair.pending||!reportPair.baseline||!reportPair.candidate)return;
+  const revision=++reportPairRevision,current=()=>!disposed&&revision===reportPairRevision;
+  reportPair.pending=true;reportPair.result=null;renderReportComparison('Checking the selected evidence…');
+  try{
+    const pair={baseline:reportPair.baseline.input,candidate:reportPair.candidate.input};
+    if(new Blob([JSON.stringify(pair)]).size>MAX_REVIEW_BYTES)throw new Error('The two reports exceed the 10 MiB combined JSON limit. Choose smaller single-report exports.');
+    const data=await api('/reports/compare',pair);if(!current())return;
+    reportPair.result=data;reportPair.pending=false;renderReportComparison('Comparison ready.');
+    if(state.view==='reports')$('#report-comparison-heading').focus({preventScroll:true});
+  }catch(error){if(current()){reportPair.pending=false;renderReportComparison(error.message||'Reports could not be compared.');}}
+});
+document.addEventListener('click',event=>{
+  if(event.target.closest('#save-report-comparison')){saveReportComparison();return;}
+  const side=event.target.closest('[data-inspect-report]')?.dataset.inspectReport;
+  if(!['baseline','candidate'].includes(side)||!reportPair.result)return;
+  ++openRequest;const report=reportPair.result[side];state.imported={name:`${side==='baseline'?'Baseline':'Candidate'}: ${reportPair[side].name}`,compared:true};
+  state.run=report;state.selected=report.scenario;state.tab='timeline';state.timelineFilter='all';state.comparison=[];
+  history.replaceState(null,'',location.pathname+location.search);$('#sync-status').hidden=true;
+  renderScenarios();renderOutput();changeView('lab');$('#back-report-comparison').focus({preventScroll:true});
+});
+$('#open-report').addEventListener('click',()=>$('#report-file').click());
+$('#report-file').addEventListener('change',async event=>{
+  const file=event.target.files[0];event.target.value='';if(!file||disposed)return;
+  const request=++openRequest,current=()=>!disposed&&request===openRequest;
+  try{
+    if(file.size>MAX_REVIEW_BYTES)throw new Error('Report exceeds the 10 MiB limit.');
+    const bytes=await file.arrayBuffer();if(!current())return;
+    if(bytes.byteLength>MAX_REVIEW_BYTES)throw new Error('Report exceeds the 10 MiB limit.');
+    let input;try{input=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));}catch{throw new Error('Report must be valid UTF-8 JSON.');}
+    const data=await api('/reports/review',input);if(!current())return;
+    state.imported={name:file.name};state.run=data.report;state.selected=data.report.scenario;state.tab='timeline';state.timelineFilter='all';state.comparison=[];
+    history.replaceState(null,'',location.pathname+location.search);$('#sync-status').hidden=true;
+    renderScenarios();renderOutput();changeView('lab');$('#imported-report-context').scrollIntoView?.({block:'nearest'});
+  }catch(error){if(current())toast(error.message||'Report could not be opened.');}
+});
 for(const direction of ['next','previous','newest'])$(`#history-${direction}`).addEventListener('click',()=>historyPage(direction));
 let searchTimer;
-function resetHistorySearch(){state.historyBefore=null;state.historyStack=[];state.historyNext=null;renderHistoryNavigation();refreshHistory().catch(e=>toast(e.message));}
-$('#history-search').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(resetHistorySearch,250);});
+function resetHistorySearch(){searchTimer=undefined;++historyRevision;refreshHistory({before:null,stack:[]}).catch(e=>toast(e.message));}
+$('#history-search').addEventListener('input',()=>{clearTimeout(searchTimer);++historyRevision;searchTimer=setTimeout(resetHistorySearch,250);renderHistoryNavigation();});
 $('#history-filter').addEventListener('change',()=>{clearTimeout(searchTimer);resetHistorySearch();});
 window.addEventListener('pagehide',event=>{if(!event.persisted)clearTimeout(searchTimer);});
 $('#run-button').addEventListener('click',()=>execute()); $('#compare-button').addEventListener('click',()=>execute(true)); $('#refresh-history').addEventListener('click',()=>refreshHistory().catch(e=>toast(e.message)));
@@ -116,9 +232,19 @@ document.addEventListener('click',async event=>{const button=event.target.closes
   if(button.dataset.scenario)selectScenario(button.dataset.scenario);
   if(button.dataset.run)await openRun(button.dataset.run);
   if(button.dataset.tab){state.tab=button.dataset.tab;renderOutput();$(`#evidence-tab-${state.tab}`).focus();}
-  if(button.id==='finish-run'){++openRequest;const id=state.run.id;const finished=await api(`/runs/${id}/finish`,{});if(state.run?.id===id){++openRequest;state.run=finished;renderOutput(true);}await refreshHistory();}
-  if(button.id==='copy-run-link'){const url=new URL(location.href);url.hash=`run=${encodeURIComponent(state.run.id)}`;await navigator.clipboard.writeText(url.href);toast('Local run link copied. Open it on this computer while the lab is running.');}
-  if(button.id==='export-run'){const selected=state.run;const report=await api(`/runs/${selected.id}/report`);const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`crashlab-${selected.scenario}-${selected.id.slice(0,8)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  if(button.id==='close-report')selectScenario(state.selected);
+  if(button.id==='finish-run'&&!state.imported){
+    const request=++openRequest,id=state.run.id;
+    const current=()=>!disposed&&request===openRequest&&state.run?.id===id;
+    let finished;
+    try{finished=await api(`/runs/${id}/finish`,{});}catch(error){if(current())throw error;return;}
+    // Only this navigation intent may render the result or invalidate its polls.
+    // A newer open (including the same run) must retain its own generation.
+    if(current()){++openRequest;state.run=finished;renderOutput(true);}
+    await refreshHistory();
+  }
+  if(button.id==='copy-run-link'&&!state.imported){const url=new URL(location.href);url.hash=`run=${encodeURIComponent(state.run.id)}`;await navigator.clipboard.writeText(url.href);toast('Local run link copied. Open it on this computer while the lab is running.');}
+  if(button.id==='export-run'&&!state.imported){const selected=state.run;const report=await api(`/runs/${selected.id}/report`);const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`crashlab-${selected.scenario}-${selected.id.slice(0,8)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
   if(button.id==='copy-config'){await navigator.clipboard.writeText(JSON.stringify(state.connection.connection,null,2));toast('MCP configuration copied.');}
   if(button.id==='copy-task'){await navigator.clipboard.writeText(`${state.connection.task} Start by calling policy_get. When finished, call lab_finish.`);toast('Task copied.');}
 }catch(e){toast(e.message);}});
@@ -126,17 +252,19 @@ let polling=false;
 async function pollUpdates(){
   if(disposed||polling||state.busy)return;
   polling=true;
+  const request=openRequest,view=state.view;
+  const current=()=>!disposed&&request===openRequest&&state.view===view;
   try {
     if(state.view==='history')await refreshHistory();
-    if((state.run?.status==='running'||state.run?.execution?.status==='starting')&&state.view==='lab'){
-      const id=state.run.id,request=openRequest; const r=await api(`/runs/${encodeURIComponent(id)}`);
+    if(!state.imported&&(state.run?.status==='running'||state.run?.execution?.status==='starting')&&state.view==='lab'){
+      const id=state.run.id; const r=await api(`/runs/${encodeURIComponent(id)}`);
       // Discard polls started before navigation or an explicit finish action.
-      if(!disposed&&request===openRequest&&state.run?.id===id&&JSON.stringify(r)!==JSON.stringify(state.run)){
+      if(!disposed&&!state.imported&&request===openRequest&&state.run?.id===id&&JSON.stringify(r)!==JSON.stringify(state.run)){
         state.run=r;renderOutput(true);if(r.status==='completed')await refreshHistory();
       }
     }
-    if(!disposed)$('#sync-status').hidden=true;
-  }catch(error){if(disposed)return;$('#sync-status').hidden=false;$('#sync-status').textContent=`Live updates paused: ${error.message}. Retrying automatically. Check that the lab server is running; reload this page if you restarted it.`;}
+    if(current())$('#sync-status').hidden=true;
+  }catch(error){if(!current())return;$('#sync-status').hidden=false;$('#sync-status').textContent=`Live updates paused: ${error.message}. Retrying automatically. Check that the lab server is running; reload this page if you restarted it.`;}
   finally{polling=false;}
 }
 const pollTimer=setInterval(pollUpdates,2000);
@@ -147,6 +275,6 @@ async function registerOperatorTools(){
   if(!document.modelContext?.registerTool)return;
   const lifecycle=new AbortController();window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});
   await document.modelContext.registerTool({name:'crashlab_list_scenarios',description:'List operator-visible crash lab scenarios. This is the operator dashboard, not the agent-under-test interface.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:false},execute(input){if(!input||typeof input!=='object'||Object.keys(input).length)throw new Error('Expected an empty object.');return state.scenarios.map(s=>({id:s.id,title:s.title,category:s.category}));}},{signal:lifecycle.signal});
-  await document.modelContext.registerTool({name:'crashlab_run_reference',description:'Create and complete a simulated test with a bundled scripted reference agent, then show its evidence. Does not run an external model.',inputSchema:{type:'object',properties:{scenario:{type:'string',enum:state.scenarios.map(s=>s.id)},agent:{type:'string',enum:['careful','reckless']},seed:{type:'integer',minimum:0,maximum:2147483647}},required:['scenario','agent','seed'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},async execute(input){if(!input||typeof input!=='object'||Object.keys(input).some(k=>!['scenario','agent','seed'].includes(k))||!state.scenarios.some(s=>s.id===input.scenario)||!['careful','reckless'].includes(input.agent)||!Number.isInteger(input.seed)||input.seed<0||input.seed>2147483647)throw new Error('Invalid reference-run arguments.');if(state.busy)throw new Error('A run is already being created.');busy(true);try{const{run}=await api('/runs',input);state.selected=run.scenario;state.run=run;history.replaceState(null,'',`#run=${encodeURIComponent(run.id)}`);state.tab='timeline';state.comparison=[];$('#seed-input').value=String(run.seed);$('#agent-select').value=run.agent;renderScenarios();renderOutput();changeView('lab');await refreshHistory();return{run_id:run.id,verdict:run.evaluation.verdict,violations:run.evaluation.violations};}finally{busy(false);}}},{signal:lifecycle.signal});
+  await document.modelContext.registerTool({name:'crashlab_run_reference',description:'Create and complete a simulated test with a bundled scripted reference agent, then show its evidence. Does not run an external model.',inputSchema:{type:'object',properties:{scenario:{type:'string',enum:state.scenarios.map(s=>s.id)},agent:{type:'string',enum:['careful','reckless']},seed:{type:'integer',minimum:0,maximum:2147483647}},required:['scenario','agent','seed'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},async execute(input){if(!input||typeof input!=='object'||Object.keys(input).some(k=>!['scenario','agent','seed'].includes(k))||!state.scenarios.some(s=>s.id===input.scenario)||!['careful','reckless'].includes(input.agent)||!Number.isInteger(input.seed)||input.seed<0||input.seed>2147483647)throw new Error('Invalid reference-run arguments.');if(state.busy)throw new Error('A run is already being created.');const request=++openRequest;busy(true);try{const{run}=await api('/runs',input);if(request!==openRequest)return{run_id:run.id,verdict:run.evaluation.verdict,violations:run.evaluation.violations};state.imported=null;state.selected=run.scenario;state.run=run;history.replaceState(null,'',`#run=${encodeURIComponent(run.id)}`);state.tab='timeline';state.timelineFilter='all';state.comparison=[];$('#seed-input').value=String(run.seed);$('#agent-select').value=run.agent;renderScenarios();renderOutput();changeView('lab');await refreshHistory();return{run_id:run.id,verdict:run.evaluation.verdict,violations:run.evaluation.violations};}finally{busy(false);}}},{signal:lifecycle.signal});
 }
 init().then(()=>registerOperatorTools()).catch(()=>{});

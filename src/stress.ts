@@ -76,7 +76,13 @@ export async function stressLab({ worlds = 100, concurrency = 16, out }: { world
     lag.disable(); latencies.sort((a, b) => a - b);
     const percentile = (fraction: number) => Math.round(latencies[Math.min(latencies.length - 1, Math.floor(latencies.length * fraction))] * 100) / 100;
     const report = { kind: 'infrastructure-stress-not-model-evaluation', passed: true, node: process.version, platform: process.platform, worlds, concurrency, seed: 845621, engine_calls: engineCalls, http_calls: networkCalls, mcp_calls: mcpCalls, total_calls: engineCalls + networkCalls + mcpCalls, lost_events: 0, duplicate_payments_under_same_key: 0, restart_verified: true, latency_ms: { p50: percentile(.5), p95: percentile(.95), p99: percentile(.99) }, event_loop_p99_ms: Math.round(lag.percentile(99) / 1e6 * 100) / 100, duration_ms: Math.round(performance.now() - started), rss_mb: Math.round(process.memoryUsage().rss / 1024 / 1024), workload: `64 same-run retry requests per invoice across ${worlds} worlds, up to ${concurrency} concurrent HTTP workers, real MCP reads, restart readback`, scope: 'Single local server. Does not claim hosted multi-tenant scale or model safety.' };
-    if (out) await writeFile(out, JSON.stringify(report, null, 2));
+    if (out) {
+      try { await writeFile(out, JSON.stringify(report, null, 2), { flag: 'wx', mode: 0o600 }); }
+      catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'EEXIST') throw new Error('Stress output already exists. Choose a new --out filename to preserve existing evidence.');
+        throw error;
+      }
+    }
     return report;
   } finally { lag.disable(); server.closeAllConnections(); await new Promise<void>(r => server.close(() => r())); store.close(); await rm(directory, { recursive: true, force: true }); }
 }

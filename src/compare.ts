@@ -1,7 +1,8 @@
+import { isUtf8 } from 'node:buffer';
 import { constants, openSync, fstatSync, readSync, closeSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { evaluate, type Run } from './engine.js';
-import { verifyReport } from './replay.js';
+import { verifyReport, verifyTestBundle } from './replay.js';
 
 const key = (r: Run) => `${r.scenario}@${r.scenario_version}:seed=${r.seed}`;
 const MAX_REPORT_BYTES = 10 * 1024 * 1024;
@@ -32,12 +33,19 @@ export function loadReports(path: string): Run[] {
         if (bytes > MAX_CAMPAIGN_BYTES) throw new Error('Campaign exceeds the 64 MiB aggregate input limit.');
         chunks.push(chunk.subarray(0, count));
       }
-      raw = Buffer.concat(chunks, fileBytes).toString('utf8');
+      const contents = Buffer.concat(chunks, fileBytes);
+      if (!isUtf8(contents)) throw new Error('Report is not valid UTF-8.');
+      raw = contents.toString('utf8');
     } finally { closeSync(fd); }
     let data;
     try { data = JSON.parse(raw); } catch { throw new Error('Report is not valid JSON.'); }
     const batch = Array.isArray(data?.runs) ? data.runs : [data];
     if (!batch.length || reports.length + batch.length > MAX_REPORTS) throw new Error('Expected 1–1100 reports across all input files.');
+    // Bare { runs } collections remain selected cases. Once a collection declares
+    // native bundle metadata, validate it before discarding the envelope.
+    if (Array.isArray(data?.runs) && (Object.hasOwn(data, 'report_version') || Object.hasOwn(data, 'summary'))) {
+      verifyTestBundle(data);
+    }
     reports.push(...batch);
   };
   if (statSync(path).isDirectory()) {

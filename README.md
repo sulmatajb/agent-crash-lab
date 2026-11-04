@@ -60,6 +60,24 @@ Open **http://127.0.0.1:4310**. Choose **Test your agent** for a real-agent run.
 
 This package is **not published to npm**. Use this repository; do not assume `npx agent-crash-lab` installs it.
 
+To inspect individual runs from a CLI `test --out` bundle in the dashboard, extract them first:
+
+```sh
+node dist/cli.js test --agent careful --scenario all --out reference-bundle.json
+node dist/cli.js split reference-bundle.json --out reference-reports
+```
+
+Choose `reference-reports/run-0001.json` (or another numbered run) in the dashboard’s **Open report** view. `split` is local and invokes no runner, provider or service. It checks the bundle's declared version and replays **every** member before creating the new directory. It accepts 1–1,100 runs in one bundle up to 10 MiB; single reports, campaign directories and malformed/inconsistent members fail. Each emitted run also fits the viewer's 10 MiB limit. Values that JSON reserialization would change, such as numeric overflow (`1e400`) or negative zero (`-0`), are rejected before output is created.
+
+Single-report exports with a declared `report_version` must use `1.0.0`; legacy run evidence without that field remains supported. This format check does not authenticate the supplied metadata.
+
+Saved JSON files read by `verify`, `compare` and `split` must be valid UTF-8. Malformed byte sequences are rejected before decoding can replace them; valid multilingual text and literal replacement characters are preserved. A leading UTF-8 byte-order mark remains unsupported.
+
+The output keeps exact input bytes as `bundle.json`, complete run objects as compact numbered JSON files in original array order, and SHA-256/array-index mappings in `extraction.json`. Run IDs never determine filenames. The inventory records consistency separately from the verdict: failed and incomplete runs can be consistent. It does not certify the bundle's summary, authorship, execution metadata or campaign coverage. `--json` prints the inventory. Split exits **0** when extraction completes, including consistent failed/incomplete runs or recorded execution errors; invalid input or a write failure exits **2**.
+
+The output directory must not exist and its parent must exist. Existing evidence is never overwritten. A handled write error removes only files created by that operation, then removes the directory if empty; unexpected additions are preserved and incomplete cleanup is reported. A process crash or forced termination can leave partial output. These are ordinary local filesystem checks, not a defense against a hostile concurrent writer. Keep the copied bundle and inventory with the selected reports for provenance.
+
+
 ## Bring your own agent
 
 The lab exposes standard MCP tools for AI agents. Connect your agent app if it supports local stdio MCP servers, or use the HTTP adapter contract for a custom integration. Your agent keeps its own model connection.
@@ -144,13 +162,34 @@ The lab permits unsafe **simulated** actions so they can be detected. A guardrai
 
 An observed violation is retained even if the agent app later crashes. Refusing every task is not a pass.
 
+In **Timeline**, choose **Needs attention** to show events with policy findings, injected faults, or failed tool results. The count shows matching events out of the full timeline; sequence numbers retain their original order. The choice stays while switching evidence tabs or receiving live updates and resets when opening a run, scenario, or imported report. Metrics, side effects, checks, and exported reports always cover the full run.
+
 The dashboard shows tool arguments and responses, injected faults, committed payments, emails, approval requests, and unmet obligations. Export JSON or inspect the runner's output directory:
 
 ```bash
 node dist/cli.js verify results/claude/<run-id>.json
 ```
 
-Replay verifies internal consistency against the versioned engine. It does not authenticate the author of a report. CLI exit codes are **0** for all passed, **1** for failed/incomplete, **2** for execution errors, and **130** for cancellation.
+Replay verifies internal consistency against the versioned engine. It does not authenticate the author of a report. Evaluation CLI exit codes are **0** for all passed, **1** for failed/incomplete, **2** for execution errors, and **130** for cancellation. `verify` exits **0** for consistent evidence, including failed or incomplete verdicts, and **2** for invalid evidence or input errors.
+
+You can also save and verify a whole scripted test bundle without extracting individual runs:
+
+```bash
+node dist/cli.js test --scenario payment-timeout --runs 2 --out reference-check.json
+node dist/cli.js verify reference-check.json
+```
+
+Choose a new output filename: `test --out` preserves existing files. These commands run deterministic reference scripts and local replay, with no model calls. Bundle verification accepts the versioned `test --out` format (`report_version: "1.0.0"`), replays every run, and checks all four summary counts. It returns `kind: "test-bundle"`, the recomputed summary, and per-run verdicts and event counts; it stops at the first invalid member with its 1-based index. A versionless `test --json` stdout capture is not this saved format. Bundles must contain 1–1100 runs and fit the same 10 MiB regular UTF-8 JSON file limit as single reports. Verification checks the supplied evidence, not campaign completeness, passing behavior, authorship, agent identity, or safety. Dashboard single-report exports retain their existing verification result. CLI `compare` also validates the version and all four replayed summary counts before reading runs from a declared native bundle, including bundles inside a directory; an invalid envelope exits with code 2 and produces no comparison. Legacy bare `{ "runs": [...] }` collections remain supported as selected cases, without a bundle-summary or completeness claim. Single-report pairing rules and campaign-manifest checks are unchanged.
+
+## Review a teammate’s report
+
+Start the local lab and choose **Open report** in the dashboard. Select one exported Crash Lab JSON report (valid UTF-8, up to 10 MiB). The local server verifies its simulated events and final state, then recomputes the evaluation. Use **Timeline**, **Side effects**, and **Checks** to inspect the evidence.
+
+The viewer labels it **Imported · read-only**. Verification checks internal consistency; it does not authenticate the author, agent identity, or timestamps. An unfinished report stays an unfinished snapshot: it cannot connect to, poll, finish, or export a local run, even if its ID matches one in your history. The imported report is not saved to the database or browser storage. **Close imported report**, selecting a scenario, or opening a stored run returns to normal local work. Invalid files leave the current view intact.
+
+**Compare reports** accepts a baseline and candidate single-report export with the same scenario, scenario version and seed (up to 10 MiB combined JSON). It uses the same replay checks and directional comparison rules as the CLI, showing both verdicts, new violations, lost work and tool-call changes. **Inspect baseline** and **Inspect candidate** open either snapshot in the existing read-only evidence view; **Back to comparison** retains the pair until a file is replaced or the page is closed. **Save comparison JSON** requests a browser download named `crashlab-comparison.json` containing only the current comparison summary, in the same format as CLI `compare --out`. It excludes original reports and filenames; report-declared IDs and agents remain unverified. Keep the original exports to inspect evidence: the summary cannot be reopened with **Open report**. Check your browser’s downloads to confirm it completed. Replacing a file or starting another comparison clears the previous result and its save action. Invalid selections leave any already-inspected evidence intact. No-regression does not mean passing; unfinished or unavailable execution remains inconclusive. These are paired observations, not a safety certification.
+
+These workflows require the running local dashboard server and do not import campaign directories, batches, remote URLs, or live credentials. Importing and verification trigger no model calls or real-world side effects. The review endpoint uses the same local administrator authentication and origin checks as the dashboard; agent connection tokens cannot use it. Existing write endpoints retain their 64 KiB request limit.
 
 ## What we have actually tested
 

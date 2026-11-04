@@ -1,9 +1,10 @@
+import { isUtf8 } from 'node:buffer';
 import { constants, openSync, fstatSync, readSync, closeSync } from 'node:fs';
 
 export const MAX_EVIDENCE_BYTES = 10 * 1024 * 1024;
 
 /** Read from the checked descriptor, with a fixed upper bound even if it grows. */
-export function readEvidenceJson(path: string): unknown {
+export function readEvidenceBytes(path: string): Buffer {
   const fd = openSync(path, constants.O_RDONLY | constants.O_NONBLOCK);
   try {
     const stat = fstatSync(fd);
@@ -19,7 +20,17 @@ export function readEvidenceJson(path: string): unknown {
       if (total > MAX_EVIDENCE_BYTES) throw new Error('Evidence exceeds the 10 MiB input limit.');
       chunks.push(chunk.subarray(0, count));
     }
-    try { return JSON.parse(Buffer.concat(chunks, total).toString('utf8')); }
-    catch { throw new Error('Evidence is not valid JSON.'); }
+    return Buffer.concat(chunks, total);
   } finally { closeSync(fd); }
+}
+
+export function parseEvidenceJson(bytes: Buffer) {
+  // Buffer decoding otherwise replaces malformed bytes before evidence is checked.
+  if (!isUtf8(bytes)) throw new Error('Evidence is not valid UTF-8.');
+  try { return JSON.parse(bytes.toString('utf8')); }
+  catch { throw new Error('Evidence is not valid JSON.'); }
+}
+
+export function readEvidenceJson(path: string): unknown {
+  return parseEvidenceJson(readEvidenceBytes(path));
 }

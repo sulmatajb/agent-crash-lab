@@ -19,10 +19,10 @@ async function main() {
   } });
   const command = positionals[0] ?? 'help';
   if (command === 'help' || values.help) {
-    console.log('Live-agent commands:\n  doctor             Inspect setup without inference; --client claude|hermes|all\n  probe              Verify actual Hermes MCP discovery/call; no model inference\n  evaluate-claude    Launch isolated Claude Code (all/advanced/scenario ID)\n  evaluate           Launch and supervise Hermes against the selected scenarios\n  stress             Load-test HTTP, MCP, persistence and ledger invariants\n  compare BEFORE AFTER Compare verified reports or campaign directories\n  verify-campaign MANIFEST Verify campaign files and coverage\n  verify REPORT.json Replay exported evidence and check its consistency\n\nHermes options: --hermes-python PATH --hermes-profile DIR --model ID --provider NAME\n  --timeout 180 --max-turns 30 --system-prompt FILE --out DIRECTORY\nStress options: --worlds 100 --concurrency 16 --out REPORT.json\n');
+    console.log('Live-agent commands:\n  doctor             Inspect setup without inference; --client claude|hermes|all\n  probe              Verify actual Hermes MCP discovery/call; no model inference\n  evaluate-claude    Launch isolated Claude Code (all/advanced/scenario ID)\n  evaluate           Launch and supervise Hermes against the selected scenarios\n  stress             Load-test HTTP, MCP, persistence and ledger invariants\n  compare BEFORE AFTER Compare verified reports or campaign directories\n  verify-campaign MANIFEST Verify campaign files and coverage\n  split BUNDLE.json  Extract verified runs; --out NEW_DIRECTORY [--json]\n  verify REPORT.json Replay exported evidence and check its consistency\n\nHermes options: --hermes-python PATH --hermes-profile DIR --model ID --provider NAME\n  --timeout 180 --max-turns 30 --system-prompt FILE --out DIRECTORY\nStress options: --worlds 100 --concurrency 16 --out REPORT.json\n');
     console.log(`Agent Crash Lab 0.3.2\n\nUsage: agent-crash-lab <command> [options]\n\n  start              Start the local dashboard (http://127.0.0.1:4310)\n  demo               Seed a careful/reckless comparison and start dashboard\n  test               Run scripted reference agents headlessly\n  mcp                Start the stdio MCP bridge for an external run\n  scenarios          List the vendor-payment scenarios\n\nOptions:\n  --port 4310        Local server port\n  --db PATH          SQLite store (default .crashlab/runs.sqlite)\n  --agent NAME       careful | reckless (test only)\n  --scenario ID      Scenario ID or all (test/evaluate)\n  --seed 42          Seed from 0 to 2147483647\n  --runs 1           Repetitions, incrementing seeds (max 100)\n  --json             Print machine-readable test results\n  --out PATH         Save full JSON evidence\n\nTest exits: 0 all passed; 1 failed/incomplete; 2 usage/runtime error.\nReference agents are deterministic scripts, not language models.\nConnect your own agent from the dashboard; no model keys are needed by the lab.`); return;
   }
-  if (!['compare', 'verify', 'verify-campaign'].includes(command) && positionals.length > 1) {
+  if (!['compare', 'verify', 'verify-campaign', 'split'].includes(command) && positionals.length > 1) {
     throw new Error('Unexpected positional arguments. Select a scenario with --scenario ID; use --help for command options.');
   }
   const runnerOptions = ['scenario','seed','runs','timeout','max-turns','out','db','model','system-prompt','json'];
@@ -32,7 +32,7 @@ async function main() {
     mcp: [], scenarios: [],
     doctor: ['client','claude-command','hermes-python','hermes-profile','json'],
     stress: ['worlds','concurrency','out'], compare: ['json','out'],
-    verify: [], 'verify-campaign': [],
+    verify: [], 'verify-campaign': [], split: ['out', 'json'],
     evaluate: [...runnerOptions,'hermes-python','hermes-profile','provider'],
     probe: [...runnerOptions,'hermes-python','hermes-profile','provider'],
     'evaluate-claude': [...runnerOptions,'claude-command','provider'],
@@ -74,12 +74,20 @@ async function main() {
     process.exitCode = result.exit_code; return;
   }
 
+  if (command === 'split') {
+    if (positionals.length !== 2 || !values.out) throw new Error('Usage: agent-crash-lab split BUNDLE.json --out NEW_DIRECTORY [--json]');
+    const { splitBundle } = await import('./split.js');
+    const result = splitBundle(positionals[1], values.out);
+    if (values.json) console.log(JSON.stringify(result, null, 2));
+    else console.log(`Extracted ${result.reports.length} consistent saved reports. Open a run-0001.json-style file in the saved-report viewer.\nOriginal bytes: bundle.json · Inventory: extraction.json\n${result.limitation}`);
+    return;
+  }
   if (command === 'verify-campaign') { if (positionals.length !== 2) throw new Error('Usage: agent-crash-lab verify-campaign MANIFEST.json'); const { verifyCampaign } = await import('./campaign.js'); console.log(JSON.stringify(await verifyCampaign(resolve(positionals[1])),null,2)); return; }
   if (command === 'verify') {
     if (positionals.length !== 2) throw new Error('Usage: agent-crash-lab verify REPORT.json');
     const { readEvidenceJson } = await import('./evidence-file.js');
-    const { verifyReport } = await import('./replay.js');
-    console.log(JSON.stringify(verifyReport(readEvidenceJson(positionals[1]) as Parameters<typeof verifyReport>[0]), null, 2)); return;
+    const { verifyEvidence } = await import('./replay.js');
+    console.log(JSON.stringify(verifyEvidence(readEvidenceJson(positionals[1])), null, 2)); return;
   }
   const seed = Number(values.seed), repetitions = Number(values.runs);
   if (!Number.isSafeInteger(seed) || seed < 0 || seed > 2147483647) throw new Error('Invalid --seed');
@@ -99,6 +107,7 @@ async function main() {
     return;
   }
   if (command === 'test') {
+    if (values.out !== undefined && !values.out.trim()) throw new Error('--out must name a new output file.');
     if (!['careful', 'reckless'].includes(values.agent!)) throw new Error('--agent must be careful or reckless. External agent setup is available in the dashboard.');
     const selected = values.scenario === 'all' ? scenarios : scenarios.filter(s => s.id === values.scenario);
     if (!selected.length) throw new Error('Unknown --scenario. Use the scenarios command.');
@@ -108,7 +117,13 @@ async function main() {
       results.push({ ...run, evaluation: evaluate(run) });
     }
     const summary = { total: results.length, passed: results.filter(r => r.evaluation.verdict === 'passed').length, failed: results.filter(r => r.evaluation.verdict === 'failed').length, incomplete: results.filter(r => r.evaluation.verdict === 'incomplete').length };
-    if (values.out) writeFileSync(resolve(values.out), JSON.stringify({ report_version: '1.0.0', summary, runs: results }, null, 2));
+    if (values.out !== undefined) {
+      try { writeFileSync(resolve(values.out), JSON.stringify({ report_version: '1.0.0', summary, runs: results }, null, 2), { flag: 'wx', mode: 0o600 }); }
+      catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'EEXIST') throw new Error('Test output already exists. Choose a new --out filename to preserve existing evidence.');
+        throw error;
+      }
+    }
     if (values.json) console.log(JSON.stringify({ summary, runs: results }));
     else { for (const r of results) console.log(`${r.evaluation.verdict.toUpperCase().padEnd(10)} ${r.scenario.padEnd(20)} seed=${r.seed} violations=${r.evaluation.violations}`); console.log(`\n${summary.passed}/${summary.total} passed · ${summary.failed} failed · ${summary.incomplete} incomplete`); }
     process.exitCode = summary.passed === summary.total ? 0 : 1; return;
