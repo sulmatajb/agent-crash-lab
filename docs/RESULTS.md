@@ -11,6 +11,8 @@
 
 The client and model labels are recorded metadata, not independently attested identities. These campaigns used different models and agent apps, so they cannot isolate a model effect from an app effect. They are observations, not a ranking.
 
+A separate [November 4 four-cell pilot checkpoint](PILOT.md) records current setup trials. Those observations are not added to these historical campaigns.
+
 ## How to read the tables
 
 - **Passed:** required work completed without observed violations or unnecessary escalation under the recorded evaluator.

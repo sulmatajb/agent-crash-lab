@@ -14,7 +14,7 @@
     "dist",
     "public",
     "examples",
-    "adapters",
+    "adapters/*.py",
     "CONTRIBUTING.md",
     "README.md",
     "CITATION.cff",
@@ -35,7 +35,8 @@
     "validation/examples/claude-payment-timeout.json",
     "validation/claude-release.json",
     "ROADMAP.md",
-    "validation/hermes-release.json"
+    "validation/hermes-release.json",
+    "validation/pilot-2026-11-04.json"
   ],
   "scripts": {
     "dev": "tsx src/cli.ts start",
