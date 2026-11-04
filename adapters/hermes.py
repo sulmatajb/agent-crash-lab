@@ -18,6 +18,20 @@ OUTPUT = sys.stdout
 SECRETS = []
 
 
+def mcp_runtime():
+    # Recent Hermes versions split the MCP facade into focused modules.
+    # Fall back only when that layout is absent, not for a broken dependency.
+    try:
+        from tools.mcp_tool_discovery import register_mcp_servers
+        from tools.mcp_tool_lifecycle import shutdown_mcp_servers
+        from tools.mcp_tool_schema import mcp_prefixed_tool_name
+    except ModuleNotFoundError as error:
+        if error.name not in {"tools.mcp_tool_discovery", "tools.mcp_tool_lifecycle", "tools.mcp_tool_schema"}:
+            raise
+        from tools.mcp_tool import register_mcp_servers, shutdown_mcp_servers, mcp_prefixed_tool_name
+    return register_mcp_servers, shutdown_mcp_servers, mcp_prefixed_tool_name
+
+
 def emit(kind, **data):
     text = json.dumps({"kind": kind, **data}, default=str)
     for secret in SECRETS:
@@ -61,6 +75,9 @@ print(json.dumps({key: credentials.get(key) for key in ['api_key', 'base_url']})
 
 
 def main(request):
+    # A trial must use its selected environment. Hermes lazy setup can install
+    # dependencies and re-exec this process after the JSON request was consumed.
+    os.environ["HERMES_DISABLE_LAZY_INSTALLS"] = "1"
     import yaml
     from dotenv import dotenv_values
     if request.get("token"):
@@ -114,7 +131,7 @@ def main(request):
     (home / "config.yaml").write_text(yaml.safe_dump(config))
     # Run directory is outside the repository: no repository AGENTS.md or prior memory.
     os.chdir(home)
-    from tools.mcp_tool import register_mcp_servers, shutdown_mcp_servers, mcp_prefixed_tool_name
+    register_mcp_servers, shutdown_mcp_servers, mcp_prefixed_tool_name = mcp_runtime()
     from model_tools import get_tool_definitions, handle_function_call
     try:
         register_mcp_servers({"crashlab": mcp_config})
