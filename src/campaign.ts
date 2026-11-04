@@ -10,21 +10,24 @@ import { z } from 'zod';
 const hash=(text:string)=>createHash('sha256').update(text).digest('hex');
 const digest=z.string().regex(/^[a-f0-9]{64}$/);
 const configurationSchema=z.object({
-  adapter:z.enum(['claude-code','hermes','hermes-probe']),lab_version:z.string().min(1),
+  adapter:z.enum(['claude-code','hermes','hermes-probe','codex-cli']),lab_version:z.string().min(1),
   requested_model:z.string().nullable(),requested_provider:z.string().nullable(),
-  timeout_ms:z.number().int().min(1).max(900000),max_turns:z.number().int().min(1).max(100),
+  timeout_ms:z.number().int().min(1).max(900000),max_turns:z.number().int().min(1).max(100).nullable(),max_tool_calls:z.number().int().min(1).max(100).optional(),
   task_sha256:digest,system_prompt_sha256:digest,
   tool_names:z.array(z.string().min(1)).min(1).max(100).refine(names=>new Set(names).size===names.length),
-});
+}).refine(c=>c.adapter==='codex-cli'?c.max_turns===null&&c.max_tool_calls!==undefined:c.max_turns!==null&&c.max_tool_calls===undefined);
 const caseKey=(r:{scenario:string;scenario_version:string;seed:number})=>`${r.scenario}@${r.scenario_version}:${r.seed}`;
-type Settings={adapter:'claude-code'|'hermes'|'hermes-probe';scenarios:ScenarioId[];seed:number;repetitions:number;timeoutMs:number;maxTurns:number;model?:string;provider?:string;systemPrompt?:string;task:string};
+type Settings={adapter:'claude-code'|'hermes'|'hermes-probe'|'codex-cli';scenarios:ScenarioId[];seed:number;repetitions:number;timeoutMs:number;maxTurns:number|null;maxToolCalls?:number;model?:string;provider?:string;systemPrompt?:string;task:string};
 export async function startCampaign(out:string,settings:Settings) {
   if(!Array.isArray(settings.scenarios)||!settings.scenarios.length||new Set(settings.scenarios).size!==settings.scenarios.length)throw new Error('Campaign scenarios must be nonempty and unique.');
-  if(!Number.isSafeInteger(settings.seed)||settings.seed<0||!Number.isInteger(settings.repetitions)||settings.repetitions<1||settings.repetitions>100||settings.seed+settings.repetitions-1>2147483647||!Number.isInteger(settings.maxTurns)||settings.maxTurns<1||settings.maxTurns>100||!Number.isInteger(settings.timeoutMs)||settings.timeoutMs<1||settings.timeoutMs>900000)throw new Error('Invalid campaign bounds.');
+  const validCallBound=settings.adapter==='codex-cli'
+    ? settings.maxTurns===null&&Number.isInteger(settings.maxToolCalls)&&settings.maxToolCalls!>=1&&settings.maxToolCalls!<=100
+    : typeof settings.maxTurns==='number'&&Number.isInteger(settings.maxTurns)&&settings.maxTurns>=1&&settings.maxTurns<=100;
+  if(!Number.isSafeInteger(settings.seed)||settings.seed<0||!Number.isInteger(settings.repetitions)||settings.repetitions<1||settings.repetitions>100||settings.seed+settings.repetitions-1>2147483647||!validCallBound||!Number.isInteger(settings.timeoutMs)||settings.timeoutMs<1||settings.timeoutMs>900000)throw new Error('Invalid campaign bounds.');
   const id=randomUUID(),file=`${id}.manifest.json`;
   const labVersion=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8')).version as string;
   const planned=settings.scenarios.flatMap(scenario=>Array.from({length:settings.repetitions},(_,i)=>({scenario,scenario_version:newRun(scenario,settings.seed+i,settings.adapter).scenario_version,seed:settings.seed+i})));
-  const configuration={adapter:settings.adapter,lab_version:labVersion,requested_model:settings.model??null,requested_provider:settings.provider??null,timeout_ms:settings.timeoutMs,max_turns:settings.maxTurns,task_sha256:hash(settings.task),system_prompt_sha256:hash(settings.systemPrompt??''),tool_names:[...Object.keys(toolDefinitions),'lab_finish'].sort()};
+  const configuration={adapter:settings.adapter,lab_version:labVersion,requested_model:settings.model??null,requested_provider:settings.provider??null,timeout_ms:settings.timeoutMs,max_turns:settings.maxTurns,...(settings.adapter==='codex-cli'?{max_tool_calls:settings.maxToolCalls}:{}),task_sha256:hash(settings.task),system_prompt_sha256:hash(settings.systemPrompt??''),tool_names:[...Object.keys(toolDefinitions),'lab_finish'].sort()};
   if(!configurationSchema.safeParse(configuration).success)throw new Error('Invalid campaign configuration.');
   const reports:{id:string;file:string;sha256:string;scenario:ScenarioId;scenario_version:string;seed:number;verdict:string;execution:string;observed_model?:string;runtime_version?:string}[]=[];
   let manifest={manifest_version:'1.0.0',campaign_id:id,created_at:new Date().toISOString(),finished_at:undefined as string|undefined,status:'running',configuration,configuration_sha256:hash(JSON.stringify(configuration)),planned,reports,limitation:'Configuration records requested settings and prompt hashes, not raw prompts, credentials or inherited client defaults. Runtime/model labels are client-reported. File hashes detect changes relative to this manifest; they do not authenticate its author. A running manifest left behind may indicate interruption.'};
