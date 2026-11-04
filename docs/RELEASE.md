@@ -1,6 +1,6 @@
 # Public release checklist
 
-The repository remains private until the owner chooses to publish. This checklist distinguishes implemented features from evidence still needed; it is not a safety certification.
+The [repository is public](https://github.com/sulmatajb/agent-crash-lab). A tagged release and npm publication are separate owner-controlled operations. This checklist distinguishes implemented features from evidence still needed; it is not a safety certification.
 
 ## Verified foundation
 
@@ -23,9 +23,9 @@ Commit `997bcbf48afe1bd7f18e261ba2567be441346eb3` includes all 18 initial PRs. O
 - [Linux CI on Node 22 and 24](https://github.com/sulmatajb/agent-crash-lab/actions/runs/35164895662) passed for that commit.
 - The production-dependency audit reported zero known vulnerabilities at that time. This does not replace the license and publication-time reviews below.
 
-These are infrastructure checks, not additional live-model trials. Follow the [alpha pilot guide](ALPHA-PILOT.md) for the remaining independent installation and agent-behavior evidence. Existing live-model results remain linked from the README.
+These are infrastructure checks, not additional live-model trials. Follow the [alpha pilot guide](ALPHA-PILOT.md) for the remaining independent human installation check. The [Claude campaign](RELEASE-CAMPAIGN.md) and [Hermes campaign](HERMES-RELEASE-CAMPAIGN.md) each retain one trial per scenario, including incomplete outcomes; broader repeated-trial evidence remains to be collected.
 
-## Latest integrated verification
+## September 17 integrated verification
 
 Main commit `c81249fec70135bffbcec591c654ed7549a0a2f6` contains PRs 1–30. The [machine-readable validation record](validation/integrated-c81249f.json) captures the September 17 UTC / September 16 Los Angeles checks:
 
@@ -34,6 +34,10 @@ Main commit `c81249fec70135bffbcec591c654ed7549a0a2f6` contains PRs 1–30. The 
 - A fresh stress run completed 265,096 calls across 1,000 worlds at concurrency 64, with zero lost events, zero duplicate payments under the same idempotency key, and successful restart readback. Duration was 20.609 seconds; HTTP latency p95 was 20.2 ms on this local workload. This is not a hosted capacity claim.
 
 Since the initial integrated build, comparison now checks completed campaign plans and protects existing output files; the CLI rejects irrelevant flags; late dashboard polls cannot revert a finished verdict; package documentation links and dependency inventory are checked in CI. These changes improve the evidence workflow, not the breadth of live-model support claims.
+
+## Current integrated source
+
+[PR #34](https://github.com/sulmatajb/agent-crash-lab/pull/34), merged as `d0e387064a4867cee3cf82a0caa2abec970853c0`, adds saved-report import, timeline filtering, matched-pair comparison and JSON downloads, plus CLI bundle splitting and verification. On November 4, 2026 UTC, [all four CI jobs](https://github.com/sulmatajb/agent-crash-lab/actions/runs/41773813868) passed on the reviewed head before merge: Ubuntu/macOS on Node 22/24, with documentation and license checks, integration tests, 220 scripted reference cases per job and clean-package smoke checks. These checks exercise software behavior; they add no live-model trials. The dated September records above remain historical evidence.
 
 ## Before announcing broad support
 
@@ -55,11 +59,12 @@ This is automated fresh-machine evidence, not an independent human onboarding te
 
 ## Publication operations
 
-- [ ] Owner confirms repository visibility change and release scope.
+- [x] Repository is publicly readable.
+- [ ] Owner confirms the scope and reviewed commit for a tagged release.
 - [ ] Enable GitHub private vulnerability reporting when available for the repository.
 - [ ] Review tracked files and Git history for private information; keep tokens, SQLite databases and session logs excluded.
 - [ ] If publishing to npm, verify package-name ownership and contents first. The README must not advertise an unverified `npx` install.
-- [ ] Remove the temporary restricted-access note from the README after public publication.
+- [ ] Before a tagged release, confirm the README installation instructions match the distribution being released.
 - [ ] Tag the reviewed commit and attach release notes with tested versions and known limitations.
 
 ## Prepared media
