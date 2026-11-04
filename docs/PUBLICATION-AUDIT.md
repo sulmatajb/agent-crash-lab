@@ -1,6 +1,6 @@
 # Publication audit — September 16, 2026
 
-Scope: main commit `592114eda3643cefc8a66cb3552e45f9da8833bd`, before adding these audit documents. The repository remains private.
+Scope: main commit `592114eda3643cefc8a66cb3552e45f9da8833bd`, before adding these audit documents. The repository was private at the time of this audit; the [repository is now public](https://github.com/sulmatajb/agent-crash-lab).
 
 ## Git history credential scan
 

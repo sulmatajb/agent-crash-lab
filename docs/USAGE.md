@@ -80,7 +80,7 @@ Open **http://127.0.0.1:4310**. Select **Compare reference agents**. Inspect the
 
 No account, model API key, or Docker is needed. Reference agents are deterministic scripts designed to validate the lab—not evidence about a language model.
 
-This project is **in a private GitHub repository and not published to npm**. Do not assume `npx agent-crash-lab` installs this code. To install the local package:
+The [source repository is public](https://github.com/sulmatajb/agent-crash-lab). Do not assume `npx agent-crash-lab` installs the code from your checkout. To install the local package:
 
 ```bash
 npm pack
@@ -206,7 +206,7 @@ npm run dev
 
 After server source changes, restart the server. Static dashboard files are served directly; reload the page. Build before connecting MCP so the stdio bridge reflects your changes. See [CONTRIBUTING.md](../CONTRIBUTING.md), [SECURITY.md](../SECURITY.md), and the GitHub Actions workflow.
 
-Before changing repository visibility, review the current release checklist, independent setup feedback, and publication audit. npm package ownership must be confirmed separately before any npm publication. Broader independently reviewed scenarios remain ongoing validation work. This is a functional local alpha; it does not yet include container-enforced agent isolation, real financial integrations, custom scenario plugins, or a hosted multi-user service.
+Before a tagged release, review the current release checklist, independent setup feedback, and publication audit. npm package ownership must be confirmed separately before any npm publication. Broader independently reviewed scenarios remain ongoing validation work. This is a functional local alpha; it does not yet include container-enforced agent isolation, real financial integrations, custom scenario plugins, or a hosted multi-user service.
 
 MIT licensed.
 

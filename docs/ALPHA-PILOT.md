@@ -4,7 +4,7 @@ The useful question is whether someone can install the lab, run their agent, und
 
 ## 1. Install on a fresh machine or checkout
 
-Use a machine with Node.js 22.13+ and access to this currently private repository. Follow the [README quick start](../README.md#quick-start), without copying an existing `node_modules` directory or database. Record:
+Use a machine with Node.js 22.13+ and clone the [public repository](https://github.com/sulmatajb/agent-crash-lab). Follow the [README quick start](../README.md#quick-start), without copying an existing `node_modules` directory or database. Record:
 
 ```bash
 node --version
@@ -64,7 +64,7 @@ For manual trials, compare the two exported report files. Change one variable at
 
 ## 5. Send useful feedback
 
-Copy this into a private issue or message after removing credentials and private content:
+For setup or evaluation feedback, copy this into a GitHub issue after removing credentials and private content:
 
 ```text
 Commit / OS / Node version:
@@ -83,4 +83,4 @@ Do not attach the SQLite database, MCP capability configuration, provider logs, 
 
 ## Pilot completion
 
-Record at least one independent clean installation and one authenticated live Hermes campaign before announcing those support claims. For additional agent apps with MCP support, document the exact tested agent app version and connection method. Fix observed setup blockers or misleading evidence first; retain non-passing agent outcomes rather than hiding them.
+The [authenticated Hermes campaign](HERMES-RELEASE-CAMPAIGN.md) is recorded: one trial per scenario, with 10 passed and 1 incomplete using Hermes 0.19.0 and OpenAI Codex OAuth. That evidence does not establish repeated-trial reliability or compatibility with every provider. An independent person still needs to complete a clean installation, one real trial and report verification on another machine. For additional agent apps with MCP support, document the exact tested version and connection method. Fix observed setup blockers or misleading evidence first; retain non-passing outcomes rather than hiding them.
