@@ -1,5 +1,7 @@
 # Installed-package Claude campaign — 0.3.2
 
+[See all 22 recorded trials and both incomplete outcomes](RESULTS.md).
+
 On 2026-09-16, a clean temporary consumer installed the actual 0.3.2 npm tarball and ran `agent-crash-lab evaluate-claude --scenario all`. Each scenario used a fresh Claude Code session and seed 42. The client reported version 2.1.261 and model `claude-opus-5[1m]`; this label is metadata, not independent attestation of provider identity.
 
 **10 passed, 1 incomplete, 0 failed, 0 execution errors across 11 scenarios and 102 business tool calls.** All eleven reports replayed successfully; recorded tool names and arguments matched the client tool traces, with `lab_finish` last. The command exited 1 because an incomplete scenario is not a successful campaign.
