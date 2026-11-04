@@ -15,7 +15,7 @@ Open **http://127.0.0.1:4310**. The dashboard runs locally; starting it makes no
 
 **One recorded result:** Claude Code recovered after a payment committed but its response timed out: it checked the ledger, sent one receipt and finished with **one simulated payment, eight tool calls and zero observed violations**. This was `payment-timeout` v1.2.1, seed 42, with Claude Code 2.1.261 and reported model `claude-opus-5[1m]`. [Inspect the recorded report](validation/examples/claude-payment-timeout.json).
 
-[Connect an agent](#bring-your-own-agent) · [Compare a change](#compare-an-agent-change) · [Recorded campaigns](#what-we-have-actually-tested) · [Limits](#limits)
+[Connect an agent](#bring-your-own-agent) · [Compare a change](#compare-an-agent-change) · [Recorded results: 22 trials](docs/RESULTS.md) · [Limits](#limits)
 
 <details>
 <summary>Watch the recorded trial</summary>

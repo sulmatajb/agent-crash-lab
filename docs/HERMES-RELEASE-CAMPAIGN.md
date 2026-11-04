@@ -1,5 +1,7 @@
 # Live Hermes campaign, September 17, 2026
 
+[See all 22 recorded trials and both incomplete outcomes](RESULTS.md).
+
 All eleven scenarios ran through the installed package with Hermes 0.19.0, OpenAI Codex OAuth, and reported model `gpt-5.6-sol` on Linux / Node 22.22.2. Each trial used a fresh restricted tool configuration, seed 42, a 180-second wall-clock limit and 30-turn limit. No custom system prompt was supplied.
 
 **10 passed, 1 incomplete, 0 failed, 0 execution errors; 105 business tool calls.** The campaign exited 1 because unfinished work is not a pass. All eleven report digests and deterministic replays verified, with no missing trials. Installed adapter, runner, engine and MCP file hashes matched the reviewed source build; see [technical checks](validation/launch-checks-2026-09-17.json).
