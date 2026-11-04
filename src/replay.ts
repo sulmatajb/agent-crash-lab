@@ -23,7 +23,17 @@ const reportEnvelope = z.object({
   }).passthrough().optional(),
 }).passthrough();
 
+/** Single-run exports and CLI bundles share the same declared format version. */
+export function assertReportVersion(input: unknown) {
+  if (input && typeof input === 'object' && Object.hasOwn(input, 'report_version')
+      && (input as { report_version: unknown }).report_version !== '1.0.0') {
+    // Do not echo the supplied value: evidence can contain private output.
+    throw new Error('Unsupported report version. Expected 1.0.0 or legacy evidence without report_version.');
+  }
+}
+
 export function verifyReport(input: unknown) {
+  assertReportVersion(input);
   const envelope = reportEnvelope.safeParse(input);
   if (!envelope.success) {
     // Never echo submitted values (reports may contain private model output).
@@ -47,4 +57,50 @@ export function verifyReport(input: unknown) {
   for (const key of ['payments', 'emails', 'approvals', 'findings', 'timeout_fired'] as const) if (!isDeepStrictEqual(replay[key], report[key])) throw new Error(`Final ${key} differs from replayed evidence.`);
   if (Object.hasOwn(report, 'evaluation') && !isDeepStrictEqual(evaluate(replay), report.evaluation)) throw new Error('Evaluation differs from replayed evidence.');
   return { verified: true, events: report.events.length, verdict: evaluate(replay).verdict, limitation: 'Verifies internal consistency, not report authorship or agent identity.' };
+}
+
+const testBundleEnvelope = z.object({
+  report_version: z.literal('1.0.0'),
+  summary: z.object({
+    total: z.number().int().min(1).max(1100),
+    passed: z.number().int().min(0).max(1100),
+    failed: z.number().int().min(0).max(1100),
+    incomplete: z.number().int().min(0).max(1100),
+  }).strict(),
+  runs: z.array(z.unknown()).min(1).max(1100),
+});
+
+// Single-report metadata remains permissive apart from its declared format version.
+// Dashboard reports also carry report_version; that field alone is not a bundle.
+export function verifyEvidence(input: unknown) {
+  if (reportEnvelope.safeParse(input).success || !input || typeof input !== 'object' ||
+      (!Object.hasOwn(input, 'runs') && !Object.hasOwn(input, 'summary'))) {
+    return verifyReport(input);
+  }
+  return verifyTestBundle(input);
+}
+
+/** Validate a native saved test bundle, including its declared summary. */
+export function verifyTestBundle(input: unknown) {
+  const bundle = testBundleEnvelope.safeParse(input);
+  if (!bundle.success) throw new Error('Invalid test bundle structure.');
+  const summary = { total: bundle.data.runs.length, passed: 0, failed: 0, incomplete: 0 };
+  const runs = bundle.data.runs.map((report, index) => {
+    try {
+      const result = verifyReport(report);
+      if (result.verdict !== 'passed' && result.verdict !== 'failed' && result.verdict !== 'incomplete') {
+        throw new Error('Unsupported test verdict.');
+      }
+      summary[result.verdict]++;
+      return { index: index + 1, verified: true, events: result.events, verdict: result.verdict };
+    } catch {
+      // Replay can reject a submitted scenario or tool. Do not relay its values.
+      throw new Error(`Test bundle run ${index + 1} failed verification.`);
+    }
+  });
+  if (!isDeepStrictEqual(summary, bundle.data.summary)) throw new Error('Test bundle summary differs from replayed evidence.');
+  return {
+    kind: 'test-bundle', report_version: '1.0.0', verified: true, summary, runs,
+    limitation: 'Verifies internal consistency of the supplied runs and summary, not passing results, campaign completeness, report authorship, agent identity or safety.',
+  };
 }

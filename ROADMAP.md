@@ -10,7 +10,7 @@ The initial focus is vendor-payment and invoice-email agents. The priority is us
 | Complete run history | Implemented | Older evidence is reachable beyond 250 runs; concurrent inserts do not duplicate or skip older cases; agent tokens cannot browse it. |
 | Global history search | Implemented | Queries span the database, combine agent/scenario/verdict filters, use bounded pages, and remain responsive on a measured large dataset.  |
 | Reproducible campaign manifests | Implemented | Prompt/configuration fingerprints, client versions, scenario versions and seed ranges are explicit without exposing credentials or raw private narration. |
-| Offline report review | Remaining | Imported evidence is validated and clearly marked as imported; the viewer cannot replay real-world side effects or impersonate a live connection. |
+| Offline report review | Implemented for single reports and matched pairs | Open one UTF-8 JSON report up to 10 MiB in the running local dashboard; verify simulation consistency and recompute checks; mark imported identity as unverified and the view as read-only. No persistence, live-run actions, polling or real-world effects. The dashboard can compare a baseline/candidate pair using the CLI rules with a combined 10 MiB limit, then inspect either snapshot. Campaign/batch imports and a standalone static viewer remain outside this milestone. |
 
 ## Make onboarding dependable
 

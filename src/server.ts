@@ -7,6 +7,8 @@ import { z } from 'zod';
 import { RunStore } from './store.js';
 import { callTool, evaluate, finishRun, newRun } from './engine.js';
 import { runScripted } from './agents.js';
+import { verifyReport } from './replay.js';
+import { compareReports } from './compare.js';
 import { scenarios, policy, task, type ScenarioId } from './scenarios.js';
 
 const publicDir = fileURLToPath(new URL('../public/', import.meta.url));
@@ -16,11 +18,14 @@ const runSchema = z.object({ scenario: scenarioSchema, agent: z.enum(['careful',
 const equal = (a: string, b: string) => Buffer.byteLength(a) === Buffer.byteLength(b) && timingSafeEqual(Buffer.from(a), Buffer.from(b));
 class RequestInputError extends Error {}
 
-async function body(req: IncomingMessage) {
+async function body(req: IncomingMessage, limit = 65536, report = false) {
   const chunks: Buffer[] = []; let bytes = 0;
-  for await (const chunk of req) { bytes += chunk.length; if (bytes > 65536) throw new RequestInputError('Request body exceeds the 64 KiB limit.'); chunks.push(Buffer.from(chunk)); }
-  try { return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'); }
-  catch { throw new RequestInputError('Request body must be valid JSON.'); }
+  for await (const chunk of req) { bytes += chunk.length; if (bytes > limit) throw new RequestInputError(report ? 'Report exceeds the 10 MiB limit.' : 'Request body exceeds the 64 KiB limit.'); chunks.push(Buffer.from(chunk)); }
+  try {
+    const bytes = Buffer.concat(chunks);
+    const text = report ? new TextDecoder('utf-8', { fatal:true }).decode(bytes) : bytes.toString('utf8');
+    return JSON.parse(report ? text : text || '{}');
+  } catch { throw new RequestInputError(report ? 'Report must be valid UTF-8 JSON.' : 'Request body must be valid JSON.'); }
 }
 function send(res: ServerResponse, status: number, value: unknown) {
   res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(value));
@@ -59,6 +64,39 @@ export function createLabServer(store: RunStore, adminToken = randomBytes(32).to
       }
       if (!url.pathname.startsWith('/api/')) return send(res, 404, { error: 'Not found' });
       if (!equal(bearer, adminToken)) return send(res, 401, { error: 'Admin authorization required' });
+      if (url.pathname === '/api/reports/compare' && req.method === 'POST') {
+        const input = await body(req, 10 * 1024 * 1024, true);
+        if (!input || typeof input !== 'object' || Array.isArray(input) ||
+            Object.keys(input).length !== 2 || !('baseline' in input) || !('candidate' in input)) {
+          throw new RequestInputError('Choose one baseline report and one candidate report.');
+        }
+        for (const side of ['baseline', 'candidate'] as const) {
+          try { verifyReport(input[side]); }
+          catch { throw new RequestInputError(`${side === 'baseline' ? 'Baseline' : 'Candidate'} report could not be verified. Choose a single supported report with consistent evidence.`); }
+        }
+        const { baseline, candidate } = input;
+        if (baseline.scenario !== candidate.scenario || baseline.scenario_version !== candidate.scenario_version || baseline.seed !== candidate.seed) {
+          throw new RequestInputError('Reports must have the same scenario, scenario version and seed. Choose a matching pair.');
+        }
+        try {
+          const comparison = compareReports([baseline], [candidate]);
+          // Supplied identities remain untrusted snapshots. Never touch the store.
+          return send(res, 200, { comparison, baseline:{ ...baseline, evaluation:evaluate(baseline) }, candidate:{ ...candidate, evaluation:evaluate(candidate) } });
+        } catch {
+          throw new RequestInputError('Reports could not be compared. Choose two supported single reports with consistent evidence.');
+        }
+      }
+      if (url.pathname === '/api/reports/review' && req.method === 'POST') {
+        const input = await body(req, 10 * 1024 * 1024, true);
+        try {
+          const verification = verifyReport(input);
+          // Replay validates simulation consistency only. Never save, authorize,
+          // finish or attach this supplied identity to the local run store.
+          return send(res, 200, { report:{ ...input, evaluation:evaluate(input) }, verification });
+        } catch {
+          throw new RequestInputError('Report could not be verified. Choose a single supported Crash Lab report with consistent evidence.');
+        }
+      }
       if (url.pathname === '/api/scenarios' && req.method === 'GET') return send(res, 200, { scenarios, policy, task });
       if (url.pathname === '/api/history' && req.method === 'GET') {
         const query = z.object({ limit:z.coerce.number().int().min(1).max(100).default(50), before:z.string().uuid().optional(), q:z.string().max(200).default(''), filter:z.enum(['all','reference','live','attention','running']).default('all') }).strict().parse(Object.fromEntries(url.searchParams));

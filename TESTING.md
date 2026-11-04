@@ -8,7 +8,17 @@ npm test
 npm run stress -- --worlds 1000 --concurrency 64 --out stress-report.json
 ```
 
+Stress `--out` creates a new report file with owner-only permissions on POSIX systems (Windows permission behavior is unverified). An existing output (including a symbolic link) is preserved and the CLI exits with code 2; choose a new filename for each run. Without `--out`, the report is printed to stdout. The stress workload still runs before an output-write error is reported.
+
+Scripted `test --out` also requires a new output filename and creates it with owner-only permissions on POSIX. Existing files, directories, hard links and symbolic links are preserved; an occupied destination or a blank `--out` exits with code 2. The reference runs execute before an output-write error is reported. A successfully saved report retains the normal verdict exit code: 0 for all passed, 1 for failed/incomplete. Without `--out`, results still go to stdout. This runs deterministic reference scripts, not a model. An I/O failure after exclusive creation can leave a partial new file; it is reported as an error.
+
 `npm test` includes engine/evaluator tests, adversarial input, HTTP authorization, persistence, concurrent updates, abrupt process crash recovery, CLI exits, official MCP integration, timeout/cancellation, report replay, and dashboard DOM interactions.
+
+History navigation commits only when its page loads successfully. A failed Next, Previous, or Newest request keeps the displayed rows and navigation available for retry. DOM tests use the local HTTP server with synthetic failures and delayed responses to cover retries and superseding search/filter changes; no live model is involved.
+
+Finish responses update the dashboard only while their navigation intent is current. `test/finish-navigation.test.ts` gates real local HTTP responses to cover newer run navigation, same-run reopening, scenario selection, reference runs, stale polls, and a lost finish acknowledgment followed by retry. The server still completes the original run when its response becomes obsolete. Run this focused coverage with `node --import tsx --test test/finish-navigation.test.ts`; `CRASHLAB_TEST_ROOT=/path/to/unchanged/checkout` exercises the same tests against an alternate checkout with its dependencies available.
+
+Comparison download DOM tests use the local HTTP server and capture the generated Blob to check exact CLI-compatible summary content for regression, failed no-regression and inconclusive outcomes. They also cover replacement and pending invalidation, late file reads and responses, preparation failure with retry, and URL/anchor cleanup. Browser download initiation is not evidence of a completed save to disk. Run the focused coverage with `node --import tsx --test test/report-compare-ui.test.ts`.
 
 The installed-Hermes integration test is optional in environments without Hermes:
 

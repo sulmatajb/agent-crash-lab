@@ -26,3 +26,8 @@
 .history-pagination{display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap;margin-top:20px}
 
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+.timeline-toolbar{display:flex;align-items:end;gap:14px;flex-wrap:wrap}.timeline-toolbar label{width:220px;max-width:100%}.timeline-toolbar p{padding-bottom:10px}.timeline-help{margin:12px 0 22px}
+
+.report-comparison-form,.report-comparison-summary{padding:26px;margin-bottom:24px}.report-pickers{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;margin:24px 0}.report-pickers label{min-width:0}.report-pickers input{display:block;width:100%;max-width:100%;margin-top:10px;border:1px solid var(--line);padding:10px;border-radius:5px;background:#f7f9f8}.report-comparison-form>.button{margin-top:20px}#report-pair-status{margin-top:16px;overflow-wrap:anywhere}.report-comparison-summary h2{margin-bottom:12px}.report-comparison-summary .compare-card{min-width:0;overflow-wrap:anywhere}.report-comparison-summary .compare-card .pill{margin-top:12px}.report-comparison-summary .compare-card .text-button{margin-top:16px}.report-comparison-summary li{margin:10px 0;overflow-wrap:anywhere}
+@media(max-width:650px){.report-pickers{grid-template-columns:1fr}.report-comparison-form,.report-comparison-summary{padding:18px}.report-comparison-summary .compare-strip{grid-template-columns:1fr}}
