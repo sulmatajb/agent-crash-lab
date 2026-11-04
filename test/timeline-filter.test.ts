@@ -61,7 +61,9 @@ test('zero matches differs from empty running, completed and imported timelines'
 test('explicit run/scenario/reference/operator navigation resets; same-ID import cannot poll stored state',async t=>{
  const h=await dashboard(t);h.filter();await h.open(h.run.id);assert.equal(h.select().value,'all');h.filter();await h.importRun(h.run);assert.equal(h.select().value,'all');h.filter();const count=h.requests.length;h.store.mutate(h.run.id,(r:any)=>callTool(r,'unknown_tool',{}));await h.poll();assert.equal(h.requests.length,count);assert.equal(h.doc.querySelector('#timeline-count')!.textContent,'3 of 6 events shown');
  await h.open(h.run.id);assert.equal(h.select().value,'all');assert.equal((h.doc.querySelector('#imported-report-context') as HTMLElement).hidden,true);
- h.filter();h.click('[data-scenario="clean-control"]');assert.equal(h.doc.querySelector('#timeline-filter'),null);h.click('#run-button');await until(()=>!!h.doc.querySelector('#timeline-filter'));assert.equal(h.select().value,'all');
+ h.filter();h.click('[data-scenario="clean-control"]');assert.equal(h.doc.querySelector('#timeline-filter'),null);h.click('#run-button');
+ // The timeline renders before history finishes refreshing and the run action becomes available.
+ await until(()=>!!h.doc.querySelector('#timeline-filter')&&!h.doc.querySelector('#run-button')!.hasAttribute('disabled'));assert.equal(h.select().value,'all');
  h.filter();await h.registered.get('crashlab_run_reference').execute({scenario:'payment-timeout',agent:'reckless',seed:9});assert.equal(h.select().value,'all');
  h.filter();h.click('#run-button');await until(()=>!h.doc.querySelector('#run-button')!.hasAttribute('disabled'));assert.equal(h.select().value,'all');
 });
