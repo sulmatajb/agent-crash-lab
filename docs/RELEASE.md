@@ -2,6 +2,8 @@
 
 The [repository is public](https://github.com/sulmatajb/agent-crash-lab). A tagged release and npm publication are separate owner-controlled operations. This checklist distinguishes implemented features from evidence still needed; it is not a safety certification.
 
+[Prepared public alpha release notes](RELEASE-NOTES.md) provide a replacement title/body and an owner handoff for the older unpublished draft. They are not a published release or a claim that its existing assets match the current source.
+
 ## Verified foundation
 
 - [x] Local web app, CLI, stdio MCP, SQLite persistence and replay.

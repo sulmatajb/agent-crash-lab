@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use Agent Crash Lab in your work, please cite this software and record the source commit used."
+type: software
+title: "Agent Crash Lab"
+authors:
+  - family-names: "Sulmataj"
+    given-names: "Besnik"
+repository-code: "https://github.com/sulmatajb/agent-crash-lab"
+url: "https://github.com/sulmatajb/agent-crash-lab"
+license: MIT

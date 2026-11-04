@@ -188,4 +188,6 @@ npm test
 npm run smoke:package
 ```
 
+[Cite this software](CITATION.cff) and record the source commit used in your work.
+
 [MIT license](LICENSE) · [CI results](https://github.com/sulmatajb/agent-crash-lab/actions/workflows/ci.yml) · [Roadmap](ROADMAP.md)
