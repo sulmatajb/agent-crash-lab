@@ -13,13 +13,13 @@ async function main() {
     agent: { type: 'string', default: 'careful' }, scenario: { type: 'string', default: 'all' },
     seed: { type: 'string', default: '42' }, runs: { type: 'string', default: '1' },
     json: { type: 'boolean', default: false }, out: { type: 'string' }, help: { type: 'boolean', short: 'h' },
-    client: { type: 'string' }, 'claude-command': { type: 'string' }, 'hermes-python': { type: 'string' }, 'hermes-profile': { type: 'string' }, model: { type: 'string' }, provider: { type: 'string' },
+    client: { type: 'string' }, 'claude-command': { type: 'string' }, 'codex-command': { type: 'string' }, 'max-tool-calls': { type: 'string', default: '30' }, 'hermes-python': { type: 'string' }, 'hermes-profile': { type: 'string' }, model: { type: 'string' }, provider: { type: 'string' },
     timeout: { type: 'string', default: '180' }, 'max-turns': { type: 'string', default: '30' },
     'system-prompt': { type: 'string' }, worlds: { type: 'string', default: '100' }, concurrency: { type: 'string', default: '16' }
   } });
   const command = positionals[0] ?? 'help';
   if (command === 'help' || values.help) {
-    console.log('Live-agent commands:\n  doctor             Inspect setup without inference; --client claude|hermes|all\n  probe              Verify actual Hermes MCP discovery/call; no model inference\n  evaluate-claude    Launch isolated Claude Code (all/advanced/scenario ID)\n  evaluate           Launch and supervise Hermes against the selected scenarios\n  stress             Load-test HTTP, MCP, persistence and ledger invariants\n  compare BEFORE AFTER Compare verified reports or campaign directories\n  verify-campaign MANIFEST Verify campaign files and coverage\n  split BUNDLE.json  Extract verified runs; --out NEW_DIRECTORY [--json]\n  verify REPORT.json Replay exported evidence and check its consistency\n\nHermes options: --hermes-python PATH --hermes-profile DIR --model ID --provider NAME\n  --timeout 180 --max-turns 30 --system-prompt FILE --out DIRECTORY\nStress options: --worlds 100 --concurrency 16 --out REPORT.json\n');
+    console.log('Live-agent commands:\n  doctor             Inspect setup without inference; --client claude|hermes|all\n  probe              Verify actual Hermes MCP discovery/call; no model inference\n  evaluate-claude    Launch isolated Claude Code (all/advanced/scenario ID)\n  evaluate-codex     Launch Codex CLI; requires --model ID\n  evaluate           Launch and supervise Hermes against the selected scenarios\n  stress             Load-test HTTP, MCP, persistence and ledger invariants\n  compare BEFORE AFTER Compare verified reports or campaign directories\n  verify-campaign MANIFEST Verify campaign files and coverage\n  split BUNDLE.json  Extract verified runs; --out NEW_DIRECTORY [--json]\n  verify REPORT.json Replay exported evidence and check its consistency\n\nHermes options: --hermes-python PATH --hermes-profile DIR --model ID --provider NAME\n  --timeout 180 --max-turns 30 --system-prompt FILE --out DIRECTORY\nCodex options: --model ID --codex-command PATH --max-tool-calls 30\n  --timeout 180 --system-prompt FILE --out DIRECTORY\nStress options: --worlds 100 --concurrency 16 --out REPORT.json\n');
     console.log(`Agent Crash Lab 0.3.2\n\nUsage: agent-crash-lab <command> [options]\n\n  start              Start the local dashboard (http://127.0.0.1:4310)\n  demo               Seed a careful/reckless comparison and start dashboard\n  test               Run scripted reference agents headlessly\n  mcp                Start the stdio MCP bridge for an external run\n  scenarios          List the vendor-payment scenarios\n\nOptions:\n  --port 4310        Local server port\n  --db PATH          SQLite store (default .crashlab/runs.sqlite)\n  --agent NAME       careful | reckless (test only)\n  --scenario ID      Scenario ID or all (test/evaluate)\n  --seed 42          Seed from 0 to 2147483647\n  --runs 1           Repetitions, incrementing seeds (max 100)\n  --json             Print machine-readable test results\n  --out PATH         Save full JSON evidence\n\nTest exits: 0 all passed; 1 failed/incomplete; 2 usage/runtime error.\nReference agents are deterministic scripts, not language models.\nConnect your own agent from the dashboard; no model keys are needed by the lab.`); return;
   }
   if (!['compare', 'verify', 'verify-campaign', 'split'].includes(command) && positionals.length > 1) {
@@ -36,6 +36,7 @@ async function main() {
     evaluate: [...runnerOptions,'hermes-python','hermes-profile','provider'],
     probe: [...runnerOptions,'hermes-python','hermes-profile','provider'],
     'evaluate-claude': [...runnerOptions,'claude-command','provider'],
+    'evaluate-codex': [...runnerOptions.filter(x => x !== 'max-turns'),'codex-command','max-tool-calls'],
   };
   const allowed = commandOptions[command];
   if (!allowed) throw new Error(`Unknown command: ${command}`);
@@ -92,15 +93,15 @@ async function main() {
   const seed = Number(values.seed), repetitions = Number(values.runs);
   if (!Number.isSafeInteger(seed) || seed < 0 || seed > 2147483647) throw new Error('Invalid --seed');
   if (!Number.isInteger(repetitions) || repetitions < 1 || repetitions > 100 || seed + repetitions - 1 > 2147483647) throw new Error('Invalid --runs or seed range');
-  if (command === 'evaluate' || command === 'probe' || command === 'evaluate-claude') {
+  if (command === 'evaluate' || command === 'probe' || command === 'evaluate-claude' || command === 'evaluate-codex') {
     const timeout = Number(values.timeout), maxTurns = Number(values['max-turns']);
     if (!Number.isInteger(timeout) || timeout < 1 || timeout > 900 || !Number.isInteger(maxTurns) || maxTurns < 1 || maxTurns > 100) throw new Error('Timeout must be 1–900 seconds and max-turns 1–100.');
     const systemPrompt = values['system-prompt'] === undefined ? undefined : readSystemPrompt(values['system-prompt']);
     const { evaluateHermes } = await import('./runner.js'); const controller = new AbortController();
     const cancel = () => controller.abort(); process.once('SIGINT', cancel); process.once('SIGTERM', cancel);
     try {
-      const runner = command === 'evaluate-claude' ? (await import('./claude.js')).evaluateClaude : evaluateHermes;
-      const summary = await runner({ command: values['claude-command'], python: values['hermes-python'], profile: values['hermes-profile'], scenario: command === 'probe' && values.scenario === 'all' ? 'clean-control' : values.scenario!, seed, repetitions, timeoutMs: timeout * 1000, maxTurns, out: values.out ?? '.crashlab/evaluations', db: values.db!, probe: command === 'probe', model: values.model, provider: values.provider, systemPrompt, signal: controller.signal, log: values.json ? undefined : line => console.error(line) });
+      const runner = command === 'evaluate-codex' ? (await import('./codex.js')).evaluateCodex : command === 'evaluate-claude' ? (await import('./claude.js')).evaluateClaude : evaluateHermes;
+      const summary = await runner({ command: command === 'evaluate-codex' ? values['codex-command'] : values['claude-command'], maxToolCalls: Number(values['max-tool-calls']), python: values['hermes-python'], profile: values['hermes-profile'], scenario: command === 'probe' && values.scenario === 'all' ? 'clean-control' : values.scenario!, seed, repetitions, timeoutMs: timeout * 1000, maxTurns, out: values.out ?? '.crashlab/evaluations', db: values.db!, probe: command === 'probe', model: values.model, provider: values.provider, systemPrompt, signal: controller.signal, log: values.json ? undefined : line => console.error(line) });
       console.log(JSON.stringify(summary, null, 2));
       process.exitCode = summary.cancelled ? 130 : summary.execution_errors ? 2 : command === 'probe' || summary.passed === summary.total ? 0 : 1;
     } finally { process.removeListener('SIGINT', cancel); process.removeListener('SIGTERM', cancel); }

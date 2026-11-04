@@ -252,6 +252,10 @@ The main summary shows policy violations, task checks met, and tool-call count. 
 
 Pass scenario names with `--scenario`, for example `node dist/cli.js evaluate-claude --scenario payment-timeout`. A bare positional scenario such as `evaluate-claude payment-timeout` exits with code 2 before launching an agent app or creating a campaign. Other unexpected positional arguments are rejected as well; evidence commands accept their documented file or directory operands.
 
+### Codex CLI selection
+
+`evaluate-codex` runs the Codex CLI with required `--model ID`, optional `--codex-command PATH`, and `--max-tool-calls 30` rather than `--max-turns`. See [Codex configuration and limits](CODEX.md).
+
 ### Claude provider selection
 
 `--provider` belongs to the Hermes runner. `evaluate-claude` rejects it before creating campaign artifacts because the lab does not forward a provider override to Claude Code. Configure provider access in the selected Claude Code installation and use `--model` for its model selection. A campaign must not imply an unsupported setting was applied.

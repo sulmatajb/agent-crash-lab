@@ -43,6 +43,16 @@ node dist/cli.js evaluate-claude --scenario payment-timeout --seed 42 --runs 1 -
 
 The runner creates a fresh session with the ten lab tools, supervises execution and saves reports. Watch it in **Run history**. Use `--model MODEL` to select a model and `--system-prompt /path/to/prompt.txt` to test your instructions. Ctrl+C cancels the trial and preserves evidence.
 
+### Codex CLI — supervised adapter
+
+With Codex CLI installed and signed in, select the exact model you want to test:
+
+```bash
+node dist/cli.js evaluate-codex --model YOUR_MODEL --scenario payment-timeout --seed 42 --runs 1 --timeout 180 --max-tool-calls 30 --out results/codex
+```
+
+The runner uses your existing Codex sign-in and saves replayable reports. It starts in a temporary directory, ignores user configuration and rules, and requests the lab MCP tools and restricts native tools. `--max-tool-calls` counts observed MCP calls, including `lab_finish`; it is not a model-turn or billing cap. This adapter has offline protocol verification; the four-cell model pilot is still pending. [Configuration, evidence and limits](docs/CODEX.md).
+
 ### Hermes — supervised adapter
 
 On the machine containing your Hermes installation and authenticated model profile:
