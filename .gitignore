@@ -31,3 +31,7 @@ videos/**/recording/
 !videos/agent-crash-lab/assets/recordings/*.mp4
 
 !videos/agent-crash-lab/assets/short-inputs/*.mp4
+
+# Browser demo: intermediate build output; docs/play/index.html is the tracked result.
+web/engine.bundle.js
+web/play.fragment.html
